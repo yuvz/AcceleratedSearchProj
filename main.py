@@ -8,20 +8,16 @@ from queue import Queue
 from copy import deepcopy
 from math import ceil, sqrt, floor
 from time import time
-from operator import itemgetter
-from functools import cmp_to_key
-from typing import List, Set, Tuple
-from Definitions import Agent
 
-from matplotlib.colors import get_named_colors_mapping
 
 EXPORT_ANIMATION = False
 SHOW_ANIMATION_TRAIL = False
 
-PRIORITIZE_AGENTS_WAITING_AT_SOURCE = False
+PRIORITIZE_AGENTS_WAITING_AT_SOURCE = True
 RANDOM_SCHEDULING_ENABLED = False
 ALLOW_DIAGONAL_MOVEMENT = False
-TARGET_OFFSET_FACTOR = 3
+SOURCE_OFFSET = 3
+DESTINATION_OFFSET = 5
 
 WAREHOUSE_1_WALL_CORNERS = [(21, 15), (21, 46), (21, 105), (28, 82), (45, 50), (45, 70), (45, 95), (57, 19),
                             (73, 70), (60, 115)]
@@ -33,12 +29,78 @@ WAREHOUSE_4_WALL_CORNERS = []
 
 WAREHOUSE_CORNERS = [WAREHOUSE_1_WALL_CORNERS, WAREHOUSE_2_WALL_CORNERS, WAREHOUSE_3_WALL_CORNERS,
                      WAREHOUSE_4_WALL_CORNERS]
-WAVES_PER_WAREHOUSE = [30, 20, 10, 2]
+WAVES_PER_WAREHOUSE = [10, 20, 10, 1]
 WAREHOUSE_FPS = [24, 3, 6, 12]
 
 PROGRESSIVELY_OBSTACLE_RESTRICTED_PLANS_MAX_TRIES = 5
 RANDOM_MIDPOINTS_MAX_TRIES = 5
 LNS_ITERATIONS = 1
+
+
+class Agent:
+    """
+       Prioritize a robot blocking the destination
+       Otherwise, prioritize for smaller row_idx
+       Otherwise, larger destination_distance
+    """
+
+    def __lt__(self, other):
+        self_destination_distance = self.get_destination_distance()
+        other_destination_distance = other.get_destination_distance()
+
+        if self_destination_distance <= 0:
+            return True
+        if other_destination_distance <= 0:
+            return False
+
+        if self.vertex.coordinates[0] < other.vertex.coordinates[0]:
+            return True
+        return self_destination_distance > other_destination_distance
+
+    def __init__(self, agent_id, vertex, destination):
+        self.agent_id = agent_id
+        self.vertex = vertex
+        self.destination = destination
+
+        self.left_source = False
+        self.previous_vertex = None
+
+    def get_destination_distance(self):
+        return self.vertex.destination_distance[self.destination.destination_id]
+
+    def is_at_destination(self):
+        return self.get_destination_distance() == 0
+
+    def get_source_id(self):
+        return self.vertex.source_id
+
+    def get_destination_id(self):
+        return self.destination.destination_id
+
+    def comparator_source_destination_id(self, other):
+        if self.get_source_id() < other.get_source_id():
+            return -1
+        elif self.get_source_id() == other.get_source_id:
+            if self.get_destination_id() < other.get_destination_id():
+                return -1
+            elif self.get_destination_id() == other.get_destination_id():
+                return 0
+            else:
+                return 1
+        else:
+            return 1
+
+    def get_ideal_neighbor(self):
+        ideal_neighbor = None
+        min_destination_distance = self.get_destination_distance() + 1
+
+        for neighbor in self.vertex.neighbors:
+            neighbor_destination_distance = neighbor.get_destination_distance(self.destination.destination_id)
+            if neighbor_destination_distance < min_destination_distance:
+                min_destination_distance = neighbor_destination_distance
+                ideal_neighbor = neighbor
+
+        return ideal_neighbor
 
 
 class Warehouse:
@@ -118,10 +180,15 @@ class Warehouse:
             source.neighbors = source.neighbors.difference(neighbors_to_remove)
 
     def set_sources_and_destinations(self, number_of_targets, row_idx, target_array, is_destination=False):
-        distance_between_targets = round(self.width / number_of_targets)
-        targets_offset = round(distance_between_targets / TARGET_OFFSET_FACTOR)
+        offset = DESTINATION_OFFSET if is_destination else SOURCE_OFFSET
+        area_without_offsets = self.width - offset
+        remainder_from_right_wall = area_without_offsets % number_of_targets
 
-        for i, column_idx in enumerate(range(targets_offset, self.width, distance_between_targets)):
+        first_target_position = offset
+        last_target_position = self.width - remainder_from_right_wall
+        distance_between_targets = int((area_without_offsets - remainder_from_right_wall) / number_of_targets)
+
+        for i, column_idx in enumerate(range(first_target_position, last_target_position, distance_between_targets)):
             vertex = self.vertices[row_idx][column_idx]
             target_array.append(vertex)
 
@@ -212,11 +279,11 @@ class Warehouse:
         self.static_obstacle_length = static_obstacle_length
         self.static_obstacle_width = static_obstacle_width
 
-        self.vertices: List[List[Warehouse.WarehouseNode]] = []
+        self.vertices = []
         self.static_obstacles = set()
-        self.static_obstacle_corners: Set[Tuple[int, int]] = set()
-        self.sources: List[Warehouse.WarehouseNode] = []
-        self.destinations: List[Warehouse.WarehouseNode] = []
+        self.static_obstacle_corners = set()
+        self.sources = []
+        self.destinations = []
 
         self.initialize_vertices()
         self.set_static_obstacles()
@@ -393,25 +460,16 @@ def show_routes(warehouse, plan, running_time=-1.0, algorithm_name="TODO", dest_
     interval = 1000 * dt - (t1 - t0)
     animation = FuncAnimation(fig, animate, frames=frames, init_func=init, blit=True, interval=interval)
 
-    makespan = max([len(route) for route in plan])
+    sum_of_costs = sum([len(route) for route in plan])
 
     title_left = "map_size = " + str(warehouse.width) + "*" + str(warehouse.length) +\
                  "        (num_sources, num_destinations) = " + \
                  str((warehouse.number_of_sources, warehouse.number_of_destinations)) + \
                  "        num_agents = " + str(len(plan)) + \
-                 "\nAlgorithm = " + algorithm_name + "        makespan = " + str(makespan) + \
+                 "\nAlgorithm = " + algorithm_name + "        sum_of_costs = " + str(sum_of_costs) + \
                  "        running_time = " + str(running_time)
 
-    # title_left = "Algorithm = " + algorithm_name + "\n(num_sources, num_destinations) = " + \
-    #              str((warehouse.number_of_sources, warehouse.number_of_destinations)) + "\nmakespan = " + str(makespan)
-    #
-    # title_center = "map_size = " + str(warehouse.width) + "*" + str(warehouse.length) + "\n\nrunning_time = " + \
-    #                str(running_time)
-    #
-    # title_right = "num_agents = " + str(len(plan)) + "\n\n"
     plt.title(title_left, loc='left')
-    # plt.title(title_center)
-    # plt.title(title_right, loc='right')
     plt.suptitle(title)
     plt.show()
     if EXPORT_ANIMATION:
@@ -523,21 +581,45 @@ class AStar:
                         valid_neighbors_coordinates.pop(conflicting_neighbor_index)
                         valid_neighbors_edge_midpoints.pop(conflicting_neighbor_index)
 
+        def remove_edge_collisions(self, valid_neighbors, plan):
+            valid_neighbors_coordinates = {neighbor.coordinates for neighbor in valid_neighbors}
+            current_self_coordinates = self.vertex.coordinates
+
+            for agent_plan in plan:
+                if self.g_value + 1 < len(agent_plan):
+                    current_other_coordinates = agent_plan[self.g_value]
+                    next_other_coordinates = agent_plan[self.g_value + 1]
+
+                    if current_other_coordinates in valid_neighbors_coordinates and \
+                            current_self_coordinates == next_other_coordinates:
+                        valid_neighbors.remove(warehouse.vertices[current_other_coordinates[0]]
+                                               [current_other_coordinates[1]])
+                        if not valid_neighbors:
+                            return
+                        valid_neighbors_coordinates.remove(current_other_coordinates)
+
         def remove_vertex_collisions(self, valid_neighbors, plan):
             valid_neighbors_coordinates = {neighbor.coordinates for neighbor in valid_neighbors}
 
             for agent_plan in plan:
-                if self.g_value + 1 < len(agent_plan) and agent_plan[self.g_value + 1] in valid_neighbors_coordinates:
-                    valid_neighbors.remove(warehouse.vertices[agent_plan[self.g_value + 1][0]][agent_plan[self.g_value + 1][1]])
-                    if not valid_neighbors:
-                        return
-                    valid_neighbors_coordinates.remove(agent_plan[self.g_value + 1])
+                if self.g_value + 1 < len(agent_plan):
+                    next_other_coordinates = agent_plan[self.g_value + 1]
+
+                    if next_other_coordinates in valid_neighbors_coordinates:
+                        valid_neighbors.remove(warehouse.vertices[next_other_coordinates[0]][next_other_coordinates[1]])
+                        if not valid_neighbors:
+                            return
+                        valid_neighbors_coordinates.remove(next_other_coordinates)
 
         def get_valid_neighbors_from_plan(self, plan):
             valid_neighbors = self.vertex.neighbors.copy()
 
             self.remove_vertex_collisions(valid_neighbors, plan)
-            self.remove_intersecting_edges_collisions(valid_neighbors, plan)
+
+            if ALLOW_DIAGONAL_MOVEMENT:
+                self.remove_intersecting_edges_collisions(valid_neighbors, plan)
+            else:
+                self.remove_edge_collisions(valid_neighbors, plan)
 
             return valid_neighbors
 
@@ -1167,7 +1249,7 @@ if __name__ == '__main__':
     warehouse = generate_warehouse(warehouse_types["small structured"])
 
     # generate_bfs_example(warehouse)
-    generate_rnd_example(warehouse, "Don't prioritize agents waiting at source")
+    generate_rnd_example(warehouse, "")
     # generate_ordered_by_destination_example(warehouse)
     # generate_lns_rnd_example(warehouse, "Title")
     # generate_random_obstacles_restricted_example(warehouse)
@@ -1175,4 +1257,3 @@ if __name__ == '__main__':
 
     # generate_midpoints_restricted_example(warehouse)
     # generate_midpoints_restricted_with_splits_example(warehouse)
-
