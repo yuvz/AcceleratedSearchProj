@@ -9,6 +9,7 @@ from copy import deepcopy
 from math import ceil, sqrt, floor
 from time import time
 from Definitions import Agent
+from typing import List, Set, Tuple
 
 
 EXPORT_ANIMATION = False
@@ -214,11 +215,11 @@ class Warehouse:
         self.static_obstacle_length = static_obstacle_length
         self.static_obstacle_width = static_obstacle_width
 
-        self.vertices = []
+        self.vertices: List[List[Warehouse.WarehouseNode]] = []
         self.static_obstacles = set()
-        self.static_obstacle_corners = set()
-        self.sources = []
-        self.destinations = []
+        self.static_obstacle_corners: Set[Tuple[int, int]] = set()
+        self.sources: List[Warehouse.WarehouseNode] = []
+        self.destinations: List[Warehouse.WarehouseNode] = []
 
         self.initialize_vertices()
         self.set_static_obstacles()
