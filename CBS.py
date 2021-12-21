@@ -9,5 +9,3 @@ class CBS:
         plan: List[List[Tuple[int, int]]] = []
         solutions = []
         return plan
-
-

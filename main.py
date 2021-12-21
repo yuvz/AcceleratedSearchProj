@@ -1,265 +1,29 @@
-import matplotlib.pyplot as plt
+
 import random
 import heapq
 from sys import maxsize
 from colorsys import hls_to_rgb
 from matplotlib.animation import FuncAnimation
-from queue import Queue
+
 from copy import deepcopy
 from math import ceil, sqrt, floor
 from time import time
-from Definitions import Agent
+from Definitions import *
 from typing import List, Set, Tuple
+from Utils import *
 
 
-EXPORT_ANIMATION = False
+EXPORT_ANIMATION = True
 SHOW_ANIMATION_TRAIL = False
 
-PRIORITIZE_AGENTS_WAITING_AT_SOURCE = True
 RANDOM_SCHEDULING_ENABLED = False
-ALLOW_DIAGONAL_MOVEMENT = False
-SOURCE_OFFSET = 3
-DESTINATION_OFFSET = 5
 
-WAREHOUSE_1_WALL_CORNERS = [(21, 15), (21, 46), (21, 105), (28, 82), (45, 50), (45, 70), (45, 95), (57, 19),
-                            (73, 70), (60, 115)]
-WAREHOUSE_2_WALL_CORNERS = [(3, 2), (3, 5), (4, 7), (6, 5)]
-WAREHOUSE_3_WALL_CORNERS = [(30, 5), (30, 15), (30, 25), (30, 35), (25, 0), (25, 10), (25, 20), (25, 30),
-                            (20, 5), (20, 15), (20, 25), (20, 35), (15, 0), (15, 10), (15, 20), (15, 30),
-                            (10, 5), (10, 15), (10, 25), (10, 35), (5, 0), (5, 10), (5, 20), (5, 30)]
-WAREHOUSE_4_WALL_CORNERS = []
-
-WAREHOUSE_CORNERS = [WAREHOUSE_1_WALL_CORNERS, WAREHOUSE_2_WALL_CORNERS, WAREHOUSE_3_WALL_CORNERS,
-                     WAREHOUSE_4_WALL_CORNERS]
 WAVES_PER_WAREHOUSE = [10, 20, 10, 1]
 WAREHOUSE_FPS = [24, 3, 6, 12]
 
 PROGRESSIVELY_OBSTACLE_RESTRICTED_PLANS_MAX_TRIES = 5
 RANDOM_MIDPOINTS_MAX_TRIES = 5
 LNS_ITERATIONS = 1
-
-
-class Warehouse:
-    class WarehouseNode:
-        def __init__(self, coordinates, number_of_destinations):
-            self.coordinates = coordinates
-            self.destination_distance = [0 for _ in range(number_of_destinations)]
-
-            self.is_static_obstacle = False
-            self.source_id = -1  # not optimal solution, but simplifies implementation
-            self.destination_id = -1  # not optimal solution, but simplifies implementation
-            self.neighbors = set()
-
-        def get_destination_distance(self, destination_id):
-            return self.destination_distance[destination_id]
-
-    """
-         Uses a breadth first search to calculate the distances of all vertices in the warehouse from the ith 
-         destination.
-         This algorithm avoids static obstacles and ignores dynamic obstacles
-    """
-    def set_ith_destination_distances(self, i):
-        destination = self.destinations[i]
-        destination_coordinates = destination.coordinates
-        destination_entrance = self.vertices[destination_coordinates[0] + 1][destination_coordinates[1]]
-
-        destination.destination_distance[i] = 0
-        destination_entrance.destination_distance[i] = 1
-
-        queue = Queue()
-        queue.put(destination_entrance)
-        visited = set()
-        visited.add(destination)
-        visited.add(destination_entrance)
-        while not queue.empty():
-            u = queue.get()
-            for v in u.neighbors:
-                if v not in visited:
-                    v.destination_distance[i] = u.destination_distance[i] + 1
-                    visited.add(v)
-                    queue.put(v)
-            visited.add(u)
-
-        for source in self.sources:
-            source_coordinates = source.coordinates
-            source_entrance = self.vertices[source_coordinates[0] - 1][source_coordinates[1]]
-            source.destination_distance[i] = 1 + source_entrance.destination_distance[i]
-
-    def set_destination_distances(self):
-        for i in range(self.number_of_destinations):
-            self.set_ith_destination_distances(i)
-
-    def adjust_destinations_neighbors(self):
-        for destination in self.destinations:
-            destination_coordinates = destination.coordinates
-
-            for neighbor in destination.neighbors:
-                if (neighbor.coordinates[0] - destination_coordinates[0], neighbor.coordinates[1] -
-                                                                          destination_coordinates[1]) != (1, 0):
-                    neighbor.neighbors.remove(destination)
-
-            destination.neighbors = set()
-
-    def adjust_sources_neighbors(self):
-        for source in self.sources:
-            source_coordinates = source.coordinates
-            neighbors_to_remove = []
-
-            for neighbor in source.neighbors:
-                neighbor.neighbors.remove(source)
-
-                neighbor_coordinates = neighbor.coordinates
-                if (source_coordinates[0] - neighbor_coordinates[0],
-                    source_coordinates[1] - neighbor_coordinates[1]) != (1, 0):
-                    neighbors_to_remove.append(neighbor)
-
-            source.neighbors = source.neighbors.difference(neighbors_to_remove)
-
-    def set_sources_and_destinations(self, number_of_targets, row_idx, target_array, is_destination=False):
-        offset = DESTINATION_OFFSET if is_destination else SOURCE_OFFSET
-        area_without_offsets = self.width - offset
-        remainder_from_right_wall = area_without_offsets % number_of_targets
-
-        first_target_position = offset
-        last_target_position = self.width - remainder_from_right_wall
-        distance_between_targets = int((area_without_offsets - remainder_from_right_wall) / number_of_targets)
-
-        for i, column_idx in enumerate(range(first_target_position, last_target_position, distance_between_targets)):
-            vertex = self.vertices[row_idx][column_idx]
-            target_array.append(vertex)
-
-            if is_destination:
-                vertex.destination_id = i
-            else:
-                vertex.source_id = i
-
-    def set_destinations(self):
-        self.set_sources_and_destinations(self.number_of_destinations, 0, self.destinations, True)
-
-    def set_sources(self):
-        self.set_sources_and_destinations(self.number_of_sources, self.length - 1, self.sources)
-
-    def is_valid_vertex(self, row_idx, column_idx):
-        if (0 <= row_idx < self.length) and (0 <= column_idx < self.width):
-            return not self.vertices[row_idx][column_idx].is_static_obstacle
-
-        return False
-
-    """
-    Note:   Diagonal neighbors are valid neighbors, while static obstacles are not.
-            Also, a vertex cannot be a neighbor of itself
-    """
-
-    def set_neighbors(self):
-        for row in self.vertices:
-            for vertex in row:
-                if vertex.is_static_obstacle:
-                    continue
-
-                for i in [-1, 0, 1]:
-                    row_idx = vertex.coordinates[0] + i
-
-                    for j in [-1, 0, 1]:
-                        if not ALLOW_DIAGONAL_MOVEMENT and i ** 2 + j ** 2 != 1:
-                            continue
-
-                        column_idx = vertex.coordinates[1] + j
-                        if (i != 0 or j != 0) and self.is_valid_vertex(row_idx, column_idx):
-                            neighbor = self.vertices[row_idx][column_idx]
-                            vertex.neighbors.add(neighbor)
-
-    """
-        Sets a rectangular static obstacle with a corner at the given indices
-    """
-
-    def set_static_obstacle(self, row_idx, column_idx):
-        for i in range(self.static_obstacle_length):
-            obstacle_row_idx = row_idx + i
-
-            if 0 <= obstacle_row_idx < self.length:
-                for j in range(self.static_obstacle_width):
-                    obstacle_column_idx = column_idx + j
-
-                    if 0 <= obstacle_column_idx < self.width:
-                        self.vertices[obstacle_row_idx][obstacle_column_idx].is_static_obstacle = True
-
-                        # used for animations
-                        if i == 0 or i == self.static_obstacle_length - 1 or j == 0 \
-                                or j == self.static_obstacle_width - 1:
-                            self.static_obstacle_corners.add((obstacle_row_idx, obstacle_column_idx))
-
-    def set_static_obstacles(self):
-        corners_coordinates = WAREHOUSE_CORNERS[self.warehouse_id - 1]
-        for corner_coordinates in corners_coordinates:
-            self.set_static_obstacle(corner_coordinates[0], corner_coordinates[1])
-
-    def initialize_vertices(self):
-        for row_idx in range(self.length):
-            column = []
-
-            for column_idx in range(self.width):
-                coordinates = (row_idx, column_idx)
-                new_vertex = self.WarehouseNode(coordinates, self.number_of_destinations)
-
-                column.append(new_vertex)
-
-            self.vertices.append(column)
-
-    def __init__(self, warehouse_id, length, width, number_of_sources, number_of_destinations, static_obstacle_length,
-                 static_obstacle_width):
-        self.warehouse_id = warehouse_id
-        self.length = length
-        self.width = width
-        self.number_of_sources = number_of_sources
-        self.number_of_destinations = number_of_destinations
-        self.static_obstacle_length = static_obstacle_length
-        self.static_obstacle_width = static_obstacle_width
-
-        self.vertices: List[List[Warehouse.WarehouseNode]] = []
-        self.static_obstacles = set()
-        self.static_obstacle_corners: Set[Tuple[int, int]] = set()
-        self.sources: List[Warehouse.WarehouseNode] = []
-        self.destinations: List[Warehouse.WarehouseNode] = []
-
-        self.initialize_vertices()
-        self.set_static_obstacles()
-        self.set_neighbors()
-
-        self.set_sources()
-        self.set_destinations()
-
-        self.adjust_sources_neighbors()
-        self.adjust_destinations_neighbors()
-        self.set_destination_distances()
-
-    def plot_layout(self):
-        fig = plt.figure()
-        ax = plt.axes(xlim=(0, self.width - 1), ylim=(0, self.length - 1))
-        for source in self.sources:
-            plt.scatter(source.coordinates[1], source.coordinates[0], s=250, marker='v', c='#00964b')
-
-        for obstacle in self.static_obstacle_corners:
-            if self.warehouse_id == 1:
-                plt.scatter(obstacle[1], obstacle[0], s=10, c='black')
-            elif self.warehouse_id == 2:
-                plt.scatter(obstacle[1], obstacle[0], s=50, marker='s', c='black')
-            else:
-                plt.scatter(obstacle[1], obstacle[0], s=10, marker='s', c='black')
-
-        for destination in self.destinations:
-            plt.scatter(destination.coordinates[1], destination.coordinates[0], s=250, marker='^', c='hotpink')
-
-        plt.xlim(0, self.width)
-        plt.ylim(0, self.length - 1)
-        plt.grid()
-
-        return fig, ax
-
-    def show(self):
-        self.plot_layout()
-        plt.show()
-        plt.clf()
-
 
 def generate_warehouse(warehouse_id):
     # First warehouse in original paper
@@ -443,291 +207,10 @@ def generate_bfs_example(warehouse):
     show_routes(warehouse, plan)
 
 
-def distance(u, v):
-    return sqrt((u[0] - v[0]) ** 2 + (u[1] - v[1]) ** 2)
 
 
-class AStar:
-    class Node:
-        def __init__(self, vertex, h_value, g_value, parent, is_source=False, waits_at_source=0):
-            self.vertex = vertex
-            self.h_value = h_value
-            self.g_value = g_value
-            self.parent = parent
 
-            self.f_value = h_value + g_value
-            self.is_source = is_source
-            self.waits_at_source = waits_at_source
 
-        def __eq__(self, other):
-            return self.vertex == other.vertex
-
-        def __lt__(self, other):
-            if self.f_value == other.f_value:
-                return self.waits_at_source > other.waits_at_source
-
-            return self.f_value < other.f_value
-
-        def update_info(self, possible_g_value, possible_parent):
-            if possible_g_value < self.g_value:
-                self.g_value = possible_g_value
-                self.f_value = self.g_value + self.h_value
-
-                self.parent = possible_parent
-                return True
-
-            return False
-
-        def is_adjacent_vertex(self, vertex_coordinates):
-            self_coordinates = self.vertex.coordinates
-            adjacent_differences = {-1, 0, 1}
-
-            return (self_coordinates[0] - vertex_coordinates[0] in adjacent_differences) and \
-                   (self_coordinates[1] - vertex_coordinates[1] in adjacent_differences)
-
-        def remove_intersecting_edges_collisions(self, valid_neighbors, plan):
-            current_coordinates = self.vertex.coordinates
-            valid_neighbors_coordinates = [neighbor.coordinates for neighbor in valid_neighbors]
-            valid_neighbors_edge_midpoints = [((current_coordinates[0] + coordinates[0]) / 2,
-                                               (current_coordinates[1] + coordinates[1]) / 2)
-                                              for coordinates in valid_neighbors_coordinates]
-
-            for agent_plan in plan:
-                if self.g_value + 1 < len(agent_plan):
-                    agent_current_coordinates = agent_plan[self.g_value]
-                    agent_next_coordinates = agent_plan[self.g_value + 1]
-
-                    if not self.is_adjacent_vertex(agent_current_coordinates) or not \
-                            self.is_adjacent_vertex(agent_next_coordinates):
-                        continue
-
-                    agent_current_coordinates = agent_plan[self.g_value]
-                    agent_next_coordinates = agent_plan[self.g_value + 1]
-                    agent_midpoint_coordinates = ((agent_current_coordinates[0] + agent_next_coordinates[0]) / 2,
-                                                  (agent_current_coordinates[1] + agent_next_coordinates[1]) / 2)
-
-                    if agent_midpoint_coordinates in valid_neighbors_edge_midpoints:
-                        conflicting_neighbor_index = valid_neighbors_edge_midpoints.index(agent_midpoint_coordinates)
-                        conflicting_neighbor_coordinates = valid_neighbors_coordinates[conflicting_neighbor_index]
-                        conflicting_neighbor = warehouse.vertices[conflicting_neighbor_coordinates[0]][conflicting_neighbor_coordinates[1]]
-                        valid_neighbors.remove(conflicting_neighbor)
-                        if not valid_neighbors:
-                            return
-
-                        valid_neighbors_coordinates.pop(conflicting_neighbor_index)
-                        valid_neighbors_edge_midpoints.pop(conflicting_neighbor_index)
-
-        def remove_edge_collisions(self, valid_neighbors, plan):
-            valid_neighbors_coordinates = {neighbor.coordinates for neighbor in valid_neighbors}
-            current_self_coordinates = self.vertex.coordinates
-
-            for agent_plan in plan:
-                if self.g_value + 1 < len(agent_plan):
-                    current_other_coordinates = agent_plan[self.g_value]
-                    next_other_coordinates = agent_plan[self.g_value + 1]
-
-                    if current_other_coordinates in valid_neighbors_coordinates and \
-                            current_self_coordinates == next_other_coordinates:
-                        valid_neighbors.remove(warehouse.vertices[current_other_coordinates[0]]
-                                               [current_other_coordinates[1]])
-                        if not valid_neighbors:
-                            return
-                        valid_neighbors_coordinates.remove(current_other_coordinates)
-
-        def remove_vertex_collisions(self, valid_neighbors, plan):
-            valid_neighbors_coordinates = {neighbor.coordinates for neighbor in valid_neighbors}
-
-            for agent_plan in plan:
-                if self.g_value + 1 < len(agent_plan):
-                    next_other_coordinates = agent_plan[self.g_value + 1]
-
-                    if next_other_coordinates in valid_neighbors_coordinates:
-                        valid_neighbors.remove(warehouse.vertices[next_other_coordinates[0]][next_other_coordinates[1]])
-                        if not valid_neighbors:
-                            return
-                        valid_neighbors_coordinates.remove(next_other_coordinates)
-
-        def get_valid_neighbors_from_plan(self, plan):
-            valid_neighbors = self.vertex.neighbors.copy()
-
-            self.remove_vertex_collisions(valid_neighbors, plan)
-
-            if ALLOW_DIAGONAL_MOVEMENT:
-                self.remove_intersecting_edges_collisions(valid_neighbors, plan)
-            else:
-                self.remove_edge_collisions(valid_neighbors, plan)
-
-            return valid_neighbors
-
-        def get_valid_neighbors_from_added_obstacles(self, added_obstacles):
-            valid_neighbors = self.vertex.neighbors.copy()
-            colliding_neighbors = set()
-
-            for neighbor in valid_neighbors:
-                if neighbor.coordinates in added_obstacles:
-                    colliding_neighbors.add(neighbor)
-
-            valid_neighbors -= colliding_neighbors
-
-            return valid_neighbors
-
-    def __init__(self, source, destination):
-        self.nodes = []
-        self.source = source
-        self.destination = destination
-
-    def reconstruct_route(self):
-        current_node = self.destination
-        reversed_route = [current_node.vertex.coordinates]
-
-        while current_node.parent:
-            current_node = current_node.parent
-            reversed_route.append(current_node.vertex.coordinates)
-
-        return reversed_route[::-1]
-
-    def space_time_search(self, agent, plan, is_first_agent=False, wait_at_source_left=0):
-        source = self.source
-        destination = self.destination
-        destination_id = agent.destination.destination_id
-
-        priority_queue = []
-        heapq.heappush(priority_queue, source)
-        visited = {(source.g_value, source.vertex): source}
-
-        while priority_queue:
-            current_node = heapq.heappop(priority_queue)
-
-            if current_node == destination:
-                self.destination = current_node
-                route = self.reconstruct_route()
-                return route
-
-            path_cost = current_node.g_value + 1
-
-            valid_neighbors = current_node.get_valid_neighbors_from_plan(plan)
-            if current_node.is_source:
-                valid_neighbors.add(current_node.vertex)
-                if wait_at_source_left > 0:
-                    valid_neighbors = [current_node.vertex]
-                    wait_at_source_left -= 1
-
-            for neighbor in valid_neighbors:
-                is_neighbor_equals_source = neighbor == source.vertex
-
-                if (path_cost, neighbor) in visited:
-                    neighbor_node = visited[(path_cost, neighbor)]
-
-                    if path_cost < neighbor_node.g_value or \
-                            (PRIORITIZE_AGENTS_WAITING_AT_SOURCE and path_cost == neighbor_node.g_value and
-                             current_node.waits_at_source > neighbor_node.waits_at_source):
-                        neighbor_node.parent = current_node
-                        neighbor_node.g_value = path_cost
-                        neighbor_node.f_value = neighbor_node.g_value + neighbor_node.h_value
-                        neighbor_node.waits_at_source = current_node.waits_at_source + is_neighbor_equals_source
-
-                        heapq.heappush(priority_queue, neighbor_node)
-                        # if neighbor_node not in priority_queue:
-                        #     heapq.heappush(priority_queue, neighbor_node)
-                        # else:
-                        #     heapq.heapify(priority_queue)
-                else:
-                    neighbor_node = AStar.Node(neighbor, neighbor.destination_distance[destination_id],
-                                               path_cost, current_node, is_neighbor_equals_source,
-                                               current_node.waits_at_source + is_neighbor_equals_source)
-
-                    heapq.heappush(priority_queue, neighbor_node)
-                    visited[(path_cost, neighbor)] = neighbor_node
-
-        print("search failed for agent ", agent.agent_id)
-
-    def search_with_added_obstacles(self, agent, added_obstacles):
-        source = self.source
-        destination = self.destination
-        destination_id = agent.destination.destination_id
-
-        priority_queue = []
-        heapq.heappush(priority_queue, source)
-        visited = {source.vertex: source}
-
-        while priority_queue:
-            current_node = heapq.heappop(priority_queue)
-
-            if current_node == destination:
-                self.destination = current_node
-                route = self.reconstruct_route()
-
-                return route
-
-            path_cost = current_node.g_value + 1
-
-            valid_neighbors = current_node.get_valid_neighbors_from_added_obstacles(added_obstacles)
-
-            for neighbor in valid_neighbors:
-                if neighbor in visited:
-                    neighbor_node = visited[neighbor]
-
-                    if path_cost < neighbor_node.g_value:
-                        neighbor_node.parent = current_node
-                        neighbor_node.g_value = path_cost
-                        neighbor_node.f_value = path_cost + neighbor_node.h_value
-
-                        if neighbor_node not in priority_queue:
-                            heapq.heappush(priority_queue, neighbor_node)
-                        else:
-                            heapq.heapify(priority_queue)
-                else:
-                    neighbor_node = AStar.Node(neighbor, neighbor.destination_distance[destination_id],
-                                               path_cost, current_node, neighbor == source.vertex)
-                    heapq.heappush(priority_queue, neighbor_node)
-                    visited[neighbor] = neighbor_node
-
-        return None
-
-    """
-    In this method the source and the destination may be any two warehouse nodes.
-    Cartesian distance is used as the heuristic.
-    """
-    def classic_astar(self):
-        source = self.source
-        destination = self.destination
-
-        priority_queue = []
-        heapq.heappush(priority_queue, source)
-        visited = {source.vertex: source}
-
-        while priority_queue:
-            current_node = heapq.heappop(priority_queue)
-
-            if current_node == destination:
-                self.destination = current_node
-                route = self.reconstruct_route()
-
-                return route
-
-            path_cost = current_node.g_value + 1
-            current_vertex = current_node.vertex
-
-            for neighbor in current_vertex.neighbors:
-                if neighbor in visited:
-                    neighbor_node = visited[neighbor]
-
-                    if path_cost < neighbor_node.g_value:
-                        neighbor_node.parent = current_node
-                        neighbor_node.g_value = path_cost
-                        neighbor_node.f_value = path_cost + neighbor_node.h_value
-
-                        if neighbor_node not in priority_queue:
-                            heapq.heappush(priority_queue, neighbor_node)
-                        else:
-                            heapq.heapify(priority_queue)
-                else:
-                    neighbor_node = AStar.Node(neighbor, distance(neighbor.coordinates, destination.vertex.coordinates),
-                                               path_cost, current_node)
-                    heapq.heappush(priority_queue, neighbor_node)
-                    visited[neighbor] = neighbor_node
-
-        return None
 
 
 def update_plan(plan, i, route):
@@ -737,7 +220,7 @@ def update_plan(plan, i, route):
         plan[i].append(step)
 
 
-def generate_rnd_plan(agents, random_wait_at_source=False, sequential_exit=False):
+def generate_rnd_plan(warehouse, agents, random_wait_at_source=False, sequential_exit=False):
     num_of_agents = len(agents)
     priority_order = random.sample(range(num_of_agents), num_of_agents)
     plan = [[] for _ in range(len(agents))]
@@ -751,7 +234,7 @@ def generate_rnd_plan(agents, random_wait_at_source=False, sequential_exit=False
         destination_node = AStar.Node(agent.destination, 0, maxsize, None, False)
         a_star_framework = AStar(source_node, destination_node)
 
-        route = a_star_framework.space_time_search(agent, plan, route_number == 0,
+        route = a_star_framework.space_time_search(warehouse, agent, plan, route_number == 0,
                                                    route_number if sequential_exit else 0)
         update_plan(plan, i, route)
         if route_number % 5 == 0:
@@ -775,7 +258,7 @@ def generate_rnd_example(warehouse, title=""):
             dest_ids.append(destinations[j].destination_id)
 
     t0 = time()
-    plan = generate_rnd_plan(agents)
+    plan = generate_rnd_plan(warehouse, agents)
     t1 = time()
     running_time = round(t1 - t0, 4)
     show_routes(warehouse, plan, running_time, "RND", dest_ids, title)
@@ -819,7 +302,7 @@ def add_obstacle_at_midpoint(added_obstacles, last_added_obstacle_midpoint, adde
                 added_obstacles.add((midpoint_x + added_obstacle_size - 1, midpoint_y + i))
 
 
-def generate_random_obstacles_restricted_plan(agent, obstacle_patterns, max_routes=maxsize, initial_dist=0):
+def generate_random_obstacles_restricted_plan(warehouse, agent, obstacle_patterns, max_routes=maxsize, initial_dist=0):
     # print("Generating random obstacles restricted plan, with obstacle patterns in", obstacle_patterns)
     # print("***")
 
@@ -880,13 +363,13 @@ def generate_random_obstacles_restricted_example(warehouse):
 
     obstacle_patterns = ["cross", "square", "vertical_line", "horizontal_line", "dot"]
     # obstacle_patterns = ["horizontal_line"]
-    plan = generate_random_obstacles_restricted_plan(agent, obstacle_patterns)
+    plan = generate_random_obstacles_restricted_plan(warehouse, agent, obstacle_patterns)
     print("***")
     print("Done generating: Generated", len(plan), "routes")
     show_routes(warehouse, plan)
 
 
-def generate_ideal_path_with_splits_plan(source, destination):
+def generate_ideal_path_with_splits_plan(warehouse, source, destination):
     agent = Agent(0, source, destination)
     ideal_path = bfs_search(agent)
 
@@ -917,7 +400,7 @@ def generate_ideal_path_with_splits_example(warehouse):
     source = warehouse.sources[source_id]
     destination = warehouse.destinations[destination_id]
 
-    plan = generate_ideal_path_with_splits_plan(source, destination)
+    plan = generate_ideal_path_with_splits_plan(warehouse, source, destination)
 
     print("***")
     print("Done generating: Generated", len(plan), "routes")
@@ -1038,7 +521,7 @@ def pick_better_plan(plan, backup_plan, neighborhood, cost_function=neighborhood
     return backup_plan
 
 
-def replan(plan, neighborhood, agents):
+def replan(warehouse, plan, neighborhood, agents):
     for route_number, i in enumerate(neighborhood):
         agent = agents[i]
         agent_vertex = agent.vertex
@@ -1048,7 +531,7 @@ def replan(plan, neighborhood, agents):
         destination_node = AStar.Node(agent.destination, 0, maxsize, None, False)
         a_star_framework = AStar(source_node, destination_node)
 
-        route = a_star_framework.space_time_search(agent, plan, route_number == 0, True)
+        route = a_star_framework.space_time_search(warehouse, agent, plan, route_number == 0, True)
         update_plan(plan, i, route)
     return plan
 
@@ -1137,7 +620,7 @@ def ordered_by_source_then_destination_id(agents):
     return sorted_agent_ids
 
 
-def generate_ordered_by_destination_plan(agents):
+def generate_ordered_by_destination_plan(warehouse, agents):
     num_of_agents = len(agents)
     priority_order = ordered_by_source_then_destination_id(agents)
     plan = [[] for _ in range(num_of_agents)]
@@ -1151,7 +634,7 @@ def generate_ordered_by_destination_plan(agents):
         destination_node = AStar.Node(agent.destination, 0, maxsize, None, False)
         a_star_framework = AStar(source_node, destination_node)
 
-        route = a_star_framework.space_time_search(agent, plan, route_number == 0)
+        route = a_star_framework.space_time_search(warehouse, agent, plan, route_number == 0)
         update_plan(plan, i, route)
         if route_number % 5 == 0:
             print("Found route for", route_number + 1, "out of", num_of_agents, "agents")
@@ -1180,7 +663,7 @@ def generate_ordered_by_destination_example(warehouse):
     show_routes(warehouse, plan, running_time, "RND", dest_ids)
 
 
-if __name__ == '__main__':
+def main():
     warehouse_types = {"first paper": 1, "toy": 2, "small structured": 3, "small empty single origin": 4}
     warehouse = generate_warehouse(warehouse_types["small structured"])
 
@@ -1193,3 +676,7 @@ if __name__ == '__main__':
 
     # generate_midpoints_restricted_example(warehouse)
     # generate_midpoints_restricted_with_splits_example(warehouse)
+
+
+if __name__ == "__main__":
+    main()
