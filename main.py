@@ -499,7 +499,7 @@ def generate_ordered_by_destination_example(warehouse):
 
 def main():
     warehouse_types = {"first paper": 1, "toy": 2, "small structured": 3, "small empty single origin": 4}
-    warehouse = generate_warehouse(warehouse_types["small empty single origin"])
+    warehouse = generate_warehouse(warehouse_types["toy"])
 
     # generate_bfs_example(warehouse)
     generate_rnd_example(warehouse, "")

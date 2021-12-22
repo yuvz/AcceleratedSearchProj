@@ -8,7 +8,13 @@ from time import time
 
 EXPORT_ANIMATION = True
 SHOW_ANIMATION_TRAIL = False
+
+COLOR_BY_DESTINATION_ID = False
+COLOR_BY_SOURCE_ID = False
+
 WAREHOUSE_FPS = [24, 3, 6, 12]
+distinct_colors = [(1, 0, 0), (0, 1, 0), (0, 0, 1), 'xkcd:dark pastel green', 'xkcd:strong pink', '#6dedfd',
+                   (1, 0.5, 0.25), 'xkcd:light navy blue', (0.5, 0.25, 1)]  # len(distinct_colors) = 9
 
 
 def plan_to_frames(plan):
@@ -40,36 +46,49 @@ def random_color():
     return hls_to_rgb(random.random(), 0.25 + random.random() / 2.0, 0.25 + random.random() * (3.0 / 4.0))
 
 
-def show_plan_as_animation():
-    #TODO
-    pass
+def get_destination_id(warehouse, route):
+    agent_final_coordinates = route[-1]
+    agent_destination = warehouse.vertices[agent_final_coordinates[0]][agent_final_coordinates[1]]
+    return agent_destination.destination_id
 
 
-def show_plan_as_image():
-    #TODO
-    pass
+def get_source_id(warehouse, route):
+    agent_initial_coordinates = route[0]
+    agent_source = warehouse.vertices[agent_initial_coordinates[0]][agent_initial_coordinates[1]]
+    return agent_source.source_id
 
 
-def show_plan(warehouse, plan, running_time=-1.0, algorithm_name="TODO", dest_ids=None, title="", is_animation=True):
+def color_by_target_id(warehouse, plan, is_target_destination=True):
+    agent_routes = []
+
+    id_getter_function = get_destination_id if is_target_destination else get_source_id
+    for route in plan:
+        agent_target_id = id_getter_function(warehouse, route)
+
+        agent_routes.append(plt.plot([], [], 'ro', c=distinct_colors[agent_target_id % len(distinct_colors)])[0])
+
+    return agent_routes
+
+
+def color_by_destination_id(warehouse, plan):
+    return color_by_target_id(warehouse, plan)
+
+
+def color_by_source_id(warehouse, plan):
+    return color_by_target_id(warehouse, plan, False)
+
+
+def show_plan_as_animation(warehouse, plan, running_time=-1.0, algorithm_name="TODO", dest_ids=None, title=""):
     fig, ax = warehouse.plot_layout()
+    set_plot_title_and_info(warehouse, plan, running_time, algorithm_name, title)
 
-    # colors = [(1, 0, 0), (0, 1, 0), (0, 0, 1), 'xkcd:dark pastel green', 'xkcd:strong pink', '#6dedfd', (1, 0.5, 0.25),
-    #           'xkcd:light navy blue', (0.5, 0.25, 1)]
-    # if warehouse.warehouse_id == 1:
-    #     agent_routes = []
-    #     for dest_id in dest_ids:
-    #         # if dest_id > 2:
-    #         #     continue
-    #         agent_routes.append(plt.plot([], [], 'ro', c=colors[dest_id])[0])
-    # else:
-    #     agent_routes = []
-    #     for i in range(len(plan)):
-    #         if i == 20:
-    #             agent_routes.append(plt.plot([], [], 'ro', c=colors[1])[0])
-    #         else:
-    #             agent_routes.append(plt.plot([], [], 'ro', c=colors[0])[0])
+    if COLOR_BY_DESTINATION_ID:
+        agent_routes = color_by_destination_id(warehouse, plan)
+    elif COLOR_BY_SOURCE_ID:
+        agent_routes = color_by_source_id(warehouse, plan)
+    else:
+        agent_routes = [plt.plot([], [], 'ro', c=random_color())[0] for _ in range(len(plan))]
 
-    agent_routes = [plt.plot([], [], 'ro', c=random_color())[0] for _ in range(len(plan))]
     frames = plan_to_frames(plan)
     xdata = [[] for _ in range(len(plan))]
     ydata = [[] for _ in range(len(plan))]
@@ -106,9 +125,28 @@ def show_plan(warehouse, plan, running_time=-1.0, algorithm_name="TODO", dest_id
     interval = 1000 * dt - (t1 - t0)
     animation = FuncAnimation(fig, animate, frames=frames, init_func=init, blit=True, interval=interval)
 
+    plt.show()
+    if EXPORT_ANIMATION:
+        animation.save('animation.gif', writer='ffmpeg')
+
+
+def show_plan_as_image(warehouse, plan, running_time=-1.0, algorithm_name="TODO", dest_ids=None, title=""):
+    warehouse.plot_layout()
+    set_plot_title_and_info(warehouse, plan, running_time, algorithm_name, title)
+
+    for i, route in enumerate(plan):
+        for coordinates in route:
+            if COLOR_BY_DESTINATION_ID:
+                plt.scatter(coordinates[1], coordinates[0], color=distinct_colors[get_destination_id(warehouse, route) % warehouse.number_of_sources])
+            else:   # colors by source_id
+                plt.scatter(coordinates[1], coordinates[0], color=distinct_colors[i % warehouse.number_of_sources])
+    plt.show()
+
+
+def set_plot_title_and_info(warehouse, plan, running_time, algorithm_name, title):
     sum_of_costs = sum([len(route) for route in plan])
 
-    title_left = "map_size = " + str(warehouse.width) + "*" + str(warehouse.length) +\
+    title_left = "map_size = " + str(warehouse.width) + "*" + str(warehouse.length) + \
                  "        (num_sources, num_destinations) = " + \
                  str((warehouse.number_of_sources, warehouse.number_of_destinations)) + \
                  "        num_agents = " + str(len(plan)) + \
@@ -117,6 +155,10 @@ def show_plan(warehouse, plan, running_time=-1.0, algorithm_name="TODO", dest_id
 
     plt.title(title_left, loc='left')
     plt.suptitle(title)
-    plt.show()
-    if EXPORT_ANIMATION:
-        animation.save('animation.gif', writer='ffmpeg')
+
+
+def show_plan(warehouse, plan, running_time=-1.0, algorithm_name="TODO", dest_ids=None, title="", is_animation=True):
+    if is_animation:
+        show_plan_as_animation(warehouse, plan, running_time, algorithm_name, dest_ids, title)
+    else:
+        show_plan_as_image(warehouse, plan, running_time, algorithm_name, dest_ids, title)
