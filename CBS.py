@@ -1,5 +1,5 @@
 from typing import List, Set, Tuple
-from Definitions import Agent
+from Environment import Agent
 
 
 class CBS:
