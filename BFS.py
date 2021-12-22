@@ -47,4 +47,3 @@ def generate_rnd_bfs(warehouse):
     destination = warehouse.destinations[destination_id]
 
     return BFS(source, destination)
-

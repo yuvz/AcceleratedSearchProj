@@ -1,6 +1,7 @@
 import random
 from sys import maxsize
-from Environment import Agent, AStar
+from AStar import AStar
+from Agent import Agent
 
 
 def generate_rand_agents(warehouse, waves_per_warehouse):
@@ -15,14 +16,14 @@ def generate_rand_agents(warehouse, waves_per_warehouse):
     return agents
 
 
-def get_agent_and_framework(agents, i):
-    agent = agents[i]
-    agent_vertex = agent.vertex
+def find_route_using_Astar(warehouse, plan, agent, is_first_agent=False, wait_at_source_left=0):
+    agent_vertex = agent.source
     source_node = AStar.Node(agent_vertex, agent_vertex.destination_distance[agent.destination.destination_id], 0,
                              None, True)
     destination_node = AStar.Node(agent.destination, 0, maxsize, None, False)
     a_star_framework = AStar(source_node, destination_node)
-    return agent, a_star_framework
+    route = a_star_framework.space_time_search(warehouse, agent, plan, is_first_agent, wait_at_source_left)
+    return route
 
 
 def order_agents_by_key(agents, value_function):

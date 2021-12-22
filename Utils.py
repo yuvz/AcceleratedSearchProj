@@ -10,4 +10,3 @@ def update_plan(plan, i, route):
         return
     for step in route:
         plan[i].append(step)
-

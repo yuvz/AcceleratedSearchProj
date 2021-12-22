@@ -1,6 +1,6 @@
 import heapq
 
-from Environment import ALLOW_DIAGONAL_MOVEMENT
+from Agent import ALLOW_DIAGONAL_MOVEMENT
 from Utils import distance
 
 PRIORITIZE_AGENTS_WAITING_AT_SOURCE = True

@@ -1,5 +1,5 @@
-from time import time
-from Environment import *
+from BFS import BFS
+from Agent import *
 from EnvironmentUtils import *
 from Utils import *
 from Visualization import show_plan
@@ -126,7 +126,7 @@ def generate_random_obstacles_restricted_plan(warehouse, agent, obstacle_pattern
     added_obstacles = set()
     added_obstacles_backup = set()
     route_backup = []
-    agent_source = agent.vertex
+    agent_source = agent.source
     max_added_obstacle_size = ceil(min(warehouse.static_obstacle_length, warehouse.static_obstacle_width))
 
     source_node = AStar.Node(agent_source, agent_source.destination_distance[agent.destination.destination_id], 0,

@@ -1,6 +1,6 @@
 import random
 from math import sqrt
-from EnvironmentUtils import get_agent_and_framework
+from EnvironmentUtils import find_route_using_Astar
 from RND import generate_rnd_plan
 from Utils import update_plan
 
@@ -32,8 +32,7 @@ def pick_lower_sum_of_costs_plan(plan, backup_plan, neighborhood):
 
 def replan(warehouse, plan, neighborhood, agents):
     for route_number, i in enumerate(neighborhood):
-        agent, a_star_framework = get_agent_and_framework(agents, i)
-        route = a_star_framework.space_time_search(warehouse, agent, plan, route_number == 0, True)
+        route = find_route_using_Astar(warehouse, plan, agents[i], route_number == 0, True)
         update_plan(plan, i, route)
     return plan
 
