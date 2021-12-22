@@ -1,8 +1,8 @@
 import heapq
-from Utils import *
 from queue import Queue
 from typing import List, Set, Tuple
 import matplotlib.pyplot as plt
+from Utils import *
 
 SOURCE_OFFSET = 3
 DESTINATION_OFFSET = 5
@@ -18,6 +18,7 @@ WAREHOUSE_3_WALL_CORNERS = [(30, 5), (30, 15), (30, 25), (30, 35), (25, 0), (25,
 WAREHOUSE_4_WALL_CORNERS = []
 WAREHOUSE_CORNERS = [WAREHOUSE_1_WALL_CORNERS, WAREHOUSE_2_WALL_CORNERS, WAREHOUSE_3_WALL_CORNERS,
                      WAREHOUSE_4_WALL_CORNERS]
+
 
 class Agent:
     """
@@ -84,6 +85,7 @@ class Agent:
 
         return ideal_neighbor
 
+
 class AStar:
     class Node:
         def __init__(self, vertex, h_value, g_value, parent, is_source=False, waits_at_source=0):
@@ -146,7 +148,8 @@ class AStar:
                     if agent_midpoint_coordinates in valid_neighbors_edge_midpoints:
                         conflicting_neighbor_index = valid_neighbors_edge_midpoints.index(agent_midpoint_coordinates)
                         conflicting_neighbor_coordinates = valid_neighbors_coordinates[conflicting_neighbor_index]
-                        conflicting_neighbor = warehouse.vertices[conflicting_neighbor_coordinates[0]][conflicting_neighbor_coordinates[1]]
+                        conflicting_neighbor = warehouse.vertices[conflicting_neighbor_coordinates[0]][
+                            conflicting_neighbor_coordinates[1]]
                         valid_neighbors.remove(conflicting_neighbor)
                         if not valid_neighbors:
                             return
@@ -302,17 +305,7 @@ class AStar:
 
             for neighbor in valid_neighbors:
                 if neighbor in visited:
-                    neighbor_node = visited[neighbor]
-
-                    if path_cost < neighbor_node.g_value:
-                        neighbor_node.parent = current_node
-                        neighbor_node.g_value = path_cost
-                        neighbor_node.f_value = path_cost + neighbor_node.h_value
-
-                        if neighbor_node not in priority_queue:
-                            heapq.heappush(priority_queue, neighbor_node)
-                        else:
-                            heapq.heapify(priority_queue)
+                    check_visited_neighbor(visited, neighbor, path_cost, current_node, priority_queue)
                 else:
                     neighbor_node = AStar.Node(neighbor, neighbor.destination_distance[destination_id],
                                                path_cost, current_node, neighbor == source.vertex)
@@ -325,6 +318,7 @@ class AStar:
     In this method the source and the destination may be any two warehouse nodes.
     Cartesian distance is used as the heuristic.
     """
+
     def classic_astar(self):
         source = self.source
         destination = self.destination
@@ -347,17 +341,7 @@ class AStar:
 
             for neighbor in current_vertex.neighbors:
                 if neighbor in visited:
-                    neighbor_node = visited[neighbor]
-
-                    if path_cost < neighbor_node.g_value:
-                        neighbor_node.parent = current_node
-                        neighbor_node.g_value = path_cost
-                        neighbor_node.f_value = path_cost + neighbor_node.h_value
-
-                        if neighbor_node not in priority_queue:
-                            heapq.heappush(priority_queue, neighbor_node)
-                        else:
-                            heapq.heapify(priority_queue)
+                    check_visited_neighbor(visited, neighbor, path_cost, current_node, priority_queue)
                 else:
                     neighbor_node = AStar.Node(neighbor, distance(neighbor.coordinates, destination.vertex.coordinates),
                                                path_cost, current_node)
@@ -367,7 +351,20 @@ class AStar:
         return None
 
 
-class Warehouse():
+def check_visited_neighbor(visited, neighbor, path_cost, current_node, priority_queue):
+    neighbor_node = visited[neighbor]
+    if path_cost < neighbor_node.g_value:
+        neighbor_node.parent = current_node
+        neighbor_node.g_value = path_cost
+        neighbor_node.f_value = path_cost + neighbor_node.h_value
+
+        if neighbor_node not in priority_queue:
+            heapq.heappush(priority_queue, neighbor_node)
+        else:
+            heapq.heapify(priority_queue)
+
+
+class Warehouse:
     class WarehouseNode:
         def __init__(self, coordinates, number_of_destinations):
             self.coordinates = coordinates
@@ -386,6 +383,7 @@ class Warehouse():
          destination.
          This algorithm avoids static obstacles and ignores dynamic obstacles
     """
+
     def set_ith_destination_distances(self, i):
         destination = self.destinations[i]
         destination_coordinates = destination.coordinates
@@ -422,8 +420,8 @@ class Warehouse():
             destination_coordinates = destination.coordinates
 
             for neighbor in destination.neighbors:
-                if (neighbor.coordinates[0] - destination_coordinates[0], neighbor.coordinates[1] -
-                                                                          destination_coordinates[1]) != (1, 0):
+                if (neighbor.coordinates[0] - destination_coordinates[0],
+                        neighbor.coordinates[1] - destination_coordinates[1]) != (1, 0):
                     neighbor.neighbors.remove(destination)
 
             destination.neighbors = set()
@@ -437,8 +435,8 @@ class Warehouse():
                 neighbor.neighbors.remove(source)
 
                 neighbor_coordinates = neighbor.coordinates
-                if (source_coordinates[0] - neighbor_coordinates[0],
-                    source_coordinates[1] - neighbor_coordinates[1]) != (1, 0):
+                if (source_coordinates[0] - neighbor_coordinates[0], source_coordinates[1] - neighbor_coordinates[1]) \
+                        != (1, 0):
                     neighbors_to_remove.append(neighbor)
 
             source.neighbors = source.neighbors.difference(neighbors_to_remove)
