@@ -2,15 +2,13 @@
 import random
 import heapq
 from sys import maxsize
-from colorsys import hls_to_rgb
-from matplotlib.animation import FuncAnimation
 
-from copy import deepcopy
 from math import ceil, sqrt, floor
 from time import time
-from Definitions import *
+from Environment import *
 from typing import List, Set, Tuple
 from Utils import *
+from Visualization import show_plan
 
 EXPORT_ANIMATION = False
 SHOW_ANIMATION_TRAIL = False
@@ -18,11 +16,11 @@ SHOW_ANIMATION_TRAIL = False
 RANDOM_SCHEDULING_ENABLED = False
 
 WAVES_PER_WAREHOUSE = [10, 20, 10, 1]
-WAREHOUSE_FPS = [24, 3, 6, 12]
 
 PROGRESSIVELY_OBSTACLE_RESTRICTED_PLANS_MAX_TRIES = 5
 RANDOM_MIDPOINTS_MAX_TRIES = 5
 LNS_ITERATIONS = 1
+
 
 def generate_warehouse(warehouse_id):
     # First warehouse in original paper
@@ -203,13 +201,7 @@ def generate_bfs_example(warehouse):
     agent = Agent(0, source, destination)
 
     plan = generate_bfs_plan(agent)
-    show_routes(warehouse, plan)
-
-
-
-
-
-
+    show_plan(warehouse, plan)
 
 
 def update_plan(plan, i, route):
@@ -260,7 +252,7 @@ def generate_rnd_example(warehouse, title=""):
     plan = generate_rnd_plan(warehouse, agents)
     t1 = time()
     running_time = round(t1 - t0, 4)
-    show_routes(warehouse, plan, running_time, "RND", dest_ids, title)
+    show_plan(warehouse, plan, running_time, "RND", dest_ids, title)
 
 
 def add_obstacle_at_midpoint(added_obstacles, last_added_obstacle_midpoint, added_obstacle_size, obstacle_pattern):
@@ -365,7 +357,7 @@ def generate_random_obstacles_restricted_example(warehouse):
     plan = generate_random_obstacles_restricted_plan(warehouse, agent, obstacle_patterns)
     print("***")
     print("Done generating: Generated", len(plan), "routes")
-    show_routes(warehouse, plan)
+    show_plan(warehouse, plan)
 
 
 def generate_ideal_path_with_splits_plan(warehouse, source, destination):
@@ -403,7 +395,7 @@ def generate_ideal_path_with_splits_example(warehouse):
 
     print("***")
     print("Done generating: Generated", len(plan), "routes")
-    show_routes(warehouse, plan)
+    show_plan(warehouse, plan)
 
 
 def get_warehouse_grid(warehouse):
@@ -494,7 +486,7 @@ def generate_midpoints_restricted_example(warehouse, is_split_at_midpoint=False)
 
     print("***")
     print("Done generating: Generated", len(plan), "routes")
-    show_routes(warehouse, plan)
+    show_plan(warehouse, plan)
 
 
 def generate_midpoints_restricted_with_splits_example(warehouse):
@@ -588,7 +580,7 @@ def generate_lns_rnd_example(warehouse, title=""):
     plan = generate_lns_rnd_plan(agents, pick_random_neighborhood)
     t1 = time()
     running_time = round(t1 - t0, 4)
-    show_routes(warehouse, plan, running_time, "LNS-RND", dest_ids, title)
+    show_plan(warehouse, plan, running_time, "LNS-RND", dest_ids, title)
 
 
 def ordered_by_destination_id(agents):
@@ -658,12 +650,12 @@ def generate_ordered_by_destination_example(warehouse):
     plan = generate_ordered_by_destination_plan(agents)
     t1 = time()
     running_time = round(t1 - t0, 4)
-    show_routes(warehouse, plan, running_time, "RND", dest_ids)
+    show_plan(warehouse, plan, running_time, "RND", dest_ids)
 
 
 def main():
     warehouse_types = {"first paper": 1, "toy": 2, "small structured": 3, "small empty single origin": 4}
-    warehouse = generate_warehouse(warehouse_types["small structured"])
+    warehouse = generate_warehouse(warehouse_types["small empty single origin"])
 
     # generate_bfs_example(warehouse)
     generate_rnd_example(warehouse, "")
