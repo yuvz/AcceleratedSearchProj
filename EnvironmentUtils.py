@@ -23,3 +23,26 @@ def get_agent_and_framework(agents, i):
     destination_node = AStar.Node(agent.destination, 0, maxsize, None, False)
     a_star_framework = AStar(source_node, destination_node)
     return agent, a_star_framework
+
+
+def order_agents_by_key(agents, value_function):
+    sorted_agents = sorted(agents, key=value_function)
+    sorted_agent_ids = [agent.agent_id for agent in sorted_agents]
+
+    return sorted_agent_ids
+
+
+def order_agents_by_destination_id(agents):
+    return order_agents_by_key(agents, Agent.get_destination_id)
+
+
+def order_agents_by_source_id(agents):
+    return order_agents_by_key(agents, Agent.get_source_id)
+
+
+def order_agents_by_source_then_destination_id(agents):
+    sorted_agents = sorted(agents, key=Agent.get_destination_id)
+    sorted_agents = sorted(sorted_agents, key=Agent.get_source_id)
+
+    sorted_agent_ids = [agent.agent_id for agent in sorted_agents]
+    return sorted_agent_ids
