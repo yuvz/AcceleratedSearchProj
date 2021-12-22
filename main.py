@@ -12,8 +12,7 @@ from Definitions import *
 from typing import List, Set, Tuple
 from Utils import *
 
-
-EXPORT_ANIMATION = True
+EXPORT_ANIMATION = False
 SHOW_ANIMATION_TRAIL = False
 
 RANDOM_SCHEDULING_ENABLED = False
@@ -162,7 +161,7 @@ def show_routes(warehouse, plan, running_time=-1.0, algorithm_name="TODO", dest_
 
     sum_of_costs = sum([len(route) for route in plan])
 
-    title_left = "map_size = " + str(warehouse.width) + "*" + str(warehouse.length) +\
+    title_left = "map_size = " + str(warehouse.width) + "*" + str(warehouse.length) + \
                  "        (num_sources, num_destinations) = " + \
                  str((warehouse.number_of_sources, warehouse.number_of_destinations)) + \
                  "        num_agents = " + str(len(plan)) + \
@@ -280,11 +279,11 @@ def add_obstacle_at_midpoint(added_obstacles, last_added_obstacle_midpoint, adde
                 added_obstacles.add((midpoint_x + added_obstacle_size - i, midpoint_y))
 
     elif obstacle_pattern == "horizontal_line":
-        for i in range(2*added_obstacle_size):
+        for i in range(2 * added_obstacle_size):
             if (midpoint_x, midpoint_y + added_obstacle_size - i) not in added_obstacles:
                 added_obstacles.add((midpoint_x, midpoint_y + added_obstacle_size - i))
 
-    else:   # square and dot pattern
+    else:  # square and dot pattern
         if obstacle_pattern == "dot":
             added_obstacle_size = 1
 
@@ -438,7 +437,6 @@ def get_random_midpoints(warehouse):
                 sampled_vertex = (random.randrange(x_indices[i], x_indices[i + 1]),
                                   random.randrange(y_indices[j], y_indices[j + 1]))
                 if warehouse.is_valid_vertex(sampled_vertex[0], sampled_vertex[1]):
-
                     midpoints.add(sampled_vertex)
                     break
 
@@ -474,7 +472,7 @@ def generate_midpoints_restricted_plan(warehouse, source, destination, is_split_
             if is_split_at_midpoint:
                 obstacle_patterns = ["cross", "square", "vertical_line", "horizontal_line", "dot"]
                 max_obstacle_size = min(warehouse.static_obstacle_length, warehouse.static_obstacle_width)
-                split_step_size = max(2*max_obstacle_size, 2)
+                split_step_size = max(2 * max_obstacle_size, 2)
 
                 agent = Agent(i, midpoint_vertex, destination)
                 for agent_route in generate_random_obstacles_restricted_plan(agent, obstacle_patterns, split_step_size,

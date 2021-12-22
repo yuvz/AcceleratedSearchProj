@@ -19,6 +19,7 @@ WAREHOUSE_4_WALL_CORNERS = []
 WAREHOUSE_CORNERS = [WAREHOUSE_1_WALL_CORNERS, WAREHOUSE_2_WALL_CORNERS, WAREHOUSE_3_WALL_CORNERS,
                      WAREHOUSE_4_WALL_CORNERS]
 
+
 class Agent:
     """
        Prioritize a robot blocking the destination
@@ -84,6 +85,7 @@ class Agent:
 
         return ideal_neighbor
 
+
 class AStar:
     class Node:
         def __init__(self, vertex, h_value, g_value, parent, is_source=False, waits_at_source=0):
@@ -146,7 +148,8 @@ class AStar:
                     if agent_midpoint_coordinates in valid_neighbors_edge_midpoints:
                         conflicting_neighbor_index = valid_neighbors_edge_midpoints.index(agent_midpoint_coordinates)
                         conflicting_neighbor_coordinates = valid_neighbors_coordinates[conflicting_neighbor_index]
-                        conflicting_neighbor = warehouse.vertices[conflicting_neighbor_coordinates[0]][conflicting_neighbor_coordinates[1]]
+                        conflicting_neighbor = warehouse.vertices[conflicting_neighbor_coordinates[0]][
+                            conflicting_neighbor_coordinates[1]]
                         valid_neighbors.remove(conflicting_neighbor)
                         if not valid_neighbors:
                             return
@@ -325,6 +328,7 @@ class AStar:
     In this method the source and the destination may be any two warehouse nodes.
     Cartesian distance is used as the heuristic.
     """
+
     def classic_astar(self):
         source = self.source
         destination = self.destination
@@ -386,6 +390,7 @@ class Warehouse():
          destination.
          This algorithm avoids static obstacles and ignores dynamic obstacles
     """
+
     def set_ith_destination_distances(self, i):
         destination = self.destinations[i]
         destination_coordinates = destination.coordinates
