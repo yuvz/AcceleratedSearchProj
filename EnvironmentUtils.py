@@ -2,13 +2,11 @@ import random
 from sys import maxsize
 from Environment import Agent, AStar
 
-WAVES_PER_WAREHOUSE = [10, 1, 10, 1]
 
-
-def generate_rand_agents_and_dest_ids(warehouse):
+def generate_rand_agents_and_dest_ids(warehouse, waves_per_warehouse):
     sources = warehouse.sources
     num_of_sources = len(sources)
-    num_of_waves = WAVES_PER_WAREHOUSE[warehouse.warehouse_id - 1]
+    num_of_waves = waves_per_warehouse[warehouse.warehouse_id - 1]
     agents = []
     dest_ids = []
     for i in range(num_of_waves):

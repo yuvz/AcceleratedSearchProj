@@ -5,6 +5,7 @@ from Utils import *
 from Visualization import show_plan
 from math import ceil, sqrt, floor
 
+WAVES_PER_WAREHOUSE = [10, 1, 10, 1]
 
 EXPORT_ANIMATION = False
 SHOW_ANIMATION_TRAIL = False
@@ -123,7 +124,7 @@ def generate_rnd_plan(warehouse, agents, sequential_exit=False):
 
 
 def generate_rnd_example(warehouse, title=""):
-    agents, dest_ids = generate_rand_agents_and_dest_ids(warehouse)
+    agents, dest_ids = generate_rand_agents_and_dest_ids(warehouse, WAVES_PER_WAREHOUSE)
     t0 = time()
     plan = generate_rnd_plan(warehouse, agents)
     t1 = time()
@@ -432,7 +433,7 @@ def generate_lns_rnd_plan(warehouse, agents, neighborhood_picking_function=pick_
 
 
 def generate_lns_rnd_example(warehouse, title="", num_of_waves=0):
-    agents, dest_ids = generate_rand_agents_and_dest_ids(warehouse)
+    agents, dest_ids = generate_rand_agents_and_dest_ids(warehouse, WAVES_PER_WAREHOUSE)
 
     print("Generating LNS-RND plan, with (num_of_waves) =", num_of_waves)
     print("***")
@@ -489,7 +490,7 @@ def generate_ordered_by_destination_plan(warehouse, agents):
 
 
 def generate_ordered_by_destination_example(warehouse):
-    agents, dest_ids = generate_rand_agents_and_dest_ids(warehouse)
+    agents, dest_ids = generate_rand_agents_and_dest_ids(warehouse, WAVES_PER_WAREHOUSE)
     t0 = time()
     plan = generate_ordered_by_destination_plan(warehouse, agents)
     t1 = time()
