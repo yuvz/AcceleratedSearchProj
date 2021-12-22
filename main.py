@@ -4,17 +4,14 @@ from EnvironmentUtils import *
 from Utils import *
 from Visualization import show_plan
 from math import ceil, sqrt, floor
+from PlanGeneration import generate_example
 
-WAVES_PER_WAREHOUSE = [10, 1, 10, 1]
-
-EXPORT_ANIMATION = False
-SHOW_ANIMATION_TRAIL = False
+WAVES_PER_WAREHOUSE = [5, 1, 10, 1]
 
 RANDOM_SCHEDULING_ENABLED = False
 
 PROGRESSIVELY_OBSTACLE_RESTRICTED_PLANS_MAX_TRIES = 5
 RANDOM_MIDPOINTS_MAX_TRIES = 5
-LNS_ITERATIONS = 1
 
 
 def generate_warehouse(warehouse_id):
@@ -67,36 +64,6 @@ def generate_warehouse(warehouse_id):
                          obstacle_width)
 
 
-def bfs_search(agent):
-    route = [agent.vertex.coordinates]
-
-    while not agent.is_at_destination():
-        agent.vertex = agent.get_ideal_neighbor()
-        route.append(agent.vertex.coordinates)
-
-    return route
-
-
-def generate_bfs_plan(agent):
-    plan = [[]]
-
-    route = bfs_search(agent)
-    update_plan(plan, agent.agent_id, route)
-    return plan
-
-
-def generate_bfs_example(warehouse):
-    source_id = random.randint(0, warehouse.number_of_sources - 1)
-    destination_id = random.randint(0, warehouse.number_of_destinations - 1)
-    source = warehouse.sources[source_id]
-    destination = warehouse.destinations[destination_id]
-
-    agent = Agent(0, source, destination)
-
-    plan = generate_bfs_plan(agent)
-    show_plan(warehouse, plan)
-
-
 def update_plan(plan, i, route):
     if not route:
         return
@@ -104,32 +71,13 @@ def update_plan(plan, i, route):
         plan[i].append(step)
 
 
-def generate_rnd_plan(warehouse, agents, sequential_exit=False):
-    num_of_agents = len(agents)
-    priority_order = random.sample(range(num_of_agents), num_of_agents)
-    plan = [[] for _ in range(len(agents))]
-    route_number = 0
-
-    for route_number, i in enumerate(priority_order):
-        agent, a_star_framework = get_agent_and_framework(agents, i)
-        route = a_star_framework.space_time_search(warehouse, agent, plan, route_number == 0,
-                                                   route_number if sequential_exit else 0)
-        update_plan(plan, i, route)
-        if route_number % 5 == 0:
-            print("Found route for", route_number + 1, "out of", num_of_agents, "agents")
-
-    print("***")
-    print("Done: Found route for", route_number + 1, "out of", num_of_agents, "agents")
-    return plan
-
-
-def generate_rnd_example(warehouse, title=""):
-    agents, dest_ids = generate_rand_agents_and_dest_ids(warehouse, WAVES_PER_WAREHOUSE)
-    t0 = time()
-    plan = generate_rnd_plan(warehouse, agents)
-    t1 = time()
-    running_time = round(t1 - t0, 4)
-    show_plan(warehouse, plan, running_time, "RND", dest_ids, title)
+# def generate_rnd_example(warehouse, title=""):
+#     agents = generate_rand_agents(warehouse, WAVES_PER_WAREHOUSE)
+#     t0 = time()
+#     plan = generate_rnd_plan(warehouse, agents)
+#     t1 = time()
+#     running_time = round(t1 - t0, 4)
+#     show_plan(warehouse, plan, running_time, "RND", title)
 
 
 def add_obstacle_at_midpoint(added_obstacles, last_added_obstacle_midpoint, added_obstacle_size, obstacle_pattern):
@@ -238,8 +186,7 @@ def generate_random_obstacles_restricted_example(warehouse):
 
 
 def generate_ideal_path_with_splits_plan(warehouse, source, destination):
-    agent = Agent(0, source, destination)
-    ideal_path = bfs_search(agent)
+    ideal_path = (BFS(source, destination).generate_plan())[0]
 
     plan = [ideal_path]
     obstacle_patterns = ["cross", "square", "vertical_line", "horizontal_line", "dot"]
@@ -370,144 +317,18 @@ def generate_midpoints_restricted_with_splits_example(warehouse):
     generate_midpoints_restricted_example(warehouse, True)
 
 
-def neighborhood_sum_of_costs(plan, neighborhood):
-    return sum([len(plan[i]) for i in neighborhood])
-
-
-def neighborhood_makespan(plan, neighborhood):
-    return max([len(plan[i]) for i in neighborhood])
-
-
-def pick_better_plan(plan, backup_plan, neighborhood, cost_function=neighborhood_makespan):
-    plan_cost = cost_function(plan, neighborhood)
-    backup_plan_cost = cost_function(backup_plan, neighborhood)
-
-    if plan_cost < backup_plan_cost:
-        print("cost was", backup_plan_cost, "and is now", plan_cost)
-        return plan
-    return backup_plan
-
-
-def replan(warehouse, plan, neighborhood, agents):
-    for route_number, i in enumerate(neighborhood):
-        agent, a_star_framework = get_agent_and_framework(agents, i)
-        route = a_star_framework.space_time_search(warehouse, agent, plan, route_number == 0, True)
-        update_plan(plan, i, route)
-    return plan
-
-
-def erase_routes(plan, neighborhood):
-    for i in neighborhood:
-        plan[i] = []
-
-
-def get_worst_makespan_agents(plan):
-    worst_makespan = max(len(route) for route in plan)
-    return [i for i in range(len(plan)) if len(plan[i]) == worst_makespan]
-
-
-def pick_random_neighborhood(agents, plan):
-    num_of_agents = len(agents)
-    worst_makespan_agents = get_worst_makespan_agents(plan)
-    random_sample = random.sample(range(num_of_agents), 2 * round(sqrt(num_of_agents)))
-
-    neighborhood = worst_makespan_agents + random_sample
-    random.shuffle(neighborhood)
-    return neighborhood
-
-
-def generate_lns_rnd_plan(warehouse, agents, neighborhood_picking_function=pick_random_neighborhood):
-    # agents = sort_agents_non_crossing_diagonals(agents)
-    plan = generate_rnd_plan(warehouse, agents, True)
-
-    for _ in range(LNS_ITERATIONS):
-        plan_backup = plan.copy()
-
-        # neighborhood contains the list of indexes of agents to replan for
-        neighborhood = neighborhood_picking_function(agents, plan)
-        erase_routes(plan, neighborhood)
-        plan = replan(warehouse, plan, neighborhood, agents)
-        plan = pick_better_plan(plan, plan_backup, neighborhood)
-
-    return plan
-
-
-def generate_lns_rnd_example(warehouse, title="", num_of_waves=0):
-    agents, dest_ids = generate_rand_agents_and_dest_ids(warehouse, WAVES_PER_WAREHOUSE)
-
-    print("Generating LNS-RND plan, with (num_of_waves) =", num_of_waves)
-    print("***")
-    t0 = time()
-    plan = generate_lns_rnd_plan(warehouse, agents, pick_random_neighborhood)
-    t1 = time()
-    running_time = round(t1 - t0, 4)
-    show_plan(warehouse, plan, running_time, "LNS-RND", dest_ids, title)
-
-
-def ordered_by_destination_id(agents):
-    sorted_agents = sorted(agents, key=Agent.get_destination_id)
-    sorted_agent_ids = [agent.agent_id for agent in sorted_agents]
-    # num_of_agents = len(agents)
-    # agent_ids = list(range(num_of_agents))
-    # agent_ids.sort(key=Agent.get_destination_id)
-    return sorted_agent_ids
-
-
-def ordered_by_source_id(agents):
-    sorted_agents = sorted(agents, key=Agent.get_source_id)
-    sorted_agent_ids = [agent.agent_id for agent in sorted_agents]
-    # num_of_agents = len(agents)
-    # agent_ids = list(range(num_of_agents))
-    # agent_ids.sort(key=Agent.get_destination_id)
-    return sorted_agent_ids
-
-
-def ordered_by_source_then_destination_id(agents):
-    # sorted_agents = sorted(agents, key=cmp_to_key(Agent.comparator_source_destination_id))
-    sorted_agents = sorted(agents, key=Agent.get_destination_id)
-    sorted_agents = sorted(sorted_agents, key=Agent.get_source_id)
-    # print(sorted_agents2 == sorted_agents)
-    sorted_agent_ids = [agent.agent_id for agent in sorted_agents]
-    return sorted_agent_ids
-
-
-def generate_ordered_by_destination_plan(warehouse, agents):
-    num_of_agents = len(agents)
-    priority_order = ordered_by_source_then_destination_id(agents)
-    plan = [[] for _ in range(num_of_agents)]
-    route_number = 0
-
-    for route_number, i in enumerate(priority_order):
-        agent, a_star_framework = get_agent_and_framework(agents, i)
-        route = a_star_framework.space_time_search(warehouse, agent, plan, route_number == 0)
-        update_plan(plan, i, route)
-        if route_number % 5 == 0:
-            print("Found route for", route_number + 1, "out of", num_of_agents, "agents")
-
-    print("***")
-    print("Done: Found route for", route_number + 1, "out of", num_of_agents, "agents")
-    return plan
-
-
-def generate_ordered_by_destination_example(warehouse):
-    agents, dest_ids = generate_rand_agents_and_dest_ids(warehouse, WAVES_PER_WAREHOUSE)
-    t0 = time()
-    plan = generate_ordered_by_destination_plan(warehouse, agents)
-    t1 = time()
-    running_time = round(t1 - t0, 4)
-    show_plan(warehouse, plan, running_time, "RND", dest_ids)
-
-
 def main():
     warehouse_types = {"first paper": 1, "toy": 2, "small structured": 3, "small empty single origin": 4}
-    warehouse = generate_warehouse(warehouse_types["toy"])
+    warehouse = generate_warehouse(warehouse_types["first paper"])
 
-    # generate_bfs_example(warehouse)
-    generate_rnd_example(warehouse, "")
-    # generate_ordered_by_destination_example(warehouse)
-    # generate_lns_rnd_example(warehouse, "Title")
+    algorithm_name = "LNS_RND"  # currently works with BFS, RND, LNS_RND
+    title = "Visualization title"
+    plan, running_time = generate_example(warehouse, WAVES_PER_WAREHOUSE, algorithm_name)
+
+    show_plan(warehouse, plan, running_time, algorithm_name, title)
+
     # generate_random_obstacles_restricted_example(warehouse)
-    # generate_ideal_path_with_splits_example(warehouse)
+    # plan = generate_ideal_path_with_splits_example(warehouse)
 
     # generate_midpoints_restricted_example(warehouse)
     # generate_midpoints_restricted_with_splits_example(warehouse)

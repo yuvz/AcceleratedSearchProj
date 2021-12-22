@@ -73,18 +73,6 @@ class Agent:
         else:
             return 1
 
-    def get_ideal_neighbor(self):
-        ideal_neighbor = None
-        min_destination_distance = self.get_destination_distance() + 1
-
-        for neighbor in self.vertex.neighbors:
-            neighbor_destination_distance = neighbor.get_destination_distance(self.destination.destination_id)
-            if neighbor_destination_distance < min_destination_distance:
-                min_destination_distance = neighbor_destination_distance
-                ideal_neighbor = neighbor
-
-        return ideal_neighbor
-
 
 class AStar:
     class Node:

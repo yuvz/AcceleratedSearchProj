@@ -6,7 +6,8 @@ from copy import deepcopy
 from time import time
 
 
-EXPORT_ANIMATION = True
+SHOW_ANIMATION = True
+EXPORT_ANIMATION = False
 SHOW_ANIMATION_TRAIL = False
 
 COLOR_BY_DESTINATION_ID = False
@@ -78,7 +79,7 @@ def color_by_source_id(warehouse, plan):
     return color_by_target_id(warehouse, plan, False)
 
 
-def show_plan_as_animation(warehouse, plan, running_time=-1.0, algorithm_name="TODO", dest_ids=None, title=""):
+def show_plan_as_animation(warehouse, plan, running_time=-1.0, algorithm_name="TODO", title=""):
     fig, ax = warehouse.plot_layout()
     set_plot_title_and_info(warehouse, plan, running_time, algorithm_name, title)
 
@@ -130,7 +131,7 @@ def show_plan_as_animation(warehouse, plan, running_time=-1.0, algorithm_name="T
         animation.save('animation.gif', writer='ffmpeg')
 
 
-def show_plan_as_image(warehouse, plan, running_time=-1.0, algorithm_name="TODO", dest_ids=None, title=""):
+def show_plan_as_image(warehouse, plan, running_time=-1.0, algorithm_name="TODO", title=""):
     warehouse.plot_layout()
     set_plot_title_and_info(warehouse, plan, running_time, algorithm_name, title)
 
@@ -157,8 +158,8 @@ def set_plot_title_and_info(warehouse, plan, running_time, algorithm_name, title
     plt.suptitle(title)
 
 
-def show_plan(warehouse, plan, running_time=-1.0, algorithm_name="TODO", dest_ids=None, title="", is_animation=True):
-    if is_animation:
-        show_plan_as_animation(warehouse, plan, running_time, algorithm_name, dest_ids, title)
+def show_plan(warehouse, plan, running_time=-1.0, algorithm_name="TODO", title=""):
+    if SHOW_ANIMATION:
+        show_plan_as_animation(warehouse, plan, running_time, algorithm_name, title)
     else:
-        show_plan_as_image(warehouse, plan, running_time, algorithm_name, dest_ids, title)
+        show_plan_as_image(warehouse, plan, running_time, algorithm_name, title)
