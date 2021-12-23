@@ -15,7 +15,7 @@ WAREHOUSE_FPS = [24, 3, 6, 12]
 distinct_colors = [(1, 0, 0), (0, 1, 0), (0, 0, 1), 'xkcd:dark pastel green', 'xkcd:strong pink', '#6dedfd',
                    (1, 0.5, 0.25), 'xkcd:light navy blue', (0.5, 0.25, 1)]  # len(distinct_colors) = 9
 
-PATH_GENERATING_ALGORITHMS = ["ROR", "K-ROR"]
+PATH_GENERATING_ALGORITHMS = ["ROR", "K-ROR", "IPWS", "K-IPWS", "MPR", "K-MPR", "MPR-WS"]
 
 
 def plan_to_frames(plan):
@@ -50,7 +50,7 @@ def random_color():
 def color_by_target_id(warehouse, plan, is_target_destination=True):
     routing_request_routes = []
 
-    id_getter_function = get_destination_id if is_target_destination else get_source_id
+    id_getter_function = get_destination_id_from_route if is_target_destination else get_source_id_from_route
     for route in plan:
         routing_request_target_id = id_getter_function(warehouse, route)
 
@@ -65,6 +65,40 @@ def color_by_destination_id(warehouse, plan):
 
 def color_by_source_id(warehouse, plan):
     return color_by_target_id(warehouse, plan, False)
+
+
+def set_routing_solution_title_and_info(warehouse, plan, running_time, algorithm_name, title):
+    sum_of_costs = sum([len(route) for route in plan])
+
+    title_left = "map_size = " + str(warehouse.width) + "*" + str(warehouse.length) + \
+                 "        (num_sources, num_destinations) = " + \
+                 str((warehouse.number_of_sources, warehouse.number_of_destinations)) + \
+                 "        num_agents = " + str(len(plan)) + \
+                 "\nAlgorithm = " + algorithm_name + "        sum_of_costs = " + str(sum_of_costs) + \
+                 "        running_time = " + str(running_time)
+
+    plt.title(title_left, loc='left')
+    plt.suptitle(title)
+
+
+def set_path_generation_title_and_info(warehouse, plan, running_time, algorithm_name, title):
+    source_number = get_source_id_from_route(warehouse, plan[0]) + 1
+    destination_number = get_destination_id_from_route(warehouse, plan[0]) + 1
+
+    title_left = "map_size = " + str(warehouse.width) + "*" + str(warehouse.length) + \
+                 "        (source_num, destination_num) = " + str((source_number, destination_number)) + \
+                 "\nalgorithm = " + algorithm_name + "        running_time = " + str(running_time) + \
+                 "        num_routes_generated = " + str(len(plan))
+
+    plt.title(title_left, loc='left')
+    plt.suptitle(title)
+
+
+def set_plot_title_and_info(warehouse, plan, running_time, algorithm_name, title):
+    if algorithm_name in PATH_GENERATING_ALGORITHMS:
+        set_path_generation_title_and_info(warehouse, plan, running_time, algorithm_name, title)
+    else:
+        set_routing_solution_title_and_info(warehouse, plan, running_time, algorithm_name, title)
 
 
 def show_plan_as_animation(warehouse, plan, running_time=-1.0, algorithm_name="TODO", title="", export_animation=False):
@@ -133,7 +167,7 @@ def show_plan_as_image(warehouse, plan, running_time=-1.0, algorithm_name="TODO"
         for coordinates in route:
             if COLOR_BY_DESTINATION_ID:
                 plt.scatter(coordinates[1], coordinates[0], s=20,
-                            color=distinct_colors[get_destination_id(warehouse, route) % len(distinct_colors)])
+                            color=distinct_colors[get_destination_id_from_route(warehouse, route) % len(distinct_colors)])
             else:   # colors by source_id
                 plt.scatter(coordinates[1], coordinates[0], s=20, color=distinct_colors[i % len(distinct_colors)])
     if export_image:
@@ -142,30 +176,3 @@ def show_plan_as_image(warehouse, plan, running_time=-1.0, algorithm_name="TODO"
         plt.savefig('figure.png')
         print("Export done")
     plt.show()
-
-
-def set_plot_title_and_info(warehouse, plan, running_time, algorithm_name, title):
-    sum_of_costs = sum([len(route) for route in plan])
-
-    title_left = "map_size = " + str(warehouse.width) + "*" + str(warehouse.length) + \
-                 "        (num_sources, num_destinations) = " + \
-                 str((warehouse.number_of_sources, warehouse.number_of_destinations)) + \
-                 "        num_agents = " + str(len(plan)) + \
-                 "\nAlgorithm = " + algorithm_name + "        sum_of_costs = " + str(sum_of_costs) + \
-                 "        running_time = " + str(running_time)
-
-    plt.title(title_left, loc='left')
-    plt.suptitle(title)
-
-
-def set_path_generation_title_and_info(warehouse, plan, running_time, algorithm_name, title):
-    source_number = get_source_id_from_route(warehouse, plan[0]) + 1
-    destination_number = get_destination_id_from_route(warehouse, plan[0]) + 1
-
-    title_left = "map_size = " + str(warehouse.width) + "*" + str(warehouse.length) + \
-                 "        (source_num, destination_num) = " + str((source_number, destination_number)) + \
-                 "\nalgorithm = " + algorithm_name + "        running_time = " + str(running_time) + \
-                 "        num_routes_generated = " + str(len(plan))
-
-    plt.title(title_left, loc='left')
-    plt.suptitle(title)

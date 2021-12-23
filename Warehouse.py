@@ -2,6 +2,8 @@ from queue import Queue
 from typing import List, Set, Tuple
 import matplotlib.pyplot as plt
 
+PLOT_OBSTACLE_INTERIOR = True
+
 SOURCE_OFFSET = 3
 DESTINATION_OFFSET = 5
 ALLOW_DIAGONAL_MOVEMENT = False
@@ -162,6 +164,7 @@ class Warehouse:
 
                     if 0 <= obstacle_column_idx < self.width:
                         self.vertices[obstacle_row_idx][obstacle_column_idx].is_static_obstacle = True
+                        self.static_obstacles.add((obstacle_row_idx, obstacle_column_idx))
 
                         # used for animations
                         if i == 0 or i == self.static_obstacle_length - 1 or j == 0 \
@@ -217,6 +220,10 @@ class Warehouse:
         ax = plt.axes(xlim=(0, self.width - 1), ylim=(0, self.length - 1))
         for source in self.sources:
             plt.scatter(source.coordinates[1], source.coordinates[0], s=250, marker='v', c='#00964b')
+
+        if PLOT_OBSTACLE_INTERIOR:
+            for obstacle in self.static_obstacles:
+                plt.scatter(obstacle[1], obstacle[0], s=5, marker='8', c='black')
 
         for obstacle in self.static_obstacle_corners:
             if self.warehouse_id == 1:

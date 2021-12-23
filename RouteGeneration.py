@@ -3,8 +3,92 @@ from math import ceil
 from sys import maxsize
 
 from AStar import AStar
+from BFS import BFS
+from EnvironmentUtils import get_random_points_throughout_warehouse
+from RoutingRequest import RoutingRequest
+from Utils import distance
+
 PROGRESSIVELY_OBSTACLE_RESTRICTED_PLANS_MAX_TRIES = 5
-RANDOM_MIDPOINTS_MAX_TRIES = 5
+
+
+def generate_midpoints_restricted_plan(warehouse, source, destination, is_split_at_midpoint=False):
+    midpoints = get_random_points_throughout_warehouse(warehouse)
+
+    plan = []
+    for i, midpoint_coordinates in enumerate(midpoints):
+        midpoint_vertex = warehouse.vertices[midpoint_coordinates[0]][midpoint_coordinates[1]]
+        source_node = AStar.Node(source, distance(source.coordinates, midpoint_coordinates), 0, None, True)
+        midpoint_node = AStar.Node(midpoint_vertex, 0, maxsize, None, False)
+        a_star_framework = AStar(source_node, midpoint_node)
+
+        route_to_midpoint = a_star_framework.classic_astar()
+        if not route_to_midpoint:
+            continue
+
+        source_node = AStar.Node(midpoint_vertex, midpoint_vertex.destination_distance[destination.destination_id], 0,
+                                 None, True)
+        destination_node = AStar.Node(destination, 0, maxsize, None, False)
+        a_star_framework = AStar(source_node, destination_node)
+
+        route_from_midpoint = a_star_framework.classic_astar()
+        if not route_from_midpoint:
+            continue
+
+        complete_route = route_to_midpoint + route_from_midpoint
+
+        if len(complete_route) < warehouse.length + warehouse.width:
+            if is_split_at_midpoint:
+                obstacle_patterns = ["cross", "square", "vertical_line", "horizontal_line", "dot"]
+                max_obstacle_size = min(warehouse.static_obstacle_length, warehouse.static_obstacle_width)
+                split_step_size = max(2 * max_obstacle_size, 2)
+
+                routing_request = RoutingRequest(i, midpoint_vertex, destination)
+                for routing_request_route in generate_random_obstacles_restricted_plan(warehouse, routing_request, obstacle_patterns,
+                                                                             split_step_size, len(route_to_midpoint)):
+                    plan.append(route_to_midpoint + routing_request_route)
+            else:
+                plan.append(complete_route)
+
+    return plan
+
+
+def generate_midpoints_restricted_plan_for_first_routing_request(warehouse, routing_requests,
+                                                                 is_split_at_midpoint=False):
+    first_routing_request = routing_requests[0]
+    source, destination = first_routing_request.source, first_routing_request.destination
+
+    return generate_midpoints_restricted_plan(warehouse, source, destination, is_split_at_midpoint)
+
+
+def generate_ideal_path_with_splits_plan(warehouse, source, destination):
+    ideal_path = (BFS(source, destination).generate_plan())[0]
+
+    plan = [ideal_path]
+    obstacle_patterns = ["cross", "square", "vertical_line", "horizontal_line", "dot"]
+    max_obstacle_size = min(warehouse.static_obstacle_length, warehouse.static_obstacle_width)
+    split_step_and_size = max_obstacle_size
+    routing_request_id = 1
+    for i, coordinates in enumerate(ideal_path):
+        split_on_every_step = False
+        if split_on_every_step or i % split_step_and_size == 0:
+            routing_request = RoutingRequest(routing_request_id, warehouse.vertices[coordinates[0]][coordinates[1]], destination)
+            for routing_request_route in generate_random_obstacles_restricted_plan(warehouse, routing_request, obstacle_patterns,
+                                                                         4 * split_step_and_size, i):
+                if not routing_request_route:
+                    continue
+
+                first_elements = ideal_path[:i - 1] if i != 0 else []
+                plan.append(first_elements + routing_request_route)
+            routing_request_id += 1
+
+    return plan
+
+
+def generate_ideal_path_with_splits_plan_for_first_routing_request(warehouse, routing_requests):
+    first_routing_request = routing_requests[0]
+    source, destination = first_routing_request.source, first_routing_request.destination
+
+    return generate_ideal_path_with_splits_plan(warehouse, source, destination)
 
 
 def add_obstacle_at_midpoint(added_obstacles, last_added_obstacle_midpoint, added_obstacle_size, obstacle_pattern):
@@ -94,3 +178,9 @@ def generate_random_obstacles_restricted_plan(warehouse, routing_request, obstac
         add_obstacle_at_midpoint(added_obstacles, last_added_obstacle_midpoint, added_obstacle_size,
                                  obstacle_pattern)
     return plan
+
+
+def generate_random_obstacles_restricted_plan_for_first_routing_request(warehouse, routing_requests, obstacle_patterns):
+    first_routing_request = routing_requests[0]
+
+    return generate_random_obstacles_restricted_plan(warehouse, first_routing_request, obstacle_patterns)

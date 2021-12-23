@@ -25,7 +25,7 @@ def pick_lower_sum_of_costs_plan(plan, backup_plan, neighborhood):
 
 def replan(warehouse, plan, neighborhood, routing_requests):
     for route_number, i in enumerate(neighborhood):
-        route = find_route_using_Astar(warehouse, plan, routing_requests[i], route_number == 0, True)
+        route = find_route_using_Astar(warehouse, plan, routing_requests[i], route_number == 0)
         update_plan(plan, i, route)
     return plan
 
@@ -113,7 +113,7 @@ def agent_based_neighborhood(agents, warehouse, plan):
     return list(neighborhood)
 
 
-def generate_lns_rnd_plan(warehouse, routing_requests, neighborhood_picking_function=pick_random_neighborhood):
+def generate_lns_rnd_plan(warehouse, routing_requests, neighborhood_picking_function=agent_based_neighborhood):
     """
     Supported neighborhood_picking_function: [pick_random_neighborhood, agent_based_neighborhood]
     """
