@@ -1,6 +1,6 @@
 import heapq
 
-from Agent import ALLOW_DIAGONAL_MOVEMENT
+from RoutingRequest import ALLOW_DIAGONAL_MOVEMENT
 from Utils import distance
 
 PRIORITIZE_AGENTS_WAITING_AT_SOURCE = True
@@ -51,22 +51,22 @@ class AStar:
                                                (current_coordinates[1] + coordinates[1]) / 2)
                                               for coordinates in valid_neighbors_coordinates]
 
-            for agent_plan in plan:
-                if self.g_value + 1 < len(agent_plan):
-                    agent_current_coordinates = agent_plan[self.g_value]
-                    agent_next_coordinates = agent_plan[self.g_value + 1]
+            for routing_request_plan in plan:
+                if self.g_value + 1 < len(routing_request_plan):
+                    routing_request_current_coordinates = routing_request_plan[self.g_value]
+                    routing_request_next_coordinates = routing_request_plan[self.g_value + 1]
 
-                    if not self.is_adjacent_vertex(agent_current_coordinates) or not \
-                            self.is_adjacent_vertex(agent_next_coordinates):
+                    if not self.is_adjacent_vertex(routing_request_current_coordinates) or not \
+                            self.is_adjacent_vertex(routing_request_next_coordinates):
                         continue
 
-                    agent_current_coordinates = agent_plan[self.g_value]
-                    agent_next_coordinates = agent_plan[self.g_value + 1]
-                    agent_midpoint_coordinates = ((agent_current_coordinates[0] + agent_next_coordinates[0]) / 2,
-                                                  (agent_current_coordinates[1] + agent_next_coordinates[1]) / 2)
+                    routing_request_current_coordinates = routing_request_plan[self.g_value]
+                    routing_request_next_coordinates = routing_request_plan[self.g_value + 1]
+                    routing_request_midpoint_coordinates = ((routing_request_current_coordinates[0] + routing_request_next_coordinates[0]) / 2,
+                                                  (routing_request_current_coordinates[1] + routing_request_next_coordinates[1]) / 2)
 
-                    if agent_midpoint_coordinates in valid_neighbors_edge_midpoints:
-                        conflicting_neighbor_index = valid_neighbors_edge_midpoints.index(agent_midpoint_coordinates)
+                    if routing_request_midpoint_coordinates in valid_neighbors_edge_midpoints:
+                        conflicting_neighbor_index = valid_neighbors_edge_midpoints.index(routing_request_midpoint_coordinates)
                         conflicting_neighbor_coordinates = valid_neighbors_coordinates[conflicting_neighbor_index]
                         conflicting_neighbor = warehouse.vertices[conflicting_neighbor_coordinates[0]][
                             conflicting_neighbor_coordinates[1]]
@@ -81,10 +81,10 @@ class AStar:
             valid_neighbors_coordinates = {neighbor.coordinates for neighbor in valid_neighbors}
             current_self_coordinates = self.vertex.coordinates
 
-            for agent_plan in plan:
-                if self.g_value + 1 < len(agent_plan):
-                    current_other_coordinates = agent_plan[self.g_value]
-                    next_other_coordinates = agent_plan[self.g_value + 1]
+            for routing_request_plan in plan:
+                if self.g_value + 1 < len(routing_request_plan):
+                    current_other_coordinates = routing_request_plan[self.g_value]
+                    next_other_coordinates = routing_request_plan[self.g_value + 1]
 
                     if current_other_coordinates in valid_neighbors_coordinates and \
                             current_self_coordinates == next_other_coordinates:
@@ -97,9 +97,9 @@ class AStar:
         def remove_vertex_collisions(self, warehouse, valid_neighbors, plan):
             valid_neighbors_coordinates = {neighbor.coordinates for neighbor in valid_neighbors}
 
-            for agent_plan in plan:
-                if self.g_value + 1 < len(agent_plan):
-                    next_other_coordinates = agent_plan[self.g_value + 1]
+            for routing_request_plan in plan:
+                if self.g_value + 1 < len(routing_request_plan):
+                    next_other_coordinates = routing_request_plan[self.g_value + 1]
 
                     if next_other_coordinates in valid_neighbors_coordinates:
                         valid_neighbors.remove(warehouse.vertices[next_other_coordinates[0]][next_other_coordinates[1]])
@@ -146,10 +146,10 @@ class AStar:
 
         return reversed_route[::-1]
 
-    def space_time_search(self, warehouse, agent, plan, is_first_agent=False, wait_at_source_left=0):
+    def space_time_search(self, warehouse, routing_request, plan, is_first_routing_request=False, wait_at_source_left=0):
         source = self.source
         destination = self.destination
-        destination_id = agent.destination.destination_id
+        destination_id = routing_request.destination.destination_id
 
         priority_queue = []
         heapq.heappush(priority_queue, source)
@@ -196,12 +196,12 @@ class AStar:
                     heapq.heappush(priority_queue, neighbor_node)
                     visited[(path_cost, neighbor)] = neighbor_node
 
-        print("search failed for agent ", agent.agent_id)
+        print("search failed for routing_request ", routing_request.routing_request_id)
 
-    def search_with_added_obstacles(self, agent, added_obstacles):
+    def search_with_added_obstacles(self, routing_request, added_obstacles):
         source = self.source
         destination = self.destination
-        destination_id = agent.destination.destination_id
+        destination_id = routing_request.destination.destination_id
 
         priority_queue = []
         heapq.heappush(priority_queue, source)

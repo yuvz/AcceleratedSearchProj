@@ -2,16 +2,19 @@ from copy import deepcopy
 from itertools import combinations
 from typing import List, Tuple, Dict, Set
 import numpy as np
+
+from CBS import constraints
 from CBS.constraint_tree import CTNode
-from Agent import Agent
+from CBS.constraints import Constraints
+from RoutingRequest import RoutingRequest
 from EnvironmentUtils import find_route_using_Astar
 from heapq import heappush, heappop
 
 
 class CBS:
-    def __init__(self, warehouse, agents: List[Agent]):
+    def __init__(self, warehouse, agents: List[RoutingRequest]):
         self.warehouse = warehouse
-        self.agents: List[Agent] = agents
+        self.agents: List[RoutingRequest] = agents
 
     '''
         You can use your own assignment function, the default algorithm greedily assigns
@@ -92,7 +95,7 @@ class CBS:
 
         results.append((node_i, node_j))
 
-'''
+    '''
     Pair of agent, point of conflict
     '''
     def validate_paths(self, agents, node: CTNode):
@@ -106,7 +109,7 @@ class CBS:
         return None, None, -1
 
 
-    def safe_distance(self, solution: Dict[Agent, np.ndarray], agent_i: Agent, agent_j: Agent) -> int:
+    def safe_distance(self, solution: Dict[RoutingRequest, np.ndarray], agent_i: RoutingRequest, agent_j: RoutingRequest) -> int:
         for idx, (point_i, point_j) in enumerate(zip(solution[agent_i], solution[agent_j])):
             if self.dist(point_i, point_j) > 2*self.robot_radius:
                 continue
@@ -118,8 +121,8 @@ class CBS:
         return int(np.linalg.norm(point1-point2, 2))  # L2 norm
 
     def calculate_constraints(self, node: CTNode,
-                                    constrained_agent: Agent,
-                                    unchanged_agent: Agent,
+                                    constrained_agent: RoutingRequest,
+                                    unchanged_agent: RoutingRequest,
                                     time_of_conflict: int) -> Constraints:
         contrained_path = node.solution[constrained_agent]
         unchanged_path = node.solution[unchanged_agent]
@@ -133,7 +136,7 @@ class CBS:
             pass
         return node.constraints.fork(constrained_agent, tuple(pivot.tolist()), time_of_conflict, conflict_end_time)
 
-    def calculate_goal_times(self, node: CTNode, agent: Agent, agents: List[Agent]):
+    def calculate_goal_times(self, node: CTNode, agent: RoutingRequest, agents: List[RoutingRequest]):
         solution = node.solution
         goal_times = dict()
         for other_agent in agents:
@@ -146,7 +149,7 @@ class CBS:
     '''
     Calculate the paths for all agents with space-time constraints
     '''
-    def calculate_path(self, agent: Agent,
+    def calculate_path(self, agent: RoutingRequest,
                        constraints: Constraints,
                        goal_times: Dict[int, Set[Tuple[int, int]]]) -> np.ndarray:
         return self.st_planner.plan(agent.start,
@@ -160,7 +163,7 @@ class CBS:
     Reformat the solution to a numpy array
     '''
     @staticmethod
-    def reformat(agents: List[Agent], solution: Dict[Agent, np.ndarray]):
+    def reformat(agents: List[RoutingRequest], solution: Dict[RoutingRequest, np.ndarray]):
         solution = CBS.pad(solution)
         reformatted_solution = []
         for agent in agents:
@@ -171,7 +174,7 @@ class CBS:
     Pad paths to equal length, inefficient but well..
     '''
     @staticmethod
-    def pad(solution: Dict[Agent, np.ndarray]):
+    def pad(solution: Dict[RoutingRequest, np.ndarray]):
         max_ = max(len(path) for path in solution.values())
         for agent, path in solution.items():
             if len(path) == max_:

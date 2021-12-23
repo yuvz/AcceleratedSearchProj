@@ -2,7 +2,7 @@ from typing import Tuple
 import numpy as np
 
 
-class Agent:
+class RoutingRequest:
 
     def __init__(self, start: Tuple[int, int], goal: Tuple[int, int]):
         self.start = np.array(start)
@@ -12,7 +12,7 @@ class Agent:
     def __hash__(self):
         return int(str(self.start[0]) + str(self.start[1]))
 
-    def __eq__(self, other: 'Agent'):
+    def __eq__(self, other: 'RoutingRequest'):
         return np.array_equal(self.start, other.start) and \
                np.array_equal(self.goal, other.goal)
 

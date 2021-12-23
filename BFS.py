@@ -1,4 +1,6 @@
 import random
+
+from RoutingRequest import RoutingRequest
 from Utils import update_plan
 
 
@@ -40,10 +42,11 @@ class BFS:
         return plan
 
 
-def generate_rnd_bfs(warehouse):
-    source_id = random.randint(0, warehouse.number_of_sources - 1)
-    destination_id = random.randint(0, warehouse.number_of_destinations - 1)
-    source = warehouse.sources[source_id]
-    destination = warehouse.destinations[destination_id]
+def generate_bfs_plan(routing_request):
+    bfs = BFS(routing_request.source, routing_request.destination)
 
-    return BFS(source, destination)
+    return bfs.generate_plan()
+
+
+def generate_bfs_plan_for_first_routing_request(unused_variable, routing_requests):
+    return generate_bfs_plan(routing_requests[0])

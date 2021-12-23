@@ -5,20 +5,17 @@ ALLOW_DIAGONAL_MOVEMENT = False
 PRIORITIZE_AGENTS_WAITING_AT_SOURCE = True
 
 
-class Agent:
+class RoutingRequest:
     """
        Prioritize a robot blocking the destination
        Otherwise, prioritize for smaller row_idx
        Otherwise, larger destination_distance
     """
 
-    def __init__(self, agent_id: int, source: Warehouse.WarehouseNode, destination: Warehouse.WarehouseNode):
-        self.agent_id = agent_id
+    def __init__(self, routing_request_id: int, source: Warehouse.WarehouseNode, destination: Warehouse.WarehouseNode):
+        self.routing_request_id = routing_request_id
         self.source = source
         self.destination = destination
-
-        self.left_source = False
-        self.previous_vertex = None
 
     def __lt__(self, other):
         self_destination_distance = self.get_destination_distance()
@@ -33,11 +30,11 @@ class Agent:
             return True
         return self_destination_distance > other_destination_distance
 
-    # Uniquely identify an agent with its start position
+    # Uniquely identify an routing_request with its start position
     def __hash__(self):
         return int(str(self.source.coordinates[0]) + str(self.source.coordinates[1]))
 
-    def __eq__(self, other: 'Agent'):
+    def __eq__(self, other: 'RoutingRequest'):
         return np.array_equal(self.source.coordinates, other.source.coordinates) and \
                np.array_equal(self.destination.coordinates, other.destination.coordinates)
 
