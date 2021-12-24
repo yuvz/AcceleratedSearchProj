@@ -9,7 +9,7 @@ from RouteGeneration import generate_ideal_path_with_splits_plan_for_first_routi
     generate_midpoints_restricted_plan_for_first_routing_request, \
     generate_random_obstacles_restricted_plan_for_first_routing_request
 
-WAVES_PER_WAREHOUSE = [10, 1, 2, 1]
+WAVES_PER_WAREHOUSE = [10, 1, 10, 1]
 K_SAMPLE_SIZE = 5
 
 

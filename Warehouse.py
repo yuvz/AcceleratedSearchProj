@@ -30,6 +30,7 @@ class Warehouse:
             self.source_id = -1  # not optimal solution, but simplifies implementation
             self.destination_id = -1  # not optimal solution, but simplifies implementation
             self.neighbors = set()
+            self.routing_requests = set()
 
         def get_destination_distance(self, destination_id):
             return self.destination_distance[destination_id]

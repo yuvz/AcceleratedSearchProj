@@ -17,6 +17,9 @@ class RoutingRequest:
         self.source = source
         self.destination = destination
 
+        source.routing_requests.add(self)
+        destination.routing_requests.add(self)
+
     def __lt__(self, other):
         self_destination_distance = self.get_destination_distance()
         other_destination_distance = other.get_destination_distance()

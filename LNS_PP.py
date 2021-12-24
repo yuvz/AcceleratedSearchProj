@@ -1,11 +1,11 @@
 import random
 from math import sqrt
-from EnvironmentUtils import find_route_using_Astar
+from EnvironmentUtils import find_route_using_Astar, get_source_id_from_route, get_destination_id_from_route
 from RND import generate_rnd_plan
 from Utils import update_plan
 import numpy as np
 
-LNS_ITERATIONS = 5
+LNS_ITERATIONS = 10
 NEIGHBORHOOD_SIZE = 15
 AGENT_BASED_NEIGHBORHOOD_ITERATIONS = 100
 INTERSECTION_THRESHOLD = 3
@@ -67,8 +67,9 @@ def random_walk(warehouse, plan, neighborhood, chosen_routing_request_index, rou
     while len(neighborhood) < NEIGHBORHOOD_SIZE:
         coordinates_to_vertex = warehouse.vertices[curr_coordinates[0]][curr_coordinates[1]]
         neighbors_to_consider = [neighbor for neighbor in coordinates_to_vertex.neighbors if
-                                 time + 1 + neighbor.get_destination_distance(chosen_routing_request_destination_id) < len(
-                                  plan[chosen_routing_request_index])]
+                                 time + 1 + neighbor.get_destination_distance(
+                                     chosen_routing_request_destination_id) < len(
+                                     plan[chosen_routing_request_index])]
         if len(neighbors_to_consider) == 0:
             break
         neighbor = random.choice(neighbors_to_consider)
@@ -92,7 +93,8 @@ def agent_based_neighborhood(routing_requests, warehouse, plan):
     :param plan:
     :return:
     """
-    shortest_routs_list = [routing_request.source.get_destination_distance(routing_request.destination.destination_id) for routing_request in routing_requests]
+    shortest_routs_list = [routing_request.source.get_destination_distance(routing_request.destination.destination_id)
+                           for routing_request in routing_requests]
     delays_list = [len(route) - shortest_routs_list[i] for i, route in enumerate(plan)]
     global tabu_list
     delays_list_without_tabu = [delays_list[i] for i in range(len(routing_requests)) if i not in tabu_list]
@@ -100,7 +102,8 @@ def agent_based_neighborhood(routing_requests, warehouse, plan):
     if len(tabu_list) == len(routing_requests) or max_delay == 0:
         tabu_list = []
         max_delay = max(delays_list)
-    routing_requests_max_delay_indexes = [i for i in range(len(routing_requests)) if delays_list[i] == max_delay and i not in tabu_list]
+    routing_requests_max_delay_indexes = [i for i in range(len(routing_requests)) if
+                                          delays_list[i] == max_delay and i not in tabu_list]
     chosen_routing_request_index = random.choice(routing_requests_max_delay_indexes)
     tabu_list.append(chosen_routing_request_index)
     neighborhood = set()
@@ -114,21 +117,21 @@ def agent_based_neighborhood(routing_requests, warehouse, plan):
     return list(neighborhood)
 
 
-def get_intersection_routing_requests(neighborhood, plan, chosen_vertex):
+def get_intersecting_routing_requests(neighborhood, plan, chosen_vertex):
     """
     Finds all the routs that are passing through chosen_vertex.
     """
     routs_with_chosen_vertex = [route for route in plan if chosen_vertex.coordinates in route]
-    if routs_with_chosen_vertex == []:
+    if not routs_with_chosen_vertex:
         return
     max_time_of_chosen_vertex = max([len(route) - route[::-1].index(chosen_vertex.coordinates) - 1 for route in
-                                    routs_with_chosen_vertex])
+                                     routs_with_chosen_vertex])
     time = random.randint(0, max_time_of_chosen_vertex)
     delta = 0
-    while len(neighborhood) < NEIGHBORHOOD_SIZE and delta <= max([time, max_time_of_chosen_vertex-time]):
+    while len(neighborhood) < NEIGHBORHOOD_SIZE and delta <= max([time, max_time_of_chosen_vertex - time]):
         for route_id, route in enumerate(plan):
-            start_index = max([0, time-delta])
-            end_index = min([len(route)-1, time+delta])
+            start_index = max([0, time - delta])
+            end_index = min([len(route) - 1, time + delta])
             sliced_route = route[start_index:end_index]
             if chosen_vertex.coordinates in sliced_route:
                 neighborhood.add(route_id)
@@ -154,17 +157,65 @@ def map_based_neighborhood(routing_requests, warehouse, plan):
         vertex = queue.pop(0)
         visited.append(vertex)
         if len(vertex.neighbors) >= INTERSECTION_THRESHOLD:
-            get_intersection_routing_requests(neighborhood, plan, vertex)
+            get_intersecting_routing_requests(neighborhood, plan, vertex)
         for neighbor in vertex.neighbors:
             if neighbor not in queue and neighbor not in visited:
                 queue.append(neighbor)
     return list(neighborhood)
 
 
+def pick_rand_source_and_destination(routing_requests, warehouse, plan):
+    source = random.choice(warehouse.sources)
+    destination = random.choice(warehouse.destinations)
+    source_and_destination_routing_requests = set.union(source.routing_requests, destination.routing_requests)
+
+    neighborhood = [routing_request.routing_request_id for routing_request in source_and_destination_routing_requests]
+    return neighborhood
+
+
+def pick_worst_source(warehouse, plan):
+    max_cost = 0
+    worst_source_id = 0
+
+    for route in plan:
+        current_route_cost = len(route)
+
+        if max_cost < current_route_cost:
+            max_cost = current_route_cost
+            worst_source_id = get_source_id_from_route(warehouse, route)
+
+    return warehouse.sources[worst_source_id]
+
+
+def pick_worst_destination(warehouse, plan):
+    max_cost = 0
+    worst_destination_id = 0
+
+    for route in plan:
+        current_route_cost = len(route)
+
+        if max_cost < current_route_cost:
+            max_cost = current_route_cost
+            worst_destination_id = get_destination_id_from_route(warehouse, route)
+
+    return warehouse.destinations[worst_destination_id]
+
+
+def pick_worst_source_and_destination(routing_requests, warehouse, plan):
+    source = pick_worst_source(warehouse, plan)
+    destination = pick_worst_destination(warehouse, plan)
+    source_and_destination_routing_requests = set.union(source.routing_requests, destination.routing_requests)
+
+    neighborhood = [routing_request.routing_request_id for routing_request in source_and_destination_routing_requests]
+    return neighborhood
+
+
 # global weights for adaptive heuristic
 agent_based_neighborhood_weight = 1
 map_based_neighborhood_weight = 1
 pick_random_neighborhood_weight = 1
+pick_rand_source_and_destination_weight = 1
+pick_worst_source_and_destination_weight = 1
 current_pick_func_name = None
 
 
@@ -175,12 +226,18 @@ def adaptive_neighborhood(routing_requests, warehouse, plan):
     The heuristics to choose from:
     pick_random_neighborhood,
     agent_based_neighborhood,
-    map_based_neighborhoo
+    map_based_neighborhood,
+    pick_rand_source_and_destination,
+    pick_worst_source_and_destination
     """
-    sum_weights = agent_based_neighborhood_weight+map_based_neighborhood_weight+pick_random_neighborhood_weight
-    pick_neighborhood_functions = [agent_based_neighborhood, map_based_neighborhood, pick_random_neighborhood]
-    probabilities = [agent_based_neighborhood_weight/sum_weights, map_based_neighborhood_weight/sum_weights,
-                     pick_random_neighborhood_weight/sum_weights]
+    sum_weights = agent_based_neighborhood_weight + map_based_neighborhood_weight + pick_random_neighborhood_weight + \
+                  pick_rand_source_and_destination_weight + pick_worst_source_and_destination_weight
+    pick_neighborhood_functions = [agent_based_neighborhood, map_based_neighborhood, pick_random_neighborhood,
+                                   pick_rand_source_and_destination, pick_worst_source_and_destination]
+    probabilities = [agent_based_neighborhood_weight / sum_weights, map_based_neighborhood_weight / sum_weights,
+                     pick_random_neighborhood_weight / sum_weights,
+                     pick_rand_source_and_destination_weight / sum_weights,
+                     pick_worst_source_and_destination_weight / sum_weights]
     pick_neighborhood_func = np.random.choice(pick_neighborhood_functions, 1, probabilities)[0]
     neighborhood = pick_neighborhood_func(routing_requests, warehouse, plan)
     global current_pick_func_name
@@ -195,21 +252,29 @@ def update_weight(new_plan, old_plan, neighborhood):
     global agent_based_neighborhood_weight
     global map_based_neighborhood_weight
     global pick_random_neighborhood_weight
+    global pick_rand_source_and_destination_weight
+    global pick_worst_source_and_destination_weight
     new_plan_neighborhood_cost = neighborhood_sum_of_costs(new_plan, neighborhood)
     old_plan_neighborhood_cost = neighborhood_sum_of_costs(old_plan, neighborhood)
-    new_weight_comp_one = WEIGHTS_FACTOR*(max([0, old_plan_neighborhood_cost-new_plan_neighborhood_cost]))
+    new_weight_comp_one = WEIGHTS_FACTOR * (max([0, old_plan_neighborhood_cost - new_plan_neighborhood_cost]))
     if current_pick_func_name == agent_based_neighborhood:
-        agent_based_neighborhood_weight = new_weight_comp_one+agent_based_neighborhood_weight*(1-WEIGHTS_FACTOR)
+        agent_based_neighborhood_weight = new_weight_comp_one + agent_based_neighborhood_weight * (1 - WEIGHTS_FACTOR)
     if current_pick_func_name == map_based_neighborhood:
-        map_based_neighborhood_weight = new_weight_comp_one+map_based_neighborhood_weight*(1-WEIGHTS_FACTOR)
+        map_based_neighborhood_weight = new_weight_comp_one + map_based_neighborhood_weight * (1 - WEIGHTS_FACTOR)
     if current_pick_func_name == pick_random_neighborhood:
-        pick_random_neighborhood_weight = new_weight_comp_one+pick_random_neighborhood_weight*(1-WEIGHTS_FACTOR)
+        pick_random_neighborhood_weight = new_weight_comp_one + pick_random_neighborhood_weight * (1 - WEIGHTS_FACTOR)
+    if current_pick_func_name == pick_rand_source_and_destination:
+        pick_rand_source_and_destination_weight = new_weight_comp_one + pick_rand_source_and_destination_weight * (
+                1 - WEIGHTS_FACTOR)
+    if current_pick_func_name == pick_worst_source_and_destination:
+        pick_worst_source_and_destination_weight = new_weight_comp_one + pick_worst_source_and_destination_weight * (
+                1 - WEIGHTS_FACTOR)
 
 
 def generate_lns_rnd_plan(warehouse, routing_requests, neighborhood_picking_function=adaptive_neighborhood):
     """
-    Supported neighborhood_picking_function: [pick_random_neighborhood, agent_based_neighborhood, map_based_neighborhood,
-     adaptive_neighborhood]
+    Supported values for neighborhood_picking_function: [pick_random_neighborhood, agent_based_neighborhood,
+     map_based_neighborhood, adaptive_neighborhood, pick_rand_source_and_destination, pick_worst_source_and_destination]
     """
     plan = generate_rnd_plan(warehouse, routing_requests, True)
 

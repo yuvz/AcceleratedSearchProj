@@ -17,7 +17,7 @@ def create_routes_from_source_to_destination_by_MPR_WS(warehouse, source, destin
     return generate_midpoints_restricted_plan(warehouse, source, destination, True)
 
 
-def create_routes_by_MPR_WS(warehouse):
+def create_tagged_routes_by_MPR_WS(warehouse):
     tagged_routes: List[Tuple[Tuple[int, int], List]] = []
     for i, source in enumerate(warehouse.sources):
         for j, destination in enumerate(warehouse.destinations):
