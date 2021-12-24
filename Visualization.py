@@ -101,7 +101,7 @@ def set_plot_title_and_info(warehouse, plan, running_time, algorithm_name, title
         set_routing_solution_title_and_info(warehouse, plan, running_time, algorithm_name, title)
 
 
-def show_plan_as_animation(warehouse, plan, running_time=-1.0, algorithm_name="TODO", title="", export_animation=False):
+def show_plan_as_animation(warehouse, plan, algorithm_name="TODO", running_time=-1.0, title="", export_animation=False):
     fig, ax = warehouse.plot_layout()
     set_plot_title_and_info(warehouse, plan, running_time, algorithm_name, title)
 

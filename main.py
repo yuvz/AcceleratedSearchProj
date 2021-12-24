@@ -1,4 +1,4 @@
-from DatabaseBuilding import create_routes_from_source_to_destination_by_MPR_WS
+from DatabaseBuilding import create_routes_from_source_to_destination_by_MPR_WS, export_routes_to_csv
 from EnvironmentUtils import generate_warehouse
 from ExampleGeneration import generate_rand_example
 from RouteGeneration import generate_routes_from_source_to_destination
@@ -13,15 +13,18 @@ def generate_example(warehouse, algorithm_name, is_show_animation=True, is_show_
     title = "Visualization title"
 
     if is_show_animation:
-        show_plan_as_animation(warehouse, plan, running_time, algorithm_name, title, is_export_visualization)
+        show_plan_as_animation(warehouse, plan, algorithm_name, running_time, title, is_export_visualization)
     if is_show_image:
-        show_plan_as_image(warehouse, plan, running_time, algorithm_name, title, is_export_visualization)
+        show_plan_as_image(warehouse, plan, algorithm_name, running_time, title, is_export_visualization)
 
 
-def generate_routes(warehouse, algorithm_name="MPR_WS", source_id=0, destination_id=0, generate_for_all_combinations=False):
+def generate_routes(warehouse, algorithm_name="MPR_WS", source_id=0, destination_id=0):
     source, destination = warehouse.sources[source_id], warehouse.destinations[destination_id]
     routes = create_routes_from_source_to_destination_by_MPR_WS(warehouse, source, destination)
-    # TODO: export_routes_to_csv(routes, algorithm_name) - @NimrodMarom
+
+    # show_plan_as_animation(warehouse, routes, algorithm_name)
+
+    export_routes_to_csv(source_id, destination_id, routes, algorithm_name)     # TODO: @NimrodMarom
 
 
 def main():
@@ -34,7 +37,7 @@ def main():
     warehouse = generate_warehouse(warehouse_types["small structured"])
 
     # generate_example(warehouse, "MPR_WS")
-    generate_routes(warehouse, "MPR_WS", 2, 1, False)
+    generate_routes(warehouse, "MPR_WS", 2, 1)
 
     # plan, running_time = generate_rand_example(warehouse, algorithm_name)
 
