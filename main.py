@@ -1,9 +1,6 @@
 from DatabaseBuilding import create_routes_from_source_to_destination_by_MPR_WS, export_routes_to_csv
-from EnvironmentUtils import generate_warehouse
 from ExampleGeneration import generate_rand_example
-from RouteGeneration import generate_routes_from_source_to_destination
 from EnvironmentUtils import generate_warehouse, generate_rand_routing_requests
-from ExampleGeneration import generate_example
 from Visualization import show_plan_as_animation, show_plan_as_image
 
 RANDOM_SCHEDULING_ENABLED = False
