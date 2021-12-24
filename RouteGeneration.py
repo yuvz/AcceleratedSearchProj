@@ -5,7 +5,7 @@ from time import time
 
 from AStar import AStar
 from BFS import BFS
-from EnvironmentUtils import get_random_points_throughout_warehouse
+from EnvironmentUtils import get_random_points_throughout_warehouse, is_valid_route_length
 from RoutingRequest import RoutingRequest
 from Utils import distance
 
@@ -38,7 +38,7 @@ def generate_midpoints_restricted_plan(warehouse, source, destination, is_split_
 
         complete_route = route_to_midpoint + route_from_midpoint
 
-        if len(complete_route) < warehouse.length + warehouse.width:
+        if is_valid_route_length(warehouse, route_to_midpoint + route_from_midpoint):
             if is_split_at_midpoint:
                 obstacle_patterns = ["cross", "square", "vertical_line", "horizontal_line", "dot"]
                 max_obstacle_size = min(warehouse.static_obstacle_length, warehouse.static_obstacle_width)
@@ -49,7 +49,8 @@ def generate_midpoints_restricted_plan(warehouse, source, destination, is_split_
                                                                                        obstacle_patterns,
                                                                                        split_step_size,
                                                                                        len(route_to_midpoint)):
-                    plan.append(route_to_midpoint + routing_request_route)
+                    if is_valid_route_length(warehouse, route_to_midpoint + routing_request_route):
+                        plan.append(route_to_midpoint + routing_request_route)
             else:
                 plan.append(complete_route)
 
@@ -84,7 +85,8 @@ def generate_ideal_path_with_splits_plan(warehouse, source, destination):
                     continue
 
                 first_elements = ideal_path[:i - 1] if i != 0 else []
-                plan.append(first_elements + routing_request_route)
+                if is_valid_route_length(warehouse, first_elements + routing_request_route):
+                    plan.append(first_elements + routing_request_route)
             routing_request_id += 1
 
     return plan
@@ -161,7 +163,8 @@ def generate_random_obstacles_restricted_plan(warehouse, routing_request, obstac
             tries = 0
             route_backup = route
             added_obstacles_backup = added_obstacles
-            plan.append(route)
+            if is_valid_route_length(warehouse, route):
+                plan.append(route)
             if len(plan) % 10 == 0:
                 print("Still generating, generated", len(plan), "routes")
 
@@ -200,36 +203,3 @@ def generate_routes_by_random_obstacles_restricted(warehouse, source_id, destina
     plan = generate_random_obstacles_restricted_plan_for_first_routing_request(warehouse, routing_requests, OBSTACLE_PATTERNS)
     t1 = time()
     return plan, t0, t1
-
-
-def generate_routes_from_source_to_destination(warehouse, algorithm_name, source_id, destination_id):
-    if algorithm_name == "ROR":
-        return generate_routes_by_random_obstacles_restricted(warehouse, source_id, destination_id)
-
-    # elif algorithm_name == "k-ROR":
-    #     plan, t0, t1 = generate_random_obstacles_restricted_example(warehouse)
-    #     plan = random.sample(plan, K_SAMPLE_SIZE)
-    #
-    # elif algorithm_name == "IPWS":
-    #     plan, t0, t1 = generate_ideal_path_with_splits_example(warehouse)
-    #
-    # elif algorithm_name == "k-IPWS":
-    #     plan, t0, t1 = generate_ideal_path_with_splits_example(warehouse)
-    #     plan = random.sample(plan, K_SAMPLE_SIZE)
-    #
-    # elif algorithm_name == "MPR":
-    #     plan, t0, t1 = generate_midpoints_restricted_example(warehouse)
-    #
-    # elif algorithm_name == "k-MPR":
-    #     plan, t0, t1 = generate_midpoints_restricted_example(warehouse)
-    #     plan = random.sample(plan, K_SAMPLE_SIZE)
-    #
-    # elif algorithm_name == "MPR_WS":
-    #     plan, t0, t1 = generate_midpoints_restricted_with_splits_example(warehouse)
-    #
-    # elif algorithm_name == "k-MPR_WS":
-    #     plan, t0, t1 = generate_midpoints_restricted_with_splits_example(warehouse)
-    #     plan = random.sample(plan, K_SAMPLE_SIZE)
-
-    running_time = round(t1 - t0, 4)
-    return plan, running_time

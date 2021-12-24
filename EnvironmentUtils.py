@@ -163,3 +163,5 @@ def generate_warehouse(warehouse_id):
                          obstacle_width)
 
 
+def is_valid_route_length(warehouse, route):
+    return len(route) < warehouse.length + warehouse.width

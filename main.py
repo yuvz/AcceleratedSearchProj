@@ -35,7 +35,7 @@ def main():
     warehouse_types = {"first paper": 1, "toy": 2, "small structured": 3, "small empty single origin": 4}
     warehouse = generate_warehouse(warehouse_types["small structured"])
 
-    generate_example(warehouse, "LNS_RND")
+    generate_example(warehouse, "MPR_WS")
     # generate_routes(warehouse, "MPR_WS", 2, 1)
 
     # plan, running_time = generate_rand_example(warehouse, algorithm_name)
