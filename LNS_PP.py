@@ -1,5 +1,7 @@
 import random
 from math import sqrt
+from sys import maxsize
+
 from EnvironmentUtils import find_route_using_Astar, get_source_id_from_route, get_destination_id_from_route
 from RND import generate_rnd_plan
 from Utils import update_plan
@@ -173,6 +175,20 @@ def pick_rand_source_and_destination(routing_requests, warehouse, plan):
     return neighborhood
 
 
+def pick_best_source(warehouse, plan):
+    min_cost = maxsize
+    best_source_id = 0
+
+    for route in plan:
+        current_route_cost = len(route)
+
+        if current_route_cost < min_cost:
+            min_cost = current_route_cost
+            best_source_id = get_source_id_from_route(warehouse, route)
+
+    return warehouse.sources[best_source_id]
+
+
 def pick_worst_source(warehouse, plan):
     max_cost = 0
     worst_source_id = 0
@@ -210,12 +226,22 @@ def pick_worst_source_and_destination(routing_requests, warehouse, plan):
     return neighborhood
 
 
+def pick_best_and_worst_sources(routing_requests, warehouse, plan):
+    best_source = pick_best_source(warehouse, plan)
+    worst_source = pick_worst_source(warehouse, plan)
+    best_and_worst_sources_routing_requests = set.union(best_source.routing_requests, worst_source.routing_requests)
+
+    neighborhood = [routing_request.routing_request_id for routing_request in best_and_worst_sources_routing_requests]
+    return neighborhood
+
+
 # global weights for adaptive heuristic
 agent_based_neighborhood_weight = 1
 map_based_neighborhood_weight = 1
 pick_random_neighborhood_weight = 1
 pick_rand_source_and_destination_weight = 1
 pick_worst_source_and_destination_weight = 1
+pick_best_and_worst_sources_weight = 1
 current_pick_func_name = None
 
 
@@ -231,13 +257,16 @@ def adaptive_neighborhood(routing_requests, warehouse, plan):
     pick_worst_source_and_destination
     """
     sum_weights = agent_based_neighborhood_weight + map_based_neighborhood_weight + pick_random_neighborhood_weight + \
-                  pick_rand_source_and_destination_weight + pick_worst_source_and_destination_weight
+                  pick_rand_source_and_destination_weight + pick_worst_source_and_destination_weight + \
+                  pick_best_and_worst_sources_weight
     pick_neighborhood_functions = [agent_based_neighborhood, map_based_neighborhood, pick_random_neighborhood,
-                                   pick_rand_source_and_destination, pick_worst_source_and_destination]
+                                   pick_rand_source_and_destination, pick_worst_source_and_destination,
+                                   pick_best_and_worst_sources]
     probabilities = [agent_based_neighborhood_weight / sum_weights, map_based_neighborhood_weight / sum_weights,
                      pick_random_neighborhood_weight / sum_weights,
                      pick_rand_source_and_destination_weight / sum_weights,
-                     pick_worst_source_and_destination_weight / sum_weights]
+                     pick_worst_source_and_destination_weight / sum_weights,
+                     pick_best_and_worst_sources_weight / sum_weights]
     pick_neighborhood_func = np.random.choice(pick_neighborhood_functions, 1, probabilities)[0]
     neighborhood = pick_neighborhood_func(routing_requests, warehouse, plan)
     global current_pick_func_name
@@ -254,6 +283,7 @@ def update_weight(new_plan, old_plan, neighborhood):
     global pick_random_neighborhood_weight
     global pick_rand_source_and_destination_weight
     global pick_worst_source_and_destination_weight
+    global pick_best_and_worst_sources_weight
     new_plan_neighborhood_cost = neighborhood_sum_of_costs(new_plan, neighborhood)
     old_plan_neighborhood_cost = neighborhood_sum_of_costs(old_plan, neighborhood)
     new_weight_comp_one = WEIGHTS_FACTOR * (max([0, old_plan_neighborhood_cost - new_plan_neighborhood_cost]))
@@ -269,12 +299,16 @@ def update_weight(new_plan, old_plan, neighborhood):
     if current_pick_func_name == pick_worst_source_and_destination:
         pick_worst_source_and_destination_weight = new_weight_comp_one + pick_worst_source_and_destination_weight * (
                 1 - WEIGHTS_FACTOR)
+    if current_pick_func_name == pick_best_and_worst_sources:
+        pick_best_and_worst_sources_weight = new_weight_comp_one + pick_best_and_worst_sources_weight * (
+                1 - WEIGHTS_FACTOR)
 
 
 def generate_lns_rnd_plan(warehouse, routing_requests, neighborhood_picking_function=adaptive_neighborhood):
     """
     Supported values for neighborhood_picking_function: [pick_random_neighborhood, agent_based_neighborhood,
-     map_based_neighborhood, adaptive_neighborhood, pick_rand_source_and_destination, pick_worst_source_and_destination]
+     map_based_neighborhood, adaptive_neighborhood, pick_rand_source_and_destination, pick_worst_source_and_destination,
+     pick_best_and_worst_sources]
     """
     plan = generate_rnd_plan(warehouse, routing_requests, True)
 

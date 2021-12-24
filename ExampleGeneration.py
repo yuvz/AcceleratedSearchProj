@@ -112,7 +112,6 @@ def generate_rand_example(warehouse, algorithm_name):
 
     elif algorithm_name == "CBS":
         plan, t0, t1 = generate_cbs_example(warehouse, WAVES_PER_WAREHOUSE)
-        plan = random.sample(plan, K_SAMPLE_SIZE)
 
     else:
         print("Unsupported algorithm_name.\n", "Currently supports:", "BFS, RND, LNS_RND")
