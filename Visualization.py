@@ -6,6 +6,8 @@ from matplotlib.animation import FuncAnimation
 from colorsys import hls_to_rgb
 from copy import deepcopy
 from time import time
+
+from DatabaseBuilding import PATH_GENERATING_ALGORITHMS
 from EnvironmentUtils import get_source_id_from_route, get_destination_id_from_route
 
 SHOW_ANIMATION_TRAIL = False
@@ -16,8 +18,6 @@ COLOR_BY_SOURCE_ID = False
 WAREHOUSE_FPS = [24, 3, 6, 12]
 distinct_colors = [(1, 0, 0), (0, 1, 0), (0, 0, 1), 'xkcd:dark pastel green', 'xkcd:strong pink', '#6dedfd',
                    (1, 0.5, 0.25), 'xkcd:light navy blue', (0.5, 0.25, 1)]  # len(distinct_colors) = 9
-
-PATH_GENERATING_ALGORITHMS = ["ROR", "K-ROR", "IPWS", "K-IPWS", "MPR", "K-MPR", "MPR-WS"]
 
 
 def plan_to_frames(plan):
@@ -93,11 +93,11 @@ def set_routing_solution_title_and_info(warehouse, plan, running_time, algorithm
 
 
 def set_path_generation_title_and_info(warehouse, plan, running_time, algorithm_name, title):
-    source_number = get_source_id_from_route(warehouse, plan[0]) + 1
-    destination_number = get_destination_id_from_route(warehouse, plan[0]) + 1
+    source_id = get_source_id_from_route(warehouse, plan[0])
+    destination_id = get_destination_id_from_route(warehouse, plan[0])
 
     title_left = "map_size = " + str(warehouse.width) + "*" + str(warehouse.length) + \
-                 "        (source_num, destination_num) = " + str((source_number, destination_number)) + \
+                 "        (source_id, destination_id) = " + str((source_id, destination_id)) + \
                  "\nalgorithm = " + algorithm_name + "        running_time = " + str(running_time) + \
                  "        num_routes_generated = " + str(len(plan))
 
@@ -112,7 +112,7 @@ def set_plot_title_and_info(warehouse, plan, running_time, algorithm_name, title
         set_routing_solution_title_and_info(warehouse, plan, running_time, algorithm_name, title)
 
 
-def show_plan_as_animation(warehouse, plan, running_time=-1.0, algorithm_name="TODO", title="", export_animation=False):
+def show_plan_as_animation(warehouse, plan, algorithm_name="TODO", running_time=-1.0, title="", export_animation=False):
     fig, ax = warehouse.plot_layout()
     set_plot_title_and_info(warehouse, plan, running_time, algorithm_name, title)
 

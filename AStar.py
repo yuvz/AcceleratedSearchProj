@@ -214,6 +214,9 @@ class AStar:
         print("search failed for routing_request ", routing_request.routing_request_id)
 
     def search_with_added_obstacles(self, routing_request, added_obstacles):
+        """
+        Treats coordinates in added_obstacles as static obstacles
+        """
         source = self.source
         destination = self.destination
         destination_id = routing_request.destination.destination_id
@@ -246,12 +249,11 @@ class AStar:
 
         return None
 
-    """
-    In this method the source and the destination may be any two warehouse nodes.
-    Cartesian distance is used as the heuristic.
-    """
-
     def classic_astar(self):
+        """
+        In this method the source and the destination may be any two warehouse nodes.
+        Cartesian distance is used as the heuristic.
+        """
         source = self.source
         destination = self.destination
 

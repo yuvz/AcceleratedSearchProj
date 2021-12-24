@@ -72,7 +72,7 @@ def generate_cbs_example(warehouse, waves_per_warehouse):
     return generate_plan(warehouse, routing_requests, cbs.solve)
 
 
-def generate_example(warehouse, algorithm_name):
+def generate_rand_example(warehouse, algorithm_name):
     if algorithm_name == "BFS":
         plan, t0, t1 = generate_bfs_example(warehouse)
 

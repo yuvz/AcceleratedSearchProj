@@ -1,8 +1,32 @@
+from DatabaseBuilding import create_routes_from_source_to_destination_by_MPR_WS, export_routes_to_csv
+from EnvironmentUtils import generate_warehouse
+from ExampleGeneration import generate_rand_example
+from RouteGeneration import generate_routes_from_source_to_destination
 from EnvironmentUtils import generate_warehouse, generate_rand_routing_requests
 from ExampleGeneration import generate_example
 from Visualization import show_plan_as_animation, show_plan_as_image
 
 RANDOM_SCHEDULING_ENABLED = False
+
+
+def generate_example(warehouse, algorithm_name, is_show_animation=True, is_show_image=False,
+                     is_export_visualization=False):
+    plan, running_time = generate_rand_example(warehouse, algorithm_name)
+    title = "Visualization title"
+
+    if is_show_animation:
+        show_plan_as_animation(warehouse, plan, algorithm_name, running_time, title, is_export_visualization)
+    if is_show_image:
+        show_plan_as_image(warehouse, plan, algorithm_name, running_time, title, is_export_visualization)
+
+
+def generate_routes(warehouse, algorithm_name="MPR_WS", source_id=0, destination_id=0):
+    source, destination = warehouse.sources[source_id], warehouse.destinations[destination_id]
+    routes = create_routes_from_source_to_destination_by_MPR_WS(warehouse, source, destination)
+
+    # show_plan_as_animation(warehouse, routes, algorithm_name)
+
+    export_routes_to_csv(algorithm_name, source_id, destination_id, routes)     # TODO: @NimrodMarom
 
 
 def main():
@@ -14,17 +38,15 @@ def main():
     warehouse_types = {"first paper": 1, "toy": 2, "small structured": 3, "small empty single origin": 4}
     warehouse = generate_warehouse(warehouse_types["small structured"])
 
-    algorithm_name = "RND"
-    planCBS, running_timeCBS = generate_example(warehouse, algorithm_name)
+    # generate_example(warehouse, "MPR_WS")
+    generate_routes(warehouse, "MPR_WS", 2, 1)
 
-    title = "Visualization title"
-    export_visualuzation = False
+    # plan, running_time = generate_rand_example(warehouse, algorithm_name)
 
-    show_plan_as_animation(warehouse, planCBS, running_timeCBS, algorithm_name, title, export_visualuzation)
-
-    # show_plan_as_image(warehouse, plan, running_time, algorithm_name, title, export_visualuzation)
-
-    # TODO: export_plan_to_csv(plan, running_time, algorithm_name) - @NimrodMarom
+    # source_id, destination_id = 2, 1
+    # source, destination = warehouse.sources[source_id], warehouse.destinations[destination_id]
+    # plan = create_routes_from_source_to_destination_by_MPR_WS(warehouse, source, destination)
+    # plan, running_time = generate_routes_from_source_to_destination(warehouse, algorithm_name, source_id, destination_id)
 
 
 if __name__ == "__main__":
