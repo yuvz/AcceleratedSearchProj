@@ -6,7 +6,7 @@ PATH_GENERATING_ALGORITHMS = ["ROR", "K-ROR", "IPWS", "K-IPWS", "MPR", "K-MPR", 
 
 
 # TODO: @NimrodMarom
-def export_routes_to_csv(source_id, destination_id, routes, algorithm_name):
+def export_routes_to_csv(algorithm_name, source_id, destination_id, routes):
     """
     Generates a .csv file using the above input
     """

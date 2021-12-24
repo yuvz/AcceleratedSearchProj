@@ -24,7 +24,7 @@ def generate_routes(warehouse, algorithm_name="MPR_WS", source_id=0, destination
 
     # show_plan_as_animation(warehouse, routes, algorithm_name)
 
-    export_routes_to_csv(source_id, destination_id, routes, algorithm_name)     # TODO: @NimrodMarom
+    export_routes_to_csv(algorithm_name, source_id, destination_id, routes)     # TODO: @NimrodMarom
 
 
 def main():
