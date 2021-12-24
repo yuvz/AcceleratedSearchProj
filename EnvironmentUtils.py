@@ -1,6 +1,7 @@
 import random
 from math import floor, sqrt
 from sys import maxsize
+from typing import List, Tuple
 from AStar import AStar
 from RoutingRequest import RoutingRequest
 from Warehouse import Warehouse
@@ -29,7 +30,8 @@ def generate_rand_routing_request(warehouse, *unused_variables):
     return [RoutingRequest(0, source, destination)]
 
 
-def find_route_using_Astar(warehouse, plan, routing_request, is_first_routing_request=False, wait_at_source_left=0):
+def find_route_using_Astar(warehouse, plan, routing_request, is_first_routing_request=False, wait_at_source_left=0) -> \
+        List[Tuple[int, int]]:
     routing_request_vertex = routing_request.source
     source_node = AStar.Node(routing_request_vertex, routing_request_vertex.destination_distance[routing_request.destination.destination_id], 0,
                              None, True)

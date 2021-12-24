@@ -10,6 +10,8 @@ from RoutingRequest import RoutingRequest
 from EnvironmentUtils import find_route_using_Astar
 from heapq import heappush, heappop
 
+from Utils import update_plan
+
 
 class CBS:
     def __init__(self, warehouse, agents: List[RoutingRequest]):
@@ -25,7 +27,15 @@ class CBS:
         plan = [[] for _ in range(len(self.agents))]
 
         # Compute path for each agent using space-time Astar
-        agent_to_route_dict = dict((agent, find_route_using_Astar(self.warehouse, plan, agent)) for agent in self.agents)
+        current_agent = 0
+        for agent in self.agents:
+            route = find_route_using_Astar(self.warehouse, plan, self.agents[current_agent])
+            update_plan(plan, current_agent, route)
+            current_agent += 1
+
+        # agent_to_route_dict = dict((agent, find_route_using_Astar(self.warehouse, plan, agent)) for agent in self.agents)
+
+        constraints = Constraints()
 
         # Build conflict tree
         open = []
