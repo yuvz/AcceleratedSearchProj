@@ -65,7 +65,7 @@ def generate_bfs_example(warehouse):
     return generate_plan(warehouse, routing_requests, generate_bfs_plan_for_first_routing_request)
 
 
-def generate_example(warehouse, algorithm_name):
+def generate_rand_example(warehouse, algorithm_name):
     if algorithm_name == "BFS":
         plan, t0, t1 = generate_bfs_example(warehouse)
 

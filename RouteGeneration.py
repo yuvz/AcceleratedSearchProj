@@ -1,6 +1,7 @@
 import random
 from math import ceil
 from sys import maxsize
+from time import time
 
 from AStar import AStar
 from BFS import BFS
@@ -9,6 +10,7 @@ from RoutingRequest import RoutingRequest
 from Utils import distance
 
 PROGRESSIVELY_OBSTACLE_RESTRICTED_PLANS_MAX_TRIES = 5
+OBSTACLE_PATTERNS = ["cross", "square", "vertical_line", "horizontal_line", "dot"]
 
 
 def generate_midpoints_restricted_plan(warehouse, source, destination, is_split_at_midpoint=False):
@@ -43,8 +45,10 @@ def generate_midpoints_restricted_plan(warehouse, source, destination, is_split_
                 split_step_size = max(2 * max_obstacle_size, 2)
 
                 routing_request = RoutingRequest(i, midpoint_vertex, destination)
-                for routing_request_route in generate_random_obstacles_restricted_plan(warehouse, routing_request, obstacle_patterns,
-                                                                             split_step_size, len(route_to_midpoint)):
+                for routing_request_route in generate_random_obstacles_restricted_plan(warehouse, routing_request,
+                                                                                       obstacle_patterns,
+                                                                                       split_step_size,
+                                                                                       len(route_to_midpoint)):
                     plan.append(route_to_midpoint + routing_request_route)
             else:
                 plan.append(complete_route)
@@ -71,9 +75,11 @@ def generate_ideal_path_with_splits_plan(warehouse, source, destination):
     for i, coordinates in enumerate(ideal_path):
         split_on_every_step = False
         if split_on_every_step or i % split_step_and_size == 0:
-            routing_request = RoutingRequest(routing_request_id, warehouse.vertices[coordinates[0]][coordinates[1]], destination)
-            for routing_request_route in generate_random_obstacles_restricted_plan(warehouse, routing_request, obstacle_patterns,
-                                                                         4 * split_step_and_size, i):
+            routing_request = RoutingRequest(routing_request_id, warehouse.vertices[coordinates[0]][coordinates[1]],
+                                             destination)
+            for routing_request_route in generate_random_obstacles_restricted_plan(warehouse, routing_request,
+                                                                                   obstacle_patterns,
+                                                                                   4 * split_step_and_size, i):
                 if not routing_request_route:
                     continue
 
@@ -129,7 +135,8 @@ def add_obstacle_at_midpoint(added_obstacles, last_added_obstacle_midpoint, adde
                 added_obstacles.add((midpoint_x + added_obstacle_size - 1, midpoint_y + i))
 
 
-def generate_random_obstacles_restricted_plan(warehouse, routing_request, obstacle_patterns, max_routes=maxsize, initial_dist=0):
+def generate_random_obstacles_restricted_plan(warehouse, routing_request, obstacle_patterns, max_routes=maxsize,
+                                              initial_dist=0):
     # print("Generating random obstacles restricted plan, with obstacle patterns in", obstacle_patterns)
     # print("***")
 
@@ -140,7 +147,8 @@ def generate_random_obstacles_restricted_plan(warehouse, routing_request, obstac
     routing_request_source = routing_request.source
     max_added_obstacle_size = ceil(min(warehouse.static_obstacle_length, warehouse.static_obstacle_width))
 
-    source_node = AStar.Node(routing_request_source, routing_request_source.destination_distance[routing_request.destination.destination_id], 0,
+    source_node = AStar.Node(routing_request_source,
+                             routing_request_source.destination_distance[routing_request.destination.destination_id], 0,
                              None, True)
     destination_node = AStar.Node(routing_request.destination, 0, maxsize, None, False)
     a_star_framework = AStar(source_node, destination_node)
@@ -184,3 +192,44 @@ def generate_random_obstacles_restricted_plan_for_first_routing_request(warehous
     first_routing_request = routing_requests[0]
 
     return generate_random_obstacles_restricted_plan(warehouse, first_routing_request, obstacle_patterns)
+
+
+def generate_routes_by_random_obstacles_restricted(warehouse, source_id, destination_id):
+    routing_requests = [RoutingRequest(0, warehouse.sources[source_id], warehouse.destinations[destination_id])]
+    t0 = time()
+    plan = generate_random_obstacles_restricted_plan_for_first_routing_request(warehouse, routing_requests, OBSTACLE_PATTERNS)
+    t1 = time()
+    return plan, t0, t1
+
+
+def generate_routes_from_source_to_destination(warehouse, algorithm_name, source_id, destination_id):
+    if algorithm_name == "ROR":
+        return generate_routes_by_random_obstacles_restricted(warehouse, source_id, destination_id)
+
+    # elif algorithm_name == "k-ROR":
+    #     plan, t0, t1 = generate_random_obstacles_restricted_example(warehouse)
+    #     plan = random.sample(plan, K_SAMPLE_SIZE)
+    #
+    # elif algorithm_name == "IPWS":
+    #     plan, t0, t1 = generate_ideal_path_with_splits_example(warehouse)
+    #
+    # elif algorithm_name == "k-IPWS":
+    #     plan, t0, t1 = generate_ideal_path_with_splits_example(warehouse)
+    #     plan = random.sample(plan, K_SAMPLE_SIZE)
+    #
+    # elif algorithm_name == "MPR":
+    #     plan, t0, t1 = generate_midpoints_restricted_example(warehouse)
+    #
+    # elif algorithm_name == "k-MPR":
+    #     plan, t0, t1 = generate_midpoints_restricted_example(warehouse)
+    #     plan = random.sample(plan, K_SAMPLE_SIZE)
+    #
+    # elif algorithm_name == "MPR_WS":
+    #     plan, t0, t1 = generate_midpoints_restricted_with_splits_example(warehouse)
+    #
+    # elif algorithm_name == "k-MPR_WS":
+    #     plan, t0, t1 = generate_midpoints_restricted_with_splits_example(warehouse)
+    #     plan = random.sample(plan, K_SAMPLE_SIZE)
+
+    running_time = round(t1 - t0, 4)
+    return plan, running_time
