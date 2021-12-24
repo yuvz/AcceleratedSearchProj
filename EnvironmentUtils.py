@@ -1,7 +1,7 @@
 import random
 from math import floor, sqrt
 from sys import maxsize
-from typing import List, Tuple
+from typing import List, Tuple, Dict, Set
 from AStar import AStar
 from RoutingRequest import RoutingRequest
 from Warehouse import Warehouse
@@ -30,14 +30,14 @@ def generate_rand_routing_request(warehouse, *unused_variables):
     return [RoutingRequest(0, source, destination)]
 
 
-def find_route_using_Astar(warehouse, plan, routing_request, is_first_routing_request=False, wait_at_source_left=0) -> \
-        List[Tuple[int, int]]:
+def find_route_using_Astar(warehouse, plan, routing_request, is_first_routing_request=False, wait_at_source_left=0,
+                           constraints: Dict[int, Set[Tuple[int, int]]] = None) -> List[Tuple[int, int]]:
     routing_request_vertex = routing_request.source
     source_node = AStar.Node(routing_request_vertex, routing_request_vertex.destination_distance[routing_request.destination.destination_id], 0,
                              None, True)
     destination_node = AStar.Node(routing_request.destination, 0, maxsize, None, False)
     a_star_framework = AStar(source_node, destination_node)
-    route = a_star_framework.space_time_search(warehouse, routing_request, plan, is_first_routing_request, wait_at_source_left)
+    route = a_star_framework.space_time_search(warehouse, routing_request, plan, is_first_routing_request, wait_at_source_left, constraints)
     return route
 
 
@@ -161,3 +161,5 @@ def generate_warehouse(warehouse_id):
 
         return Warehouse(warehouse_id, length, width, number_of_sources, number_of_destinations, obstacle_length,
                          obstacle_width)
+
+

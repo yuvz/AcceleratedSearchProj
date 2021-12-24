@@ -1,5 +1,5 @@
 import heapq
-
+from typing import Dict, Set, Tuple
 from RoutingRequest import ALLOW_DIAGONAL_MOVEMENT
 from Utils import distance
 
@@ -62,11 +62,13 @@ class AStar:
 
                     routing_request_current_coordinates = routing_request_plan[self.g_value]
                     routing_request_next_coordinates = routing_request_plan[self.g_value + 1]
-                    routing_request_midpoint_coordinates = ((routing_request_current_coordinates[0] + routing_request_next_coordinates[0]) / 2,
-                                                  (routing_request_current_coordinates[1] + routing_request_next_coordinates[1]) / 2)
+                    routing_request_midpoint_coordinates = (
+                    (routing_request_current_coordinates[0] + routing_request_next_coordinates[0]) / 2,
+                    (routing_request_current_coordinates[1] + routing_request_next_coordinates[1]) / 2)
 
                     if routing_request_midpoint_coordinates in valid_neighbors_edge_midpoints:
-                        conflicting_neighbor_index = valid_neighbors_edge_midpoints.index(routing_request_midpoint_coordinates)
+                        conflicting_neighbor_index = valid_neighbors_edge_midpoints.index(
+                            routing_request_midpoint_coordinates)
                         conflicting_neighbor_coordinates = valid_neighbors_coordinates[conflicting_neighbor_index]
                         conflicting_neighbor = warehouse.vertices[conflicting_neighbor_coordinates[0]][
                             conflicting_neighbor_coordinates[1]]
@@ -107,8 +109,20 @@ class AStar:
                             return
                         valid_neighbors_coordinates.remove(next_other_coordinates)
 
-        def get_valid_neighbors_from_plan(self, warehouse, plan):
+        def remove_constrained_neighbors(self, warehouse, valid_neighbors,
+                                         constraints: Dict[int, Set[Tuple[int, int]]]):
+            # remove constricted vertexes
+            valid_neighbors_coordinates = {neighbor.coordinates for neighbor in valid_neighbors}
+            if (self.g_value + 1) in constraints:
+                for coordinates in constraints[self.g_value + 1]:
+                    if coordinates in valid_neighbors_coordinates:
+                        valid_neighbors.remove(warehouse.vertices[coordinates[0]][coordinates[1]])
+
+        def get_valid_neighbors_from_plan(self, warehouse, plan, constraints: Dict[int, Set[Tuple[int, int]]] = None):
             valid_neighbors = self.vertex.neighbors.copy()
+
+            if constraints is not None:
+                self.remove_constrained_neighbors(warehouse, valid_neighbors, constraints)
 
             self.remove_vertex_collisions(warehouse, valid_neighbors, plan)
 
@@ -146,7 +160,8 @@ class AStar:
 
         return reversed_route[::-1]
 
-    def space_time_search(self, warehouse, routing_request, plan, is_first_routing_request=False, wait_at_source_left=0):
+    def space_time_search(self, warehouse, routing_request, plan, is_first_routing_request=False, wait_at_source_left=0,
+                          constraints: Dict[int, Set[Tuple[int, int]]] = None):
         source = self.source
         destination = self.destination
         destination_id = routing_request.destination.destination_id
@@ -165,7 +180,7 @@ class AStar:
 
             path_cost = current_node.g_value + 1
 
-            valid_neighbors = current_node.get_valid_neighbors_from_plan(warehouse, plan)
+            valid_neighbors = current_node.get_valid_neighbors_from_plan(warehouse, plan, constraints)
             if current_node.is_source:
                 valid_neighbors.add(current_node.vertex)
                 if wait_at_source_left > 0:

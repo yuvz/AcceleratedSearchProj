@@ -32,14 +32,13 @@ class RoutingRequest:
 
     # Uniquely identify an routing_request with its start position
     def __hash__(self):
-        return int(str(self.source.coordinates[0]) + str(self.source.coordinates[1]))
+        return self.routing_request_id
 
     def __eq__(self, other: 'RoutingRequest'):
-        return np.array_equal(self.source.coordinates, other.source.coordinates) and \
-               np.array_equal(self.destination.coordinates, other.destination.coordinates)
+        return self.routing_request_id == other.routing_request_id
 
     def __str__(self):
-        return str(np.array(self.source.coordinates).tolist())
+        return str(self.routing_request_id)
 
     def __repr__(self):
         return self.__str__()

@@ -1,30 +1,19 @@
-#!/usr/bin/env python3
-'''
-Author: Haoran Peng
-Email: gavinsweden@gmail.com
-'''
 from typing import Dict, Tuple, Set
-from copy import deepcopy
-
-from .agent import Agent
-
-'''
-Emulated dictionary of dictionaries
-'''
+from RoutingRequest import RoutingRequest
 
 
 class Constraints:
 
     def __init__(self):
         #                                   time,         obstacles
-        self.agent_constraints: Dict[Agent: Dict[int, Set[Tuple[int, int]]]] = dict()
+        self.agent_constraints: Dict[RoutingRequest: Dict[int, Set[Tuple[int, int]]]] = dict()
 
     '''
     Deepcopy self with additional constraints
     '''
 
-    def fork(self, agent: Agent, obstacle: Tuple[int, int], start: int, end: int) -> 'Constraints':
-        agent_constraints_copy = deepcopy(self.agent_constraints)
+    def fork(self, agent: RoutingRequest, obstacle: Tuple[int, int], start: int, end: int) -> 'Constraints':
+        agent_constraints_copy = self.agent_constraints.copy()
         for time in range(start, end):
             agent_constraints_copy.setdefault(agent, dict()).setdefault(time, set()).add(obstacle)
         new_constraints = Constraints()

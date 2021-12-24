@@ -1,7 +1,6 @@
 from DatabaseBuilding import create_routes_from_source_to_destination_by_MPR_WS, export_routes_to_csv
-from EnvironmentUtils import generate_warehouse
 from ExampleGeneration import generate_rand_example
-from RouteGeneration import generate_routes_from_source_to_destination
+from EnvironmentUtils import generate_warehouse, generate_rand_routing_requests
 from Visualization import show_plan_as_animation, show_plan_as_image
 
 RANDOM_SCHEDULING_ENABLED = False
@@ -29,8 +28,8 @@ def generate_routes(warehouse, algorithm_name="MPR_WS", source_id=0, destination
 
 def main():
     """
-    Supported values for algorithm_name: [BFS, RND, LNS_RND, ROR, k-ROR, IPWS, k-IPWS, MPR, k-MPR, MPR_WS, k-MPR_WS]
-    - check generate_example() in ExampleGeneration.py to see which algorithm is referred to by each abbr.
+    Supported values for algorithm_name: [BFS, RND, LNS_RND, ROR, k-ROR, IPWS, k-IPWS, MPR, k-MPR, MPR_WS, k-MPR_WS,
+    CBS] - check generate_example() in ExampleGeneration.py to see which algorithm is referred to by each abbr.
     """
 
     warehouse_types = {"first paper": 1, "toy": 2, "small structured": 3, "small empty single origin": 4}

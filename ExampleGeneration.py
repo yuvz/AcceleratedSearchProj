@@ -1,5 +1,6 @@
 import random
 from time import time
+from CBS.CBS import CBS
 from EnvironmentUtils import generate_rand_routing_requests, generate_rand_routing_request
 from BFS import generate_bfs_plan_for_first_routing_request
 from RND import generate_rnd_plan
@@ -8,7 +9,7 @@ from RouteGeneration import generate_ideal_path_with_splits_plan_for_first_routi
     generate_midpoints_restricted_plan_for_first_routing_request, \
     generate_random_obstacles_restricted_plan_for_first_routing_request
 
-WAVES_PER_WAREHOUSE = [10, 1, 10, 1]
+WAVES_PER_WAREHOUSE = [10, 1, 2, 1]
 K_SAMPLE_SIZE = 5
 
 
@@ -65,6 +66,12 @@ def generate_bfs_example(warehouse):
     return generate_plan(warehouse, routing_requests, generate_bfs_plan_for_first_routing_request)
 
 
+def generate_cbs_example(warehouse, waves_per_warehouse):
+    routing_requests = generate_rand_routing_requests(warehouse, waves_per_warehouse)
+    cbs = CBS()
+    return generate_plan(warehouse, routing_requests, cbs.solve)
+
+
 def generate_rand_example(warehouse, algorithm_name):
     if algorithm_name == "BFS":
         plan, t0, t1 = generate_bfs_example(warehouse)
@@ -101,6 +108,10 @@ def generate_rand_example(warehouse, algorithm_name):
 
     elif algorithm_name == "k-MPR_WS":
         plan, t0, t1 = generate_midpoints_restricted_with_splits_example(warehouse)
+        plan = random.sample(plan, K_SAMPLE_SIZE)
+
+    elif algorithm_name == "CBS":
+        plan, t0, t1 = generate_cbs_example(warehouse, WAVES_PER_WAREHOUSE)
         plan = random.sample(plan, K_SAMPLE_SIZE)
 
     else:

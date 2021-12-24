@@ -1,3 +1,5 @@
+from typing import Tuple, List
+
 import matplotlib.pyplot as plt
 import random
 from matplotlib.animation import FuncAnimation
@@ -54,7 +56,8 @@ def color_by_target_id(warehouse, plan, is_target_destination=True):
     for route in plan:
         routing_request_target_id = id_getter_function(warehouse, route)
 
-        routing_request_routes.append(plt.plot([], [], 'ro', c=distinct_colors[routing_request_target_id % len(distinct_colors)])[0])
+        routing_request_routes.append(
+            plt.plot([], [], 'ro', c=distinct_colors[routing_request_target_id % len(distinct_colors)])[0])
 
     return routing_request_routes
 
@@ -67,8 +70,16 @@ def color_by_source_id(warehouse, plan):
     return color_by_target_id(warehouse, plan, False)
 
 
+def remove_duplicate_destinations_from_route(route):
+    if route[-1] != route[-2]:
+        return route
+    for i, (item1, item2) in enumerate(zip(route[::-1], route[:-1][::-1])):
+        if item1 != item2:
+            return route[:-i]
+
+
 def set_routing_solution_title_and_info(warehouse, plan, running_time, algorithm_name, title):
-    sum_of_costs = sum([len(route) for route in plan])
+    sum_of_costs = sum([len(remove_duplicate_destinations_from_route(route)) for route in plan])
 
     title_left = "map_size = " + str(warehouse.width) + "*" + str(warehouse.length) + \
                  "        (num_sources, num_destinations) = " + \
@@ -167,8 +178,9 @@ def show_plan_as_image(warehouse, plan, running_time=-1.0, algorithm_name="TODO"
         for coordinates in route:
             if COLOR_BY_DESTINATION_ID:
                 plt.scatter(coordinates[1], coordinates[0], s=20,
-                            color=distinct_colors[get_destination_id_from_route(warehouse, route) % len(distinct_colors)])
-            else:   # colors by source_id
+                            color=distinct_colors[
+                                get_destination_id_from_route(warehouse, route) % len(distinct_colors)])
+            else:  # colors by source_id
                 plt.scatter(coordinates[1], coordinates[0], s=20, color=distinct_colors[i % len(distinct_colors)])
     if export_image:
         print("***")

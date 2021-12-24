@@ -1,12 +1,12 @@
 from typing import Dict
 import numpy as np
-from .agent import Agent
-from .constraints import Constraints
+from RoutingRequest import RoutingRequest
+from CBS.constraints import Constraints
 
 
 class CTNode:
 
-    def __init__(self, constraints: Constraints, solution: Dict[Agent, np.ndarray]):
+    def __init__(self, constraints: Constraints, solution: Dict[RoutingRequest, np.ndarray]):
         self.constraints = constraints
         self.solution = solution
         self.cost = self.sic(solution)
