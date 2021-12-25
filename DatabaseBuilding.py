@@ -2,8 +2,6 @@ from typing import List, Tuple
 
 from RouteGeneration import generate_midpoints_restricted_plan
 
-PATH_GENERATING_ALGORITHMS = ["ROR", "K-ROR", "IPWS", "K-IPWS", "MPR", "K-MPR", "MPR_WS"]
-
 
 # TODO: @NimrodMarom
 def export_routes_to_csv(algorithm_name, source_id, destination_id, routes):
