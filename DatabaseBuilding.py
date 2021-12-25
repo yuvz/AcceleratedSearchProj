@@ -95,8 +95,8 @@ def create_header_warehouse_csv(warehouse) -> List:
     for i in range(len(warehouse.destinations)):
         field_name = 'Destination {}'.format(i + 1)
         field_names.append(field_name)
-    for i in range(len(warehouse.static_obstacle_corners)):
-        field_name = 'Obstacle Corner {}'.format(i + 1)
+    for i in range(len(warehouse.static_obstacle_coordinates_split_by_obstacle)):
+        field_name = 'Obstacle {}'.format(i + 1)
         field_names.append(field_name)
                 
     return field_names
@@ -109,10 +109,9 @@ def create_line_warehouse_csv(warehouse) -> Dict:
     for i in range(len(warehouse.destinations)):
         header = 'Destination {}'.format(i + 1)
         line[header] = warehouse.destinations[i].coordinates
-    for i in range(len(warehouse.static_obstacle_corners)):
-        header = 'Obstacle Corner {}'.format(i + 1)
-        line[header] = warehouse.static_obstacle_corners[i]
-
+    for i in range(len(warehouse.static_obstacle_coordinates_split_by_obstacle)):
+        header = 'Obstacle {}'.format(i + 1)
+        line[header] = warehouse.static_obstacle_coordinates_split_by_obstacle[i]
     line['Warehouse Id'] = warehouse.warehouse_id
     line['Width'] = warehouse.width
     line['Length'] = warehouse.length
