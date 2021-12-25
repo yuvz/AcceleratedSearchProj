@@ -1,17 +1,18 @@
 import random
 from math import sqrt
 from sys import maxsize
-
 from EnvironmentUtils import find_route_using_Astar, get_source_id_from_route, get_destination_id_from_route
-from RND import generate_rnd_plan
+from RND import generate_rnd_plan, TimeoutError, TIMEOUT
 from Utils import update_plan
 import numpy as np
+import datetime
 
 LNS_ITERATIONS = 10
 NEIGHBORHOOD_SIZE = 15
 AGENT_BASED_NEIGHBORHOOD_ITERATIONS = 100
 INTERSECTION_THRESHOLD = 3
 WEIGHTS_FACTOR = 0.01
+TIMEOUT_TO_RESTART = 1
 
 
 def neighborhood_sum_of_costs(plan, neighborhood):
@@ -29,9 +30,12 @@ def pick_lower_sum_of_costs_plan(plan, backup_plan, neighborhood):
 
 
 def replan(warehouse, plan, neighborhood, routing_requests):
+    time_to_end = datetime.datetime.now()+datetime.timedelta(seconds=TIMEOUT)
     for route_number, i in enumerate(neighborhood):
         route = find_route_using_Astar(warehouse, plan, routing_requests[i], route_number == 0)
         update_plan(plan, i, route)
+        if datetime.datetime.now() > time_to_end:
+            raise TimeoutError("failed to find a solution in time!")
     return plan
 
 
@@ -304,13 +308,26 @@ def update_weight(new_plan, old_plan, neighborhood):
                 1 - WEIGHTS_FACTOR)
 
 
+def timeout_wrapper(func_to_wrap, *args):
+    for i in range(LNS_ITERATIONS):
+        try:
+            plan = func_to_wrap(*args)
+        except TimeoutError as e:
+            print(e.__str__())
+            if i == LNS_ITERATIONS-1:
+                raise TimeoutError
+        else:
+            break
+    return plan
+
+
 def generate_lns_rnd_plan(warehouse, routing_requests, neighborhood_picking_function=adaptive_neighborhood):
     """
     Supported values for neighborhood_picking_function: [pick_random_neighborhood, agent_based_neighborhood,
      map_based_neighborhood, adaptive_neighborhood, pick_rand_source_and_destination, pick_worst_source_and_destination,
      pick_best_and_worst_sources]
     """
-    plan = generate_rnd_plan(warehouse, routing_requests, True)
+    plan = timeout_wrapper(generate_rnd_plan, warehouse, routing_requests, True)
 
     for _ in range(LNS_ITERATIONS):
         plan_backup = plan.copy()
@@ -318,7 +335,7 @@ def generate_lns_rnd_plan(warehouse, routing_requests, neighborhood_picking_func
         # neighborhood contains the list of indexes of routing_requests to replan for
         neighborhood = neighborhood_picking_function(routing_requests, warehouse, plan)
         erase_routes(plan, neighborhood)
-        plan = replan(warehouse, plan, neighborhood, routing_requests)
+        plan = timeout_wrapper(replan, warehouse, plan, neighborhood, routing_requests)
         if neighborhood_picking_function == adaptive_neighborhood:
             update_weight(plan, plan_backup, neighborhood)
         plan = pick_lower_sum_of_costs_plan(plan, plan_backup, neighborhood)
