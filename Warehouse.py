@@ -156,6 +156,7 @@ class Warehouse:
     """
 
     def set_static_obstacle(self, row_idx, column_idx):
+        obstacle_corners = set()
         for i in range(self.static_obstacle_length):
             obstacle_row_idx = row_idx + i
 
@@ -171,6 +172,8 @@ class Warehouse:
                         if i == 0 or i == self.static_obstacle_length - 1 or j == 0 \
                                 or j == self.static_obstacle_width - 1:
                             self.static_obstacle_corners.add((obstacle_row_idx, obstacle_column_idx))
+                            obstacle_corners.add((obstacle_row_idx, obstacle_column_idx))
+        self.static_obstacle_coordinates_split_by_obstacle.append(obstacle_corners)
 
     def set_static_obstacles(self):
         corners_coordinates = WAREHOUSE_CORNERS[self.warehouse_id - 1]
@@ -202,6 +205,7 @@ class Warehouse:
         self.vertices: List[List[Warehouse.WarehouseNode]] = []
         self.static_obstacles = set()
         self.static_obstacle_corners: Set[Tuple[int, int]] = set()
+        self.static_obstacle_coordinates_split_by_obstacle = []
         self.sources: List[Warehouse.WarehouseNode] = []
         self.destinations: List[Warehouse.WarehouseNode] = []
 
