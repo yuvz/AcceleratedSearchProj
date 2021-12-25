@@ -1,13 +1,14 @@
 import random
 from math import ceil
 from sys import maxsize
-from time import time
 
 from AStar import AStar
 from BFS import BFS
 from EnvironmentUtils import get_random_points_throughout_warehouse, is_valid_route_length
 from RoutingRequest import RoutingRequest
 from Utils import distance
+
+ROUTE_GENERATION_ALGORITHM_ABBR = ["ROR", "K-ROR", "IPWS", "K-IPWS", "MPR", "K-MPR", "MPR_WS"]
 
 PROGRESSIVELY_OBSTACLE_RESTRICTED_PLANS_MAX_TRIES = 5
 OBSTACLE_PATTERNS = ["cross", "square", "vertical_line", "horizontal_line", "dot"]
@@ -137,11 +138,13 @@ def add_obstacle_at_midpoint(added_obstacles, last_added_obstacle_midpoint, adde
                 added_obstacles.add((midpoint_x + added_obstacle_size - 1, midpoint_y + i))
 
 
-def generate_random_obstacles_restricted_plan(warehouse, routing_request, obstacle_patterns, max_routes=maxsize,
-                                              initial_dist=0):
+def generate_random_obstacles_restricted_plan(warehouse, routing_request, obstacle_patterns=None,
+                                              max_routes=maxsize, initial_dist=0):
     # print("Generating random obstacles restricted plan, with obstacle patterns in", obstacle_patterns)
     # print("***")
 
+    if obstacle_patterns is None:
+        obstacle_patterns = OBSTACLE_PATTERNS
     plan = []
     added_obstacles = set()
     added_obstacles_backup = set()
@@ -191,15 +194,10 @@ def generate_random_obstacles_restricted_plan(warehouse, routing_request, obstac
     return plan
 
 
-def generate_random_obstacles_restricted_plan_for_first_routing_request(warehouse, routing_requests, obstacle_patterns):
+def generate_random_obstacles_restricted_plan_for_first_routing_request(warehouse, routing_requests,
+                                                                        obstacle_patterns=None):
+    if obstacle_patterns is None:
+        obstacle_patterns = OBSTACLE_PATTERNS
     first_routing_request = routing_requests[0]
 
     return generate_random_obstacles_restricted_plan(warehouse, first_routing_request, obstacle_patterns)
-
-
-def generate_routes_by_random_obstacles_restricted(warehouse, source_id, destination_id):
-    routing_requests = [RoutingRequest(0, warehouse.sources[source_id], warehouse.destinations[destination_id])]
-    t0 = time()
-    plan = generate_random_obstacles_restricted_plan_for_first_routing_request(warehouse, routing_requests, OBSTACLE_PATTERNS)
-    t1 = time()
-    return plan, t0, t1

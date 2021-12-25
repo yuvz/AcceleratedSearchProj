@@ -7,8 +7,8 @@ from colorsys import hls_to_rgb
 from copy import deepcopy
 from time import time
 
-from DatabaseBuilding import PATH_GENERATING_ALGORITHMS
 from EnvironmentUtils import get_source_id_from_route, get_destination_id_from_route
+from RouteGeneration import ROUTE_GENERATION_ALGORITHM_ABBR
 
 SHOW_ANIMATION_TRAIL = False
 
@@ -106,7 +106,7 @@ def set_path_generation_title_and_info(warehouse, plan, running_time, algorithm_
 
 
 def set_plot_title_and_info(warehouse, plan, running_time, algorithm_name, title):
-    if algorithm_name in PATH_GENERATING_ALGORITHMS:
+    if algorithm_name in ROUTE_GENERATION_ALGORITHM_ABBR:
         set_path_generation_title_and_info(warehouse, plan, running_time, algorithm_name, title)
     else:
         set_routing_solution_title_and_info(warehouse, plan, running_time, algorithm_name, title)
@@ -169,7 +169,7 @@ def show_plan_as_animation(warehouse, plan, algorithm_name="TODO", running_time=
 
 def show_plan_as_image(warehouse, plan, running_time=-1.0, algorithm_name="TODO", title="", export_image=False):
     warehouse.plot_layout()
-    if algorithm_name in PATH_GENERATING_ALGORITHMS:
+    if algorithm_name in ROUTE_GENERATION_ALGORITHM_ABBR:
         set_path_generation_title_and_info(warehouse, plan, running_time, algorithm_name, title)
     else:
         set_plot_title_and_info(warehouse, plan, running_time, algorithm_name, title)
