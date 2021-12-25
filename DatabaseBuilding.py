@@ -20,7 +20,7 @@ def import_csv_to_routes(csv_file: str) -> List:
         routes = [route[3:] for route in routes]
         return routes
 
-def create_header_routes_csv(routes) -> List:
+def create_header_routes_csv(routes, warehouse) -> List:
     """ 
 
     Args:
@@ -29,7 +29,7 @@ def create_header_routes_csv(routes) -> List:
     Returns:
         List: headers of the table
     """
-    columns_length = max(len(rout) for rout in routes) 
+    columns_length = warehouse.length + warehouse.width
     field_names = ['Algorithm Name', 'Source Id', 'Destination Id']
     for i in range(columns_length):
         field_name = 'Time = {}'.format(i + 1)
@@ -60,7 +60,7 @@ def create_line_routes_csv(algorithm_name: str, source_id, destination_id, field
         line[field_names[i + 3]] = route[i]
     return line
 
-def export_routes_to_csv(algorithm_name, source_id, destination_id, routes):
+def export_routes_to_csv(algorithm_name, source_id, destination_id, routes, warehouse):
     """    Generates a .csv file using the above input
 
     Args:
@@ -69,9 +69,9 @@ def export_routes_to_csv(algorithm_name, source_id, destination_id, routes):
         destination_id (int): id of destination vertex
         routes (list): list of all the routes(lists) available
     """
-    field_names = create_header_routes_csv(routes)
+    field_names = create_header_routes_csv(routes, warehouse)
     file_name = 'routes_from_{}_to_{}.csv'.format(source_id,destination_id)
-    with open(file_name, 'w', newline='') as f:
+    with open(file_name, 'a', newline='') as f:
         writer = csv.DictWriter(f, fieldnames=field_names)
         writer.writeheader()
         

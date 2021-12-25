@@ -29,8 +29,8 @@ def generate_routes(warehouse, algorithm_name="MPR_WS", source_id=0, destination
 
     # show_plan_as_animation(warehouse, routes, algorithm_name)
 
-    export_routes_to_csv(algorithm_name, source_id, destination_id, routes)  # TODO: @NimrodMarom
-
+    export_routes_to_csv(algorithm_name, source_id, destination_id, routes, warehouse)  
+    #ra
 
 def main():
     """
@@ -40,10 +40,12 @@ def main():
     warehouse_types = {"first paper": 1, "toy": 2, "small structured": 3, "small empty single origin": 4}
     warehouse = generate_warehouse(warehouse_types["small structured"])
     
-    export_warehouse_to_csv(warehouse)
+    # export_warehouse_to_csv(warehouse) 
 
     generate_example(warehouse, "MPR_WS")
     generate_routes(warehouse, "MPR_WS", 2, 1)
+
+    # import_csv_to_routes('routes_from_2_to_1.csv')
 
     # plan, running_time = generate_rand_example(warehouse, algorithm_name)
 
