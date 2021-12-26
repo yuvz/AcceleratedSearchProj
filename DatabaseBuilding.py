@@ -1,6 +1,7 @@
 from typing import List, Tuple, Dict
 import csv
-from RouteGenerationAlgorithms import generate_midpoints_restricted_plan
+
+from EnvironmentUtils import get_source_id_from_route, get_destination_id_from_route
 
 
 def import_csv_to_routes(csv_file: str) -> List:
@@ -25,6 +26,7 @@ def create_header_routes_csv(routes, warehouse) -> List:
 
     Args:
         routes (List): list of all the rotes(lists)
+        warehouse (Warehouse)
 
     Returns:
         List: headers of the table
@@ -62,31 +64,11 @@ def create_line_routes_csv(algorithm_name: str, source_id, destination_id, field
     return line
 
 
-def export_routes_to_csv(algorithm_name, source_id, destination_id, routes, warehouse):
-    """    Generates a .csv file using the above input
-
-    Args:
-        algorithm_name (str): name of the algorithm
-        source_id (int): id of source vertex
-        destination_id (int): id of destination vertex
-        routes (list): list of all the routes(lists) available
-    """
-    field_names = create_header_routes_csv(routes, warehouse)
-    file_name = 'routes_from_{}_to_{}.csv'.format(source_id, destination_id)
-    with open(file_name, 'a', newline='') as f:
-        writer = csv.DictWriter(f, fieldnames=field_names)
-        writer.writeheader()
-
-        for i in range(len(routes)):
-            line = create_line_routes_csv(algorithm_name, source_id, destination_id, field_names, routes[i])
-            writer.writerow(line)
-
-
 def create_header_warehouse_csv(warehouse) -> List:
     """ 
 
     Args:
-        routes (List): list of all the rotes(lists)
+        warehouse (Warehouse)
 
     Returns:
         List: headers of the table
@@ -133,9 +115,9 @@ def export_warehouse_to_csv(warehouse):
     Args:
         warehouse 
     """
-    field_names = create_header_warehouse_csv(warehouse)
     file_name = 'warehouse_{}.csv'.format(warehouse.warehouse_id)
     with open(file_name, 'w', newline='') as f:
+        field_names = create_header_warehouse_csv(warehouse)
         writer = csv.DictWriter(f, fieldnames=field_names)
         writer.writeheader()
 
@@ -144,5 +126,24 @@ def export_warehouse_to_csv(warehouse):
         writer.writerow(line)
 
 
-def export_plan_to_csv(warehouse, plan, algorithm_name):
-    pass
+def export_plan_to_csv(algorithm_name, plan, warehouse):
+    """    Generates a .csv file using the above input
+
+    Args:
+        algorithm_name (str): name of the algorithm
+        plan (list): list of all the routes(lists) available
+        warehouse (Warehouse)
+    """
+    for route in plan:
+        source_id = get_source_id_from_route(warehouse, route)
+        destination_id = get_destination_id_from_route(warehouse, route)
+
+        # TODO: create warehouse_{} directory if doesn't exist
+        file_name = 'warehouse_{}/routes_from_{}_to_{}.csv'.format(warehouse.warehouse_id, source_id, destination_id)
+        with open(file_name, 'a', newline='') as f:
+            field_names = create_header_routes_csv(plan, warehouse)
+            writer = csv.DictWriter(f, fieldnames=field_names)
+            writer.writeheader()
+
+            line = create_line_routes_csv(algorithm_name, source_id, destination_id, field_names, route)
+            writer.writerow(line)

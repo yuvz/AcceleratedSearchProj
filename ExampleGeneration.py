@@ -130,3 +130,13 @@ def generate_example(warehouse, algorithm_name, routing_requests_in_tuples_forma
 
     running_time = round(t1 - t0, 4)
     return plan, running_time, routing_requests_in_tuples_format
+
+
+def generate_example_from_source_to_destination(warehouse, algorithm_name="MPR_WS",
+                                                routing_requests_in_tuples_format=None):
+    if not routing_requests_in_tuples_format:
+        routing_requests_in_tuples_format = [(random.randrange(0, warehouse.number_of_sources),
+                                              random.randrange(0, warehouse.number_of_destinations))]
+    return generate_example(warehouse, algorithm_name, routing_requests_in_tuples_format)
+
+

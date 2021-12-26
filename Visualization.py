@@ -197,7 +197,7 @@ def visualize_plan(warehouse, plan, algorithm_name, running_time=-1, visualizati
                    is_export_visualization=False):
     if visualization_type == "animation":
         show_plan_as_animation(warehouse, plan, algorithm_name, running_time, title, is_export_visualization)
-    if visualization_type == "image":
+    elif visualization_type == "image":
         show_plan_as_image(warehouse, plan, algorithm_name, running_time, title, is_export_visualization)
 
     else:

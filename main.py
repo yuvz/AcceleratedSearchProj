@@ -1,12 +1,12 @@
-from DatabaseBuilding import export_routes_to_csv, export_warehouse_to_csv, import_csv_to_routes, export_plan_to_csv
-from ExampleGeneration import generate_example
+from DatabaseBuilding import export_plan_to_csv, export_warehouse_to_csv, import_csv_to_routes, export_plan_to_csv
+from ExampleGeneration import generate_example, generate_example_from_source_to_destination
 from EnvironmentUtils import generate_warehouse
 from RouteGenerationAlgorithms import ROUTE_GENERATION_ALGORITHMS_ABBR
 from Visualization import visualize_plan
 
 WAREHOUSE_TYPES = {"first paper": 1, "toy": 2, "small structured": 3, "small empty single origin": 4}
-VISUALIZE_RESULT = True
-EXPORT_RESULT_TO_CSV = False
+VISUALIZE_RESULT = False
+EXPORT_RESULT_TO_CSV = True
 
 TEN_WAVE_ROUTING_REQUESTS_TEST = [(0, 3), (1, 3), (2, 3), (3, 5), (4, 1), (5, 2), (6, 5),
                                   (0, 3), (1, 6), (2, 4), (3, 4), (4, 2), (5, 2), (6, 0),
@@ -22,12 +22,7 @@ TEN_WAVE_ROUTING_REQUESTS_TEST = [(0, 3), (1, 3), (2, 3), (3, 5), (4, 1), (5, 2)
 TWO_WAVE_ROUTING_REQUEST_TEST = [(0, 6), (1, 6), (2, 6), (3, 2), (4, 6), (5, 2), (6, 3),
                                  (0, 0), (1, 6), (2, 3), (3, 6), (4, 6), (5, 2), (6, 4)]
 
-
-def generate_routes(warehouse, algorithm_name="MPR_WS", source_id=0, destination_id=0):
-    routing_requests_in_tuples_format = [(source_id, destination_id)]
-    plan, running_time, routing_requests = generate_example(warehouse, algorithm_name, routing_requests_in_tuples_format)
-
-    export_routes_to_csv(algorithm_name, source_id, destination_id, plan, warehouse)
+CSV_GENERATION_ROUTING_REQUEST = [(2, 1)]
 
 
 def main():
@@ -37,22 +32,21 @@ def main():
     """
 
     warehouse = generate_warehouse(WAREHOUSE_TYPES["small structured"])
-    algorithm_name = "MPR_WS"
+    algorithm_name = "RND"
 
-    # plan, running_time, routing_requests = generate_example(warehouse, algorithm_name, TWO_WAVE_ROUTING_REQUEST_TEST)
+    plan, running_time, routing_requests = generate_example(warehouse, algorithm_name, TWO_WAVE_ROUTING_REQUEST_TEST)
     # plan, running_time, routing_requests = generate_example(warehouse, algorithm_name)
-    generate_routes(warehouse, algorithm_name, 2, 1)
 
-    # if VISUALIZE_RESULT:
-    #     visualization_type = "animation"
-    #     title = ""
-    #     is_export_visualization = False
-    #     visualize_plan(warehouse, plan, algorithm_name, running_time, visualization_type, title,
-    #                    is_export_visualization)
+    if VISUALIZE_RESULT:
+        visualization_type = "animation"
+        title = ""
+        is_export_visualization = False
+        visualize_plan(warehouse, plan, algorithm_name, running_time, visualization_type, title,
+                       is_export_visualization)
 
     # if EXPORT_RESULT_TO_CSV and algorithm_name in ROUTE_GENERATION_ALGORITHMS_ABBR:
-    #     export_plan_to_csv(warehouse, plan, algorithm_name)
-    #     export_routes_to_csv(algorithm_name, source_id, destination_id, routes)
+    if EXPORT_RESULT_TO_CSV:
+        export_plan_to_csv(algorithm_name, plan, warehouse)
 
 
 if __name__ == "__main__":
