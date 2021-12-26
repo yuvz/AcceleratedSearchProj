@@ -5,10 +5,9 @@ from EnvironmentUtils import generate_rand_routing_requests, generate_rand_routi
 from BFS import generate_bfs_plan_for_first_routing_request
 from RND import generate_rnd_plan
 from LNS_PP import generate_lns_rnd_plan
-from RouteGeneration import generate_ideal_path_with_splits_plan_for_first_routing_request, \
+from RouteGenerationAlgorithms import generate_ideal_path_with_splits_plan_for_first_routing_request, \
     generate_midpoints_restricted_plan_for_first_routing_request, \
-    generate_random_obstacles_restricted_plan_for_first_routing_request, ROUTE_GENERATION_ALGORITHM_ABBR, \
-    OBSTACLE_PATTERNS
+    generate_random_obstacles_restricted_plan_for_first_routing_request, ROUTE_GENERATION_ALGORITHMS_ABBR
 from RoutingRequest import RoutingRequest
 
 WAVES_PER_WAREHOUSE = [10, 1, 2, 1]
@@ -63,22 +62,28 @@ def generate_cbs_example(warehouse, routing_requests):
     return generate_plan(warehouse, routing_requests, cbs.solve)
 
 
-def generate_rand_example(warehouse, algorithm_name, routing_requests_in_tuples_format):
+def generate_example(warehouse, algorithm_name, routing_requests_in_tuples_format=None):
+    """
+    if no value routing_requests_in_tuples_format is supplied, a random value for routing_requests_in_tuples_format is
+    generated
+    """
+
     if routing_requests_in_tuples_format:
-        if algorithm_name in ROUTE_GENERATION_ALGORITHM_ABBR:
+        if algorithm_name in ROUTE_GENERATION_ALGORITHMS_ABBR:
             routing_requests_in_tuples_format = [routing_requests_in_tuples_format[0]]
 
         routing_requests = [RoutingRequest(i, warehouse.sources[routing_request[0]],
                                            warehouse.destinations[routing_request[1]]) for i, routing_request
                             in enumerate(routing_requests_in_tuples_format)]
     else:
-        if algorithm_name in ROUTE_GENERATION_ALGORITHM_ABBR:
+        if algorithm_name in ROUTE_GENERATION_ALGORITHMS_ABBR:
             routing_requests = generate_rand_routing_request(warehouse)
         else:
             routing_requests = generate_rand_routing_requests(warehouse, WAVES_PER_WAREHOUSE)
         routing_requests_in_tuples_format = [(routing_request.get_source_id(), routing_request.get_destination_id())
                                              for routing_request in routing_requests]
 
+    # print(routing_requests_in_tuples_format)
     if algorithm_name == "BFS":
         plan, t0, t1 = generate_bfs_example(warehouse, routing_requests)
 
@@ -125,3 +130,13 @@ def generate_rand_example(warehouse, algorithm_name, routing_requests_in_tuples_
 
     running_time = round(t1 - t0, 4)
     return plan, running_time, routing_requests_in_tuples_format
+
+
+def generate_example_from_source_to_destination(warehouse, algorithm_name="MPR_WS",
+                                                routing_requests_in_tuples_format=None):
+    if not routing_requests_in_tuples_format:
+        routing_requests_in_tuples_format = [(random.randrange(0, warehouse.number_of_sources),
+                                              random.randrange(0, warehouse.number_of_destinations))]
+    return generate_example(warehouse, algorithm_name, routing_requests_in_tuples_format)
+
+

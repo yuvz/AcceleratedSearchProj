@@ -3,7 +3,7 @@ from typing import Dict, Set, Tuple
 from RoutingRequest import ALLOW_DIAGONAL_MOVEMENT
 from Utils import distance
 
-PRIORITIZE_AGENTS_WAITING_AT_SOURCE = True
+PRIORITIZE_AGENTS_WAITING_AT_SOURCE = False
 
 
 class AStar:
