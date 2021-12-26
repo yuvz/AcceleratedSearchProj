@@ -1,10 +1,9 @@
 from typing import List, Tuple, Dict
 import csv
-from RouteGeneration import generate_midpoints_restricted_plan
+from RouteGenerationAlgorithms import generate_midpoints_restricted_plan
 
-PATH_GENERATING_ALGORITHMS = ["ROR", "K-ROR", "IPWS", "K-IPWS", "MPR", "K-MPR", "MPR_WS"]
 
-def import_csv_to_routes(csv_file: str) -> List: 
+def import_csv_to_routes(csv_file: str) -> List:
     """ 
 
     Args:
@@ -19,6 +18,7 @@ def import_csv_to_routes(csv_file: str) -> List:
         routes = routes[1:]
         routes = [route[3:] for route in routes]
         return routes
+
 
 def create_header_routes_csv(routes, warehouse) -> List:
     """ 
@@ -37,7 +37,8 @@ def create_header_routes_csv(routes, warehouse) -> List:
     field_names.append('Grade')
     return field_names
 
-def create_line_routes_csv(algorithm_name: str, source_id, destination_id, field_names : List, route) -> Dict:
+
+def create_line_routes_csv(algorithm_name: str, source_id, destination_id, field_names: List, route) -> Dict:
     """
 
     Args:
@@ -60,6 +61,7 @@ def create_line_routes_csv(algorithm_name: str, source_id, destination_id, field
         line[field_names[i + 3]] = route[i]
     return line
 
+
 def export_routes_to_csv(algorithm_name, source_id, destination_id, routes, warehouse):
     """    Generates a .csv file using the above input
 
@@ -70,14 +72,15 @@ def export_routes_to_csv(algorithm_name, source_id, destination_id, routes, ware
         routes (list): list of all the routes(lists) available
     """
     field_names = create_header_routes_csv(routes, warehouse)
-    file_name = 'routes_from_{}_to_{}.csv'.format(source_id,destination_id)
+    file_name = 'routes_from_{}_to_{}.csv'.format(source_id, destination_id)
     with open(file_name, 'a', newline='') as f:
         writer = csv.DictWriter(f, fieldnames=field_names)
         writer.writeheader()
-        
+
         for i in range(len(routes)):
             line = create_line_routes_csv(algorithm_name, source_id, destination_id, field_names, routes[i])
             writer.writerow(line)
+
 
 def create_header_warehouse_csv(warehouse) -> List:
     """ 
@@ -88,7 +91,8 @@ def create_header_warehouse_csv(warehouse) -> List:
     Returns:
         List: headers of the table
     """
-    field_names = ['Warehouse Id','Width', 'Length', 'Number Of Sources', 'Number Of Destinations', 'Static Obstacle Width', 'Static Obstacle Length']    
+    field_names = ['Warehouse Id', 'Width', 'Length', 'Number Of Sources', 'Number Of Destinations',
+                   'Static Obstacle Width', 'Static Obstacle Length']
     for i in range(len(warehouse.sources)):
         field_name = 'Source {}'.format(i + 1)
         field_names.append(field_name)
@@ -98,8 +102,9 @@ def create_header_warehouse_csv(warehouse) -> List:
     for i in range(len(warehouse.static_obstacle_coordinates_split_by_obstacle)):
         field_name = 'Obstacle {}'.format(i + 1)
         field_names.append(field_name)
-                
+
     return field_names
+
 
 def create_line_warehouse_csv(warehouse) -> Dict:
     line = {}
@@ -121,7 +126,8 @@ def create_line_warehouse_csv(warehouse) -> Dict:
     line['Static Obstacle Length'] = warehouse.static_obstacle_length
     return line
 
-def export_warehouse_to_csv(warehouse) :
+
+def export_warehouse_to_csv(warehouse):
     """ Generates a .csv file using the above input
 
     Args:
@@ -132,10 +138,11 @@ def export_warehouse_to_csv(warehouse) :
     with open(file_name, 'w', newline='') as f:
         writer = csv.DictWriter(f, fieldnames=field_names)
         writer.writeheader()
-        
+
         line = create_line_warehouse_csv(warehouse)
-        
+
         writer.writerow(line)
+
 
 def create_routes_from_source_to_destination_by_MPR_WS(warehouse, source, destination):
     return generate_midpoints_restricted_plan(warehouse, source, destination, True)
@@ -149,3 +156,7 @@ def create_tagged_routes_by_MPR_WS(warehouse):
             tagged_routes.append(((i, j), routes))
 
     return tagged_routes
+
+
+def export_plan_to_csv(warehouse, plan, algorithm_name):
+    pass

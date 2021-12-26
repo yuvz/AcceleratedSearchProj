@@ -8,7 +8,7 @@ from EnvironmentUtils import get_random_points_throughout_warehouse, is_valid_ro
 from RoutingRequest import RoutingRequest
 from Utils import distance
 
-ROUTE_GENERATION_ALGORITHM_ABBR = ["ROR", "K-ROR", "IPWS", "K-IPWS", "MPR", "K-MPR", "MPR_WS"]
+ROUTE_GENERATION_ALGORITHMS_ABBR = ["ROR", "K-ROR", "IPWS", "K-IPWS", "MPR", "K-MPR", "MPR_WS"]
 
 PROGRESSIVELY_OBSTACLE_RESTRICTED_PLANS_MAX_TRIES = 5
 OBSTACLE_PATTERNS = ["cross", "square", "vertical_line", "horizontal_line", "dot"]

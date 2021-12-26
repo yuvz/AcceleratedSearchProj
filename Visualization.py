@@ -8,7 +8,7 @@ from copy import deepcopy
 from time import time
 
 from EnvironmentUtils import get_source_id_from_route, get_destination_id_from_route
-from RouteGeneration import ROUTE_GENERATION_ALGORITHM_ABBR
+from RouteGenerationAlgorithms import ROUTE_GENERATION_ALGORITHMS_ABBR
 
 SHOW_ANIMATION_TRAIL = False
 
@@ -80,9 +80,11 @@ def remove_duplicate_destinations_from_route(route):
 
 def set_routing_solution_title_and_info(warehouse, plan, running_time, algorithm_name, title):
     sum_of_costs = sum([len(remove_duplicate_destinations_from_route(route)) for route in plan])
+    obstacle_density = round(len(warehouse.static_obstacles) / (warehouse.width * warehouse.length), 2)
 
     title_left = "map_size = " + str(warehouse.width) + "*" + str(warehouse.length) + \
-                 "        (num_sources, num_destinations) = " + \
+                 "        obstacle_density = " + str(obstacle_density) + \
+                 "\n(num_sources, num_destinations) = " + \
                  str((warehouse.number_of_sources, warehouse.number_of_destinations)) + \
                  "        num_agents = " + str(len(plan)) + \
                  "\nAlgorithm = " + algorithm_name + "        sum_of_costs = " + str(sum_of_costs) + \
@@ -106,7 +108,7 @@ def set_path_generation_title_and_info(warehouse, plan, running_time, algorithm_
 
 
 def set_plot_title_and_info(warehouse, plan, running_time, algorithm_name, title):
-    if algorithm_name in ROUTE_GENERATION_ALGORITHM_ABBR:
+    if algorithm_name in ROUTE_GENERATION_ALGORITHMS_ABBR:
         set_path_generation_title_and_info(warehouse, plan, running_time, algorithm_name, title)
     else:
         set_routing_solution_title_and_info(warehouse, plan, running_time, algorithm_name, title)
@@ -157,6 +159,7 @@ def show_plan_as_animation(warehouse, plan, algorithm_name="TODO", running_time=
     dt = 1. / fps
 
     interval = 1000 * dt - (t1 - t0)
+
     animation = FuncAnimation(fig, animate, frames=frames, init_func=init, blit=True, interval=interval)
 
     plt.show()
@@ -169,7 +172,7 @@ def show_plan_as_animation(warehouse, plan, algorithm_name="TODO", running_time=
 
 def show_plan_as_image(warehouse, plan, running_time=-1.0, algorithm_name="TODO", title="", export_image=False):
     warehouse.plot_layout()
-    if algorithm_name in ROUTE_GENERATION_ALGORITHM_ABBR:
+    if algorithm_name in ROUTE_GENERATION_ALGORITHMS_ABBR:
         set_path_generation_title_and_info(warehouse, plan, running_time, algorithm_name, title)
     else:
         set_plot_title_and_info(warehouse, plan, running_time, algorithm_name, title)
@@ -188,3 +191,14 @@ def show_plan_as_image(warehouse, plan, running_time=-1.0, algorithm_name="TODO"
         plt.savefig('figure.png')
         print("Export done")
     plt.show()
+
+
+def visualize_plan(warehouse, plan, algorithm_name, running_time=-1, visualization_type="animation", title="",
+                   is_export_visualization=False):
+    if visualization_type == "animation":
+        show_plan_as_animation(warehouse, plan, algorithm_name, running_time, title, is_export_visualization)
+    if visualization_type == "image":
+        show_plan_as_image(warehouse, plan, algorithm_name, running_time, title, is_export_visualization)
+
+    else:
+        print("visualization_type must be in", ["animation", "image"])

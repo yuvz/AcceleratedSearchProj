@@ -104,7 +104,7 @@ def agent_based_neighborhood(routing_requests, warehouse, plan):
     delays_list = [len(route) - shortest_routs_list[i] for i, route in enumerate(plan)]
     global tabu_list
     delays_list_without_tabu = [delays_list[i] for i in range(len(routing_requests)) if i not in tabu_list]
-    max_delay = max(delays_list_without_tabu)
+    max_delay = 0 if not delays_list_without_tabu else max(delays_list_without_tabu)
     if len(tabu_list) == len(routing_requests) or max_delay == 0:
         tabu_list = []
         max_delay = max(delays_list)
@@ -327,7 +327,7 @@ def generate_lns_rnd_plan(warehouse, routing_requests, neighborhood_picking_func
      map_based_neighborhood, adaptive_neighborhood, pick_rand_source_and_destination, pick_worst_source_and_destination,
      pick_best_and_worst_sources]
     """
-    plan = timeout_wrapper(generate_rnd_plan, warehouse, routing_requests, True)
+    plan = timeout_wrapper(generate_rnd_plan, warehouse, routing_requests, False)
 
     for _ in range(LNS_ITERATIONS):
         plan_backup = plan.copy()
@@ -341,5 +341,3 @@ def generate_lns_rnd_plan(warehouse, routing_requests, neighborhood_picking_func
         plan = pick_lower_sum_of_costs_plan(plan, plan_backup, neighborhood)
 
     return plan
-
-# TODO: change RND to PP by adding rapid-random-restarts
