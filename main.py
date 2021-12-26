@@ -1,5 +1,5 @@
-from DatabaseBuilding import export_plan_to_csv, export_warehouse_to_csv, import_csv_to_routes, export_plan_to_csv
-from ExampleGeneration import generate_example, generate_example_from_source_to_destination
+from DatabaseBuilding import import_plan_from_csv, export_plan_to_csv
+from ExampleGeneration import generate_example
 from EnvironmentUtils import generate_warehouse
 from Visualization import show_plan_as_animation, show_plan_as_image
 from Warehouse import Warehouse
@@ -66,7 +66,6 @@ def main():
         visualize_plan(warehouse, plan, algorithm_name, running_time, visualization_type, title,
                        is_export_visualization)
 
-    # if EXPORT_RESULT_TO_CSV and algorithm_name in ROUTE_GENERATION_ALGORITHMS_ABBR:
     if EXPORT_RESULT_TO_CSV:
         export_plan_to_csv(algorithm_name, plan, warehouse)
     """
