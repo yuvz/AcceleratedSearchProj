@@ -144,19 +144,5 @@ def export_warehouse_to_csv(warehouse):
         writer.writerow(line)
 
 
-def create_routes_from_source_to_destination_by_MPR_WS(warehouse, source, destination):
-    return generate_midpoints_restricted_plan(warehouse, source, destination, True)
-
-
-def create_tagged_routes_by_MPR_WS(warehouse):
-    tagged_routes: List[Tuple[Tuple[int, int], List]] = []
-    for i, source in enumerate(warehouse.sources):
-        for j, destination in enumerate(warehouse.destinations):
-            routes = create_routes_from_source_to_destination_by_MPR_WS(warehouse, source, destination)
-            tagged_routes.append(((i, j), routes))
-
-    return tagged_routes
-
-
 def export_plan_to_csv(warehouse, plan, algorithm_name):
     pass

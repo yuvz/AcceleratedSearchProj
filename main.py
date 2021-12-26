@@ -1,5 +1,4 @@
-from DatabaseBuilding import create_routes_from_source_to_destination_by_MPR_WS, export_routes_to_csv, \
-    export_warehouse_to_csv, import_csv_to_routes, export_plan_to_csv
+from DatabaseBuilding import export_routes_to_csv, export_warehouse_to_csv, import_csv_to_routes, export_plan_to_csv
 from ExampleGeneration import generate_example
 from EnvironmentUtils import generate_warehouse
 from RouteGenerationAlgorithms import ROUTE_GENERATION_ALGORITHMS_ABBR
@@ -25,12 +24,10 @@ TWO_WAVE_ROUTING_REQUEST_TEST = [(0, 6), (1, 6), (2, 6), (3, 2), (4, 6), (5, 2),
 
 
 def generate_routes(warehouse, algorithm_name="MPR_WS", source_id=0, destination_id=0):
-    source, destination = warehouse.sources[source_id], warehouse.destinations[destination_id]
-    routes = create_routes_from_source_to_destination_by_MPR_WS(warehouse, source, destination)
+    routing_requests_in_tuples_format = [(source_id, destination_id)]
+    plan, running_time, routing_requests = generate_example(warehouse, algorithm_name, routing_requests_in_tuples_format)
 
-    # visualize_plan(warehouse, routes, algorithm_name)
-
-    export_routes_to_csv(algorithm_name, source_id, destination_id, routes, warehouse)
+    export_routes_to_csv(algorithm_name, source_id, destination_id, plan, warehouse)
 
 
 def main():
@@ -40,18 +37,18 @@ def main():
     """
 
     warehouse = generate_warehouse(WAREHOUSE_TYPES["small structured"])
-    algorithm_name = "RND"
+    algorithm_name = "MPR_WS"
 
-    plan, running_time, routing_requests = generate_example(warehouse, algorithm_name, TWO_WAVE_ROUTING_REQUEST_TEST)
+    # plan, running_time, routing_requests = generate_example(warehouse, algorithm_name, TWO_WAVE_ROUTING_REQUEST_TEST)
     # plan, running_time, routing_requests = generate_example(warehouse, algorithm_name)
-    # generate_routes(warehouse, "MPR_WS", 2, 1)
+    generate_routes(warehouse, algorithm_name, 2, 1)
 
-    if VISUALIZE_RESULT:
-        visualization_type = "animation"
-        title = ""
-        is_export_visualization = False
-        visualize_plan(warehouse, plan, algorithm_name, running_time, visualization_type, title,
-                       is_export_visualization)
+    # if VISUALIZE_RESULT:
+    #     visualization_type = "animation"
+    #     title = ""
+    #     is_export_visualization = False
+    #     visualize_plan(warehouse, plan, algorithm_name, running_time, visualization_type, title,
+    #                    is_export_visualization)
 
     # if EXPORT_RESULT_TO_CSV and algorithm_name in ROUTE_GENERATION_ALGORITHMS_ABBR:
     #     export_plan_to_csv(warehouse, plan, algorithm_name)
