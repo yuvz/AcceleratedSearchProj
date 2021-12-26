@@ -1,10 +1,11 @@
+import os
 from typing import List, Tuple, Dict
 import csv
 
 from EnvironmentUtils import get_source_id_from_route, get_destination_id_from_route
 
 
-def import_csv_to_routes(csv_file: str) -> List:
+def import_plan_from_csv(csv_file: str) -> List:
     """ 
 
     Args:
@@ -109,13 +110,13 @@ def create_line_warehouse_csv(warehouse) -> Dict:
     return line
 
 
-def export_warehouse_to_csv(warehouse):
+def export_warehouse_information_to_csv(warehouse):
     """ Generates a .csv file using the above input
 
     Args:
         warehouse 
     """
-    file_name = 'warehouse_{}.csv'.format(warehouse.warehouse_id)
+    file_name = 'warehouse_{}/warehouse_{}_information.csv'.format(warehouse.warehouse_id, warehouse.warehouse_id)
     with open(file_name, 'w', newline='') as f:
         field_names = create_header_warehouse_csv(warehouse)
         writer = csv.DictWriter(f, fieldnames=field_names)
@@ -134,11 +135,15 @@ def export_plan_to_csv(algorithm_name, plan, warehouse):
         plan (list): list of all the routes(lists) available
         warehouse (Warehouse)
     """
+    target_dir = "./warehouse_{}".format(warehouse.warehouse_id)
+    if not os.path.isdir(target_dir):
+        os.mkdir(target_dir)
+        export_warehouse_information_to_csv(warehouse)
+
     for route in plan:
         source_id = get_source_id_from_route(warehouse, route)
         destination_id = get_destination_id_from_route(warehouse, route)
 
-        # TODO: create warehouse_{} directory if doesn't exist
         file_name = 'warehouse_{}/routes_from_{}_to_{}.csv'.format(warehouse.warehouse_id, source_id, destination_id)
         with open(file_name, 'a', newline='') as f:
             field_names = create_header_routes_csv(plan, warehouse)
