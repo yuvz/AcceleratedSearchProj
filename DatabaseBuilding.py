@@ -1,14 +1,71 @@
 from typing import List, Tuple, Dict
 import csv
 from RouteGeneration import generate_midpoints_restricted_plan
+from Warehouse import Warehouse
+import random
 
 PATH_GENERATING_ALGORITHMS = ["ROR", "K-ROR", "IPWS", "K-IPWS", "MPR", "K-MPR", "MPR_WS"]
+
+def create_length(rows: List) -> int:
+    """
+
+    Args:
+        rows (List): list of dictyonarys - each row is a dictionary of source to target route
+
+    Returns:
+        int: sum of total length of the routes
+    """
+    int length = 0
+    for row in rows:
+        row['Algorithm Name'] = None
+        row['Source Id'] = None
+        row['Destination Id'] = None
+        row = dict((k,v) for k, v in row.items() if v is not None)
+        lenth = length + len(row)
+    return length
+
+def create_row_from_tupple(source: int, target: int) -> Dict : 
+    """ Generate a path from source to target from existing csv file    
+
+    Args:
+        source (int): Source Id
+        target (int): Target Id
+
+    Returns:
+        Dict: Returns random route from source to target
+    """
+
+    file_name = 'routes_from_{}_to_{}.csv'.format(source, target)
+    data = import_csv_to_routes(file_name)
+    row = random.randrage(0, len(data))
+    return data[row]
+    
+def export_all_routes_to_csv(warehouse: Warehouse, source_dest_list: List) -> None:
+    """ Creates a .csv file of routes for all the souce,dest tupples that were given
+
+    Args:
+        source_dest_list (List): List of tupples of wanted (source, dest) routes
+    """
+
+    field_names = create_header_routes_csv(warehouse)
+    file_name = 'routes.csv'
+    with open(file_name, 'w', newline='') as f:
+        writer = csv.DictWriter(f, fieldnames=field_names)
+        writer.writeheader()
+        rows = []
+        for tupple in source_dest_list:
+            row = create_row_from_tupple(source_dest_list[0], source_dest_list[1])
+            rows.append(row)
+        writer.writerows(rows)
+        total_length = create_length(rows)
+        number_of_clashes = create_number_of_clashes(rows)
+
 
 def import_csv_to_routes(csv_file: str) -> List: 
     """ 
 
     Args:
-        csv_file (str): the name of the csv file
+        csv_file (str): The name of the csv file
 
     Returns:
         [List]: A list of all the routes from the csv_file
@@ -20,14 +77,14 @@ def import_csv_to_routes(csv_file: str) -> List:
         routes = [route[3:] for route in routes]
         return routes
 
-def create_header_routes_csv(routes, warehouse) -> List:
+def create_header_routes_csv(warehouse: Warehouse) -> List:
     """ 
 
     Args:
-        routes (List): list of all the rotes(lists)
+        routes (List): List of all the rotes(lists)
 
     Returns:
-        List: headers of the table
+        List: Headers of the table
     """
     columns_length = warehouse.length + warehouse.width
     field_names = ['Algorithm Name', 'Source Id', 'Destination Id']
@@ -37,56 +94,57 @@ def create_header_routes_csv(routes, warehouse) -> List:
     field_names.append('Grade')
     return field_names
 
-def create_line_routes_csv(algorithm_name: str, source_id, destination_id, field_names : List, route) -> Dict:
+def create_row_routes_csv(algorithm_name: str, source_id: int, destination_id: int, field_names : List, route: List) -> Dict:
     """
 
     Args:
         algorithm_name (str): Name of the algorithm  
         source_id ([int]): Id of the vertex source
         destination_id ([int]): Id of the vertex destination
-        field_names (List): List of strings - header of the line in a table
+        field_names (List): List of strings - header of the row in a table
         rout (List): route of touples from source to destination
 
     Returns:
-        Dict: [Table line of {header_type_1:value_1, ... header_type_n:value_n}]
+        Dict: [Table row of {header_type_1:value_1, ... header_type_n:value_n}]
     """
-    line = {}
+    row = {}
     for i in field_names:
-        line[i] = None
-    line['Algorithm Name'] = algorithm_name
-    line['Source Id'] = source_id
-    line['Destination Id'] = destination_id
+        row[i] = None
+    row['Algorithm Name'] = algorithm_name
+    row['Source Id'] = source_id
+    row['Destination Id'] = destination_id
     for i in range(len(route)):
-        line[field_names[i + 3]] = route[i]
-    return line
+        row[field_names[i + 3]] = route[i]
+    return row
 
-def export_routes_to_csv(algorithm_name, source_id, destination_id, routes, warehouse):
+def export_routes_to_csv(algorithm_name: str, source_id: int, destination_id: int, routes: List, warehouse: Warehouse):
     """    Generates a .csv file using the above input
 
     Args:
-        algorithm_name (str): name of the algorithm
-        source_id (int): id of source vertex
-        destination_id (int): id of destination vertex
-        routes (list): list of all the routes(lists) available
+        algorithm_name (str): Name of the algorithm
+        source_id (int): Id of source vertex
+        destination_id (int): Id of destination vertex
+        routes (list): List of all the routes(lists) available
     """
-    field_names = create_header_routes_csv(routes, warehouse)
+    field_names = create_header_routes_csv(warehouse)
     file_name = 'routes_from_{}_to_{}.csv'.format(source_id,destination_id)
     with open(file_name, 'a', newline='') as f:
         writer = csv.DictWriter(f, fieldnames=field_names)
         writer.writeheader()
-        
+        rows = []
         for i in range(len(routes)):
-            line = create_line_routes_csv(algorithm_name, source_id, destination_id, field_names, routes[i])
-            writer.writerow(line)
+            row = create_row_routes_csv(algorithm_name, source_id, destination_id, field_names, routes[i])
+            rows.append(row)
+        writer.writerows(rows)
 
-def create_header_warehouse_csv(warehouse) -> List:
+def create_header_warehouse_csv(warehouse: Warehouse) -> List:
     """ 
 
     Args:
-        routes (List): list of all the rotes(lists)
+        routes (List): List of all the rotes(lists)
 
     Returns:
-        List: headers of the table
+        List: Headers of the table
     """
     field_names = ['Warehouse Id','Width', 'Length', 'Number Of Sources', 'Number Of Destinations', 'Static Obstacle Width', 'Static Obstacle Length']    
     for i in range(len(warehouse.sources)):
@@ -101,31 +159,31 @@ def create_header_warehouse_csv(warehouse) -> List:
                 
     return field_names
 
-def create_line_warehouse_csv(warehouse) -> Dict:
-    line = {}
+def create_row_warehouse_csv(warehouse: Warehouse) -> Dict:
+    row = {}
     for i in range(len(warehouse.sources)):
         header = 'Source {}'.format(i + 1)
-        line[header] = warehouse.sources[i].coordinates
+        row[header] = warehouse.sources[i].coordinates
     for i in range(len(warehouse.destinations)):
         header = 'Destination {}'.format(i + 1)
-        line[header] = warehouse.destinations[i].coordinates
+        row[header] = warehouse.destinations[i].coordinates
     for i in range(len(warehouse.static_obstacle_coordinates_split_by_obstacle)):
         header = 'Obstacle {}'.format(i + 1)
-        line[header] = warehouse.static_obstacle_coordinates_split_by_obstacle[i]
-    line['Warehouse Id'] = warehouse.warehouse_id
-    line['Width'] = warehouse.width
-    line['Length'] = warehouse.length
-    line['Number Of Sources'] = warehouse.number_of_sources
-    line['Number Of Destinations'] = warehouse.number_of_destinations
-    line['Static Obstacle Width'] = warehouse.static_obstacle_width
-    line['Static Obstacle Length'] = warehouse.static_obstacle_length
-    return line
+        row[header] = warehouse.static_obstacle_coordinates_split_by_obstacle[i]
+    row['Warehouse Id'] = warehouse.warehouse_id
+    row['Width'] = warehouse.width
+    row['Length'] = warehouse.length
+    row['Number Of Sources'] = warehouse.number_of_sources
+    row['Number Of Destinations'] = warehouse.number_of_destinations
+    row['Static Obstacle Width'] = warehouse.static_obstacle_width
+    row['Static Obstacle Length'] = warehouse.static_obstacle_length
+    return row
 
-def export_warehouse_to_csv(warehouse) :
+def export_warehouse_to_csv(warehouse: Warehouse) :
     """ Generates a .csv file using the above input
 
     Args:
-        warehouse 
+        warehouse (Warehouse)
     """
     field_names = create_header_warehouse_csv(warehouse)
     file_name = 'warehouse_{}.csv'.format(warehouse.warehouse_id)
@@ -133,15 +191,15 @@ def export_warehouse_to_csv(warehouse) :
         writer = csv.DictWriter(f, fieldnames=field_names)
         writer.writeheader()
         
-        line = create_line_warehouse_csv(warehouse)
+        row = create_row_warehouse_csv(warehouse)
         
-        writer.writerow(line)
+        writer.writerow(row)
 
 def create_routes_from_source_to_destination_by_MPR_WS(warehouse, source, destination):
     return generate_midpoints_restricted_plan(warehouse, source, destination, True)
 
 
-def create_tagged_routes_by_MPR_WS(warehouse):
+def create_tagged_routes_by_MPR_WS(warehouse: Warehouse):
     tagged_routes: List[Tuple[Tuple[int, int], List]] = []
     for i, source in enumerate(warehouse.sources):
         for j, destination in enumerate(warehouse.destinations):

@@ -2,6 +2,7 @@ from DatabaseBuilding import create_routes_from_source_to_destination_by_MPR_WS,
 from ExampleGeneration import generate_rand_example
 from EnvironmentUtils import generate_warehouse
 from Visualization import show_plan_as_animation, show_plan_as_image
+from Warehouse import Warehouse
     
 RANDOM_SCHEDULING_ENABLED = False
 TEST_ROUTING_REQUESTS = [(0, 3), (1, 3), (2, 3), (3, 5), (4, 1), (5, 2), (6, 5), (0, 3), (1, 6), (2, 4), (3, 4), (4, 2),
@@ -23,14 +24,18 @@ def generate_example(warehouse, algorithm_name, is_show_animation=True, is_show_
         show_plan_as_image(warehouse, plan, algorithm_name, running_time, title, is_export_visualization)
 
 
-def generate_routes(warehouse, algorithm_name="MPR_WS", source_id=0, destination_id=0):
+def generate_routes(warehouse: Warehouse, algorithm_name="MPR_WS", source_id=0, destination_id=0):
     source, destination = warehouse.sources[source_id], warehouse.destinations[destination_id]
     routes = create_routes_from_source_to_destination_by_MPR_WS(warehouse, source, destination)
 
     # show_plan_as_animation(warehouse, routes, algorithm_name)
 
-    export_routes_to_csv(algorithm_name, source_id, destination_id, routes, warehouse)  
-    #ra
+    source_dest_list = [] # assuming there are tupples of (Source, Dest)
+    # source_dest_list = create_tupples_list()
+    for tupple in source_dest_list:
+        routes = create_routes_from_source_to_destination_by_MPR_WS(warehouse, source_dest_list[0], source_dest_list[1])
+        export_routes_to_csv(algorithm_name, source_dest_list[0], source_dest_list[1], routes, warehouse)  
+    export_all_routes_to_csv(warehouse, source_dest_list)
 
 def main():
     """
