@@ -4,11 +4,13 @@ import csv
 import Warehouse
 import random
 import math
-from EnvironmentUtils import get_source_id_from_route, get_destination_id_from_route
+from EnvironmentUtils import get_source_id_from_route, get_destination_id_from_route, \
+    get_all_source_and_destination_combinations
 import operator as op
 from functools import reduce
 
 from EnvironmentUtils import get_source_id_from_route, get_destination_id_from_route
+from ExampleGeneration import generate_example
 
 
 def nCk(n, r):
@@ -175,6 +177,15 @@ def import_plan_from_csv(csv_file: str, field_names: List = None) -> List:
         return routes
 
 
+def import_routing_request_routes(warehouse, routing_request):
+    warehouse_id = warehouse.warehouse_id
+    source_id, destination_id = routing_request[0][0], routing_request[0][1]
+    file_path = './csv_files/warehouse_{}/routes/routes_from_{}_to_{}.csv'.format(warehouse_id, source_id,
+                                                                                  destination_id)
+
+    return import_plan_from_csv(file_path)
+
+
 def create_header_routes_csv(warehouse: Warehouse, route=None) -> List:
     columns_length = warehouse.length + warehouse.width if not route else len(route)
     field_names = ['Algorithm Name', 'Source Id', 'Destination Id']
@@ -184,8 +195,8 @@ def create_header_routes_csv(warehouse: Warehouse, route=None) -> List:
     return field_names
 
 
-def create_row_routes_csv(algorithm_name: str, source_id: int, destination_id: int, field_names: List,
-                          route: List) -> Dict:
+def create_route_information_dictionary(algorithm_name: str, source_id: int, destination_id: int, field_names: List,
+                                        route: List) -> Dict:
     """
 
     Args:
@@ -199,41 +210,10 @@ def create_row_routes_csv(algorithm_name: str, source_id: int, destination_id: i
         Dict: [Table row of {header_type_1:value_1, ... header_type_n:value_n}]
     """
     row = {'Algorithm Name': algorithm_name, 'Source Id': source_id, 'Destination Id': destination_id}
-    # for field_name in field_names:
-    #     row[field_name] = None
     for i in range(len(route)):
         row[field_names[i + 3]] = route[i]
 
     return row
-
-
-# def export_routes_source_to_dest_to_csv(algorithm_name: str, source_id: int, destination_id: int, routes: List,
-#                                         warehouse: Warehouse):
-#     """    Generates a .csv file using the above input
-#
-#     Args:
-#         algorithm_name (str): Name of the algorithm
-#         source_id (int): Id of source vertex
-#         destination_id (int): Id of destination vertex
-#         routes (list): List of all the routes(lists) available
-#     """
-#     field_names = create_header_routes_csv(warehouse)
-#
-#     file_name = './csv_files/warehouse_{}/routes/routes_from_{}_to_{}.csv'.format(warehouse.warehouse_id, source_id,
-#                                                                                   destination_id)
-#     file_exists = os.path.isfile(file_name)
-#     os.makedirs(os.path.dirname(file_name), exist_ok=True)
-#
-#     file_exists = os.path.isfile(file_name)
-#     with open(file_name, 'a', newline='') as f:
-#         writer = csv.DictWriter(f, fieldnames=field_names)
-#         if not file_exists:
-#             writer.writeheader()
-#         rows = []
-#         for i in range(len(routes)):
-#             row = create_row_routes_csv(algorithm_name, source_id, destination_id, field_names, routes[i])
-#             rows.append(row)
-#         writer.writerows(rows)
 
 
 def create_header_warehouse_csv(warehouse: Warehouse) -> List:
@@ -289,6 +269,24 @@ def create_row_warehouse_csv(warehouse: Warehouse) -> Dict:
     return row
 
 
+def write_route_information_to_file(file_name, warehouse, algorithm_name, source_id, destination_id, route):
+    with open(file_name, 'a', newline='') as f:
+        field_names = create_header_routes_csv(warehouse, route)
+        writer = csv.DictWriter(f, fieldnames=field_names)
+
+        row = create_route_information_dictionary(algorithm_name, source_id, destination_id, field_names, route)
+        writer.writerow(row)
+
+
+def create_routes_file_if_does_not_exist(file_name, warehouse):
+    file_exists = os.path.isfile(file_name)
+    if not file_exists:
+        with open(file_name, 'w', newline='') as f:
+            field_names = create_header_routes_csv(warehouse)
+            writer = csv.DictWriter(f, fieldnames=field_names)
+            writer.writeheader()
+
+
 def export_warehouse_information_to_csv(warehouse: Warehouse):
     """ Generates a .csv file using the above input
 
@@ -309,24 +307,6 @@ def export_warehouse_information_to_csv(warehouse: Warehouse):
         writer.writerow(row)
 
 
-def write_route_information_to_file(file_name, warehouse, algorithm_name, source_id, destination_id, route):
-    with open(file_name, 'a', newline='') as f:
-        field_names = create_header_routes_csv(warehouse, route)
-        writer = csv.DictWriter(f, fieldnames=field_names)
-
-        row = create_row_routes_csv(algorithm_name, source_id, destination_id, field_names, route)
-        writer.writerow(row)
-
-
-def create_file_if_does_not_exist(file_name, warehouse):
-    file_exists = os.path.isfile(file_name)
-    if not file_exists:
-        with open(file_name, 'w', newline='') as f:
-            field_names = create_header_routes_csv(warehouse)
-            writer = csv.DictWriter(f, fieldnames=field_names)
-            writer.writeheader()
-
-
 def create_dir_if_does_not_exist(warehouse):
     target_dir = "./csv_files/warehouse_{}/routes/".format(warehouse.warehouse_id)
 
@@ -344,5 +324,14 @@ def export_plan_to_csv(algorithm_name, plan, warehouse):
         warehouse_id = warehouse.warehouse_id
         file_name = './csv_files/warehouse_{}/routes/routes_from_{}_to_{}.csv'.format(warehouse_id, source_id,
                                                                                       destination_id)
-        create_file_if_does_not_exist(file_name, warehouse)
+        create_routes_file_if_does_not_exist(file_name, warehouse)
         write_route_information_to_file(file_name, warehouse, algorithm_name, source_id, destination_id, route)
+
+
+def build_routes_for_database(warehouse, algorithm_name="MPR_WS"):
+    all_source_and_destination_combinations = get_all_source_and_destination_combinations(warehouse)
+
+    for combination in all_source_and_destination_combinations:
+        plan, running_time, routing_requests = generate_example(warehouse, algorithm_name, [combination])
+        export_plan_to_csv(algorithm_name, plan, warehouse)
+

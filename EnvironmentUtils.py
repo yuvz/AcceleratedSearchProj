@@ -165,3 +165,12 @@ def generate_warehouse(warehouse_id):
 
 def is_valid_route_length(warehouse, route):
     return len(route) < warehouse.length + warehouse.width
+
+
+def get_all_source_and_destination_combinations(warehouse):
+    combinations = []
+    for i in range(len(warehouse.sources)):
+        for j in range(len(warehouse.destinations)):
+            combinations.append((i, j))
+
+    return combinations

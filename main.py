@@ -1,4 +1,5 @@
-from DatabaseBuilding import export_plan_to_csv, import_plan_from_csv, export_all_routes_to_csv
+from DatabaseBuilding import export_plan_to_csv, import_plan_from_csv, export_all_routes_to_csv, \
+    build_routes_for_database, import_routing_request_routes
 from ExampleGeneration import generate_example
 from EnvironmentUtils import generate_warehouse
 from Visualization import visualize_plan
@@ -31,12 +32,12 @@ def main():
     """
     running_time = -1   # here for functions that don't return running_time TODO: remove this dependency
     warehouse = generate_warehouse(WAREHOUSE_TYPES["small structured"])
-    algorithm_name = "RND"
+    algorithm_name = "MPR_WS"
 
-    plan, running_time, routing_requests = generate_example(warehouse, algorithm_name, TWO_WAVE_ROUTING_REQUEST_TEST)
+    # plan, running_time, routing_requests = generate_example(warehouse, algorithm_name, CSV_GENERATION_ROUTING_REQUEST)
     # plan, running_time, routing_requests = generate_example(warehouse, algorithm_name)
 
-    # plan = import_plan_from_csv('./csv_files/warehouse_3/routes/routes_from_2_to_1.csv')
+    plan = import_routing_request_routes(warehouse, CSV_GENERATION_ROUTING_REQUEST)
 
     # export_all_routes_to_csv(warehouse, source_dest_list)
 
