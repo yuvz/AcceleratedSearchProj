@@ -159,11 +159,10 @@ def import_plan_from_csv(csv_file: str, field_names: List = None) -> List:
     with open(csv_file, newline='') as f:
         if field_names is None:
             reader = csv.reader(f)
-            routes = list(reader)
-            routes = routes[1:]
-            routes = [route[3:] for route in routes]
-            routes = [[tupple for tupple in row if tupple] for row in routes]  # removing empty cells
-            routes = [[eval(tupple) for tupple in row if tupple] for row in routes]  # converting string to Tupple
+            file_content = list(reader)
+            file_content_without_header = file_content[1:]
+            routes_in_string_format = [row[3:] for row in file_content_without_header if row]
+            routes = [[eval(tupple) for tupple in row] for row in routes_in_string_format]
         else:
             with open(csv_file, newline='') as f:
                 reader = csv.DictReader(f)
@@ -176,16 +175,8 @@ def import_plan_from_csv(csv_file: str, field_names: List = None) -> List:
         return routes
 
 
-def create_header_routes_csv(warehouse: Warehouse) -> List:
-    """ 
-
-    Args:
-        routes (List): List of all the rotes(lists)
-
-    Returns:
-        List: Headers of the table
-    """
-    columns_length = warehouse.length + warehouse.width
+def create_header_routes_csv(warehouse: Warehouse, route=None) -> List:
+    columns_length = warehouse.length + warehouse.width if not route else len(route)
     field_names = ['Algorithm Name', 'Source Id', 'Destination Id']
     for i in range(columns_length):
         field_name = 'Time = {}'.format(i + 1)
@@ -207,14 +198,12 @@ def create_row_routes_csv(algorithm_name: str, source_id: int, destination_id: i
     Returns:
         Dict: [Table row of {header_type_1:value_1, ... header_type_n:value_n}]
     """
-    row = {}
-    for field_name in field_names:
-        row[field_name] = None
-    row['Algorithm Name'] = algorithm_name
-    row['Source Id'] = source_id
-    row['Destination Id'] = destination_id
+    row = {'Algorithm Name': algorithm_name, 'Source Id': source_id, 'Destination Id': destination_id}
+    # for field_name in field_names:
+    #     row[field_name] = None
     for i in range(len(route)):
         row[field_names[i + 3]] = route[i]
+
     return row
 
 
@@ -342,12 +331,15 @@ def export_plan_to_csv(algorithm_name, plan, warehouse):
         file_name = './csv_files/warehouse_{}/routes/routes_from_{}_to_{}.csv'.format(warehouse_id, source_id,
                                                                                       destination_id)
         file_exists = os.path.isfile(file_name)
+        if not file_exists:
+            with open(file_name, 'w', newline='') as f:
+                field_names = create_header_routes_csv(warehouse)
+                writer = csv.DictWriter(f, fieldnames=field_names)
+                writer.writeheader()
 
         with open(file_name, 'a', newline='') as f:
-            field_names = create_header_routes_csv(warehouse)
+            field_names = create_header_routes_csv(warehouse, route)
             writer = csv.DictWriter(f, fieldnames=field_names)
-            if not file_exists:
-                writer.writeheader()
 
             row = create_row_routes_csv(algorithm_name, source_id, destination_id, field_names, route)
             writer.writerow(row)
