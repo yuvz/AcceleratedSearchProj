@@ -111,7 +111,7 @@ def create_row_from_tupple(source: int, target: int, field_names: List, warehous
     file_exists = os.path.isfile(file_name)
     if not file_exists:
         return None
-    data = import_plan_from_csv(file_name, field_names)
+    data = import_routes_from_csv(file_name, field_names)
     random_route_number = random.randint(0, (len(data) - 1))
     return data[random_route_number]
 
@@ -145,7 +145,7 @@ def export_all_routes_to_csv(warehouse: Warehouse, source_dest_list: List) -> No
         writer.writerow(calc_values)
 
 
-def import_plan_from_csv(csv_file: str, field_names: List = None) -> List:
+def import_routes_from_csv(csv_file: str, field_names: List = None) -> List:
     """ 
 
     Args:
@@ -177,13 +177,34 @@ def import_plan_from_csv(csv_file: str, field_names: List = None) -> List:
         return routes
 
 
-def import_routing_request_routes(warehouse, routing_request):
+def import_routing_request_routes_from_database(warehouse, routing_request):
     warehouse_id = warehouse.warehouse_id
     source_id, destination_id = routing_request[0][0], routing_request[0][1]
     file_path = './csv_files/warehouse_{}/routes/routes_from_{}_to_{}.csv'.format(warehouse_id, source_id,
                                                                                   destination_id)
 
-    return import_plan_from_csv(file_path)
+    return import_routes_from_csv(file_path)
+
+
+def sample_routing_request_route_from_database(warehouse, routing_request):
+    warehouse_id = warehouse.warehouse_id
+    source_id, destination_id = routing_request[0][0], routing_request[0][1]
+    file_path = './csv_files/warehouse_{}/routes/routes_from_{}_to_{}.csv'.format(warehouse_id, source_id,
+                                                                                  destination_id)
+
+    file_exists = os.path.isfile(file_path)
+    if not file_exists:
+        return []
+
+    with open(file_path, newline='') as f:
+        reader = csv.reader(f)
+        file_content = list(reader)
+        file_content_without_header = file_content[1:]
+        sampled_row_in_string_format = random.choice(file_content_without_header)
+        sampled_route_in_string_format = sampled_row_in_string_format[3:]
+        route = [eval(tupple) for tupple in sampled_route_in_string_format]
+
+        return route
 
 
 def create_header_routes_csv(warehouse: Warehouse, route=None) -> List:
