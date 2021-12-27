@@ -1,16 +1,79 @@
 import os
 from typing import List, Tuple, Dict
 import csv
-from RouteGeneration import generate_midpoints_restricted_plan
-from Warehouse import Warehouse
+import Warehouse
 import random
-import os
+import math
+from EnvironmentUtils import get_source_id_from_route, get_destination_id_from_route
+import operator as op
+from functools import reduce
 
 from EnvironmentUtils import get_source_id_from_route, get_destination_id_from_route
 
+def nCk(n, r):
+    """ claculatimg combinatorics: n chose r
+    """
+    if n == 0:
+        return 0
+
+    r = min(r, n-r)
+    numer = reduce(op.mul, range(n, n-r, -1), 1)
+    denom = reduce(op.mul, range(1, r+1), 1)
+    return numer // denom 
+
+def create_number_of_collision (rows: List, field_names: List, column_length: int) -> int:
+    """ calculates the total number of collision 
+
+    Args:
+        rows (List): List of all the routes
+        column_length (int): max length of columns
+    Returns:
+        int: number of collision  (1: switching places; 2: standing in same place in same time)
+    """
+    # column length = n; number of rows = m
+
+    same_place_count = 0
+    same_place_count_time_i = 0
+    # checking collisions inside columns - O(m^2 * n)
+    for time_i in range(column_length):
+        same_place_count_time_i = 0
+        for row in range(len(rows)):
+            if rows[row][field_names[time_i]] == '' or time_i in [0, 1, 2]:
+                continue
+            row_below = row + 1
+            while row_below < len(rows):
+                if rows[row_below][field_names[time_i]] == '':
+                    row_below = row_below + 1
+                    continue        
+                if rows[row][field_names[time_i]] == rows[row_below][field_names[time_i]]:
+                    same_place_count_time_i = same_place_count_time_i + 1
+                row_below = row_below + 1
+                
+        same_place_count = same_place_count + nCk(same_place_count_time_i, 2)  # n chose k
+
+    # checking collisions with changing places - O(n^2 * m) 
+    changing_places_count = 0
+    for row in range(len(rows) - 1):
+        for time_i in range(column_length - 1):
+            if rows[row][field_names[time_i]] == '' or \
+                rows[row + 1][field_names[time_i]] == '' or time_i in [0, 1, 2]:
+                continue
+            row_below = row + 1
+            while row_below < len(rows):
+                if rows[row_below][field_names[time_i]] == '' or \
+                rows[row_below][field_names[time_i +  1]] == '':
+                    row_below = row_below + 1
+                    continue  
+                if rows[row][field_names[time_i]] == rows[row_below][field_names[time_i +  1]] and \
+                    rows[row][field_names[time_i + 1]] == rows[row_below][field_names[time_i]] :
+                        changing_places_count = changing_places_count + 1
+                row_below = row_below + 1
+
+
+    return same_place_count + changing_places_count
+
 def create_length(rows: List) -> int:
     """
-
     Args:
         rows (List): list of dictyonarys - each row is a dictionary of source to target route
 
@@ -19,28 +82,32 @@ def create_length(rows: List) -> int:
     """
     length = 0
     for row in rows:
-        row['Algorithm Name'] = None
-        row['Source Id'] = None
-        row['Destination Id'] = None
-        row = dict((k,v) for k, v in row.items() if v is not None)
-        lenth = length + len(row)
+        row['Algorithm Name'] = ''
+        row['Source Id'] = ''
+        row['Destination Id'] = ''
+        row = dict((k,v) for k, v in row.items() if v is not '')
+        length = length + len(row)
     return length
 
-def create_row_from_tupple(source: int, target: int) -> Dict : 
+def create_row_from_tupple(source: int, target: int, field_names: List, warehouse: Warehouse) -> Dict : 
     """ Generate a path from source to target from existing csv file    
 
     Args:
         source (int): Source Id
         target (int): Target Id
-
+        field_names (List) : a list of the headers
+        warehouse (Warehouse)
     Returns:
         Dict: Returns random route from source to target
     """
 
-    file_name = 'routes_from_{}_to_{}.csv'.format(source, target)
-    data = import_csv_to_routes(file_name)
-    row = random.randrage(0, len(data))
-    return data[row]
+    file_name = './csv_files/warehouse_{}/routes/routes_from_{}_to_{}.csv'.format(warehouse.warehouse_id, source, target)
+    file_exists = os.path.isfile(file_name)
+    if not file_exists:
+        return None
+    data = import_csv_to_routes(file_name, field_names)
+    random_route_number = random.randint(0, (len(data) - 1))
+    return data[random_route_number]
     
 def export_all_routes_to_csv(warehouse: Warehouse, source_dest_list: List) -> None:
     """ Creates a .csv file of routes for all the souce,dest tupples that were given
@@ -50,20 +117,27 @@ def export_all_routes_to_csv(warehouse: Warehouse, source_dest_list: List) -> No
     """
 
     field_names = create_header_routes_csv(warehouse)
-    file_name = 'routes.csv'
+    file_name = './csv_files/warehouse_{}/all_chosen_routes.csv'.format(warehouse.warehouse_id)
+    file_exists = os.path.isfile(file_name)
+    os.makedirs(os.path.dirname(file_name), exist_ok=True)
     with open(file_name, 'w', newline='') as f:
-        writer = csv.DictWriter(f, fieldnames=field_names)
-        writer.writeheader()
+        writer = csv.writer(f)
         rows = []
         for tupple in source_dest_list:
-            row = create_row_from_tupple(source_dest_list[0], source_dest_list[1])
+            row = create_row_from_tupple(tupple[0], tupple[1], field_names, warehouse)
             rows.append(row)
+        writer = csv.DictWriter(f, fieldnames=field_names)
         writer.writerows(rows)
         total_length = create_length(rows)
-        #number_of_clashes = create_number_of_clashes(rows)
-
-
-def import_csv_to_routes(csv_file: str) -> List: 
+        columns_length = warehouse.length + warehouse.width
+        number_of_collisions  = create_number_of_collision(rows, field_names, columns_length)
+        writer = csv.writer(f)
+        total_length_str = 'Total Lenth:' + str(total_length)
+        number_of_collisions_Str = 'Total collisions:' + str(number_of_collisions)
+        calc_values = [total_length_str, number_of_collisions_Str]
+        writer.writerow(calc_values)
+        
+def import_csv_to_routes(csv_file: str, field_names: List = None) -> List: 
     """ 
 
     Args:
@@ -72,11 +146,27 @@ def import_csv_to_routes(csv_file: str) -> List:
     Returns:
         [List]: A list of all the routes from the csv_file
     """
+    # check first if file exists
+    file_exists = os.path.isfile(csv_file)
+    if not file_exists:
+        return None
     with open(csv_file, newline='') as f:
-        reader = csv.DictReader()
-        routes = list(reader)
-        routes = routes[1:]
-        routes = [route[3:] for route in routes]
+        if field_names is None:
+            reader = csv.reader(f)
+            routes = list(reader)
+            routes = routes[1:]
+            routes = [route[3:] for route in routes]
+            routes = [[tupple for tupple in row if tupple] for row in routes] # removing empty cells
+            routes = [[eval(tupple) for tupple in row if tupple] for row in routes] # converting string to Tupple
+        else:
+            with open(csv_file, newline='') as f:
+                reader = csv.DictReader(f)
+                routes = []
+                for row in reader:
+                    dict_row = {}
+                    for field_name in field_names:
+                        dict_row[field_name] = row[field_name]
+                    routes.append(dict_row)
         return routes
 
 def create_header_routes_csv(warehouse: Warehouse) -> List:
@@ -93,7 +183,6 @@ def create_header_routes_csv(warehouse: Warehouse) -> List:
     for i in range(columns_length):
         field_name = 'Time = {}'.format(i + 1)
         field_names.append(field_name)
-    field_names.append('Grade')
     return field_names
 
 def create_row_routes_csv(algorithm_name: str, source_id: int, destination_id: int, field_names : List, route: List) -> Dict:
@@ -104,14 +193,14 @@ def create_row_routes_csv(algorithm_name: str, source_id: int, destination_id: i
         source_id ([int]): Id of the vertex source
         destination_id ([int]): Id of the vertex destination
         field_names (List): List of strings - header of the row in a table
-        rout (List): route of touples from source to destination
+        route (List): route of touples from source to destination
 
     Returns:
         Dict: [Table row of {header_type_1:value_1, ... header_type_n:value_n}]
     """
     row = {}
-    for i in field_names:
-        row[i] = None
+    for field_name in field_names:
+        row[field_name] = None
     row['Algorithm Name'] = algorithm_name
     row['Source Id'] = source_id
     row['Destination Id'] = destination_id
@@ -119,7 +208,7 @@ def create_row_routes_csv(algorithm_name: str, source_id: int, destination_id: i
         row[field_names[i + 3]] = route[i]
     return row
 
-def export_routes_to_csv(algorithm_name: str, source_id: int, destination_id: int, routes: List, warehouse: Warehouse):
+def export_routes_source_to_dest_to_csv(algorithm_name: str, source_id: int, destination_id: int, routes: List, warehouse: Warehouse):
     """    Generates a .csv file using the above input
 
     Args:
@@ -129,7 +218,11 @@ def export_routes_to_csv(algorithm_name: str, source_id: int, destination_id: in
         routes (list): List of all the routes(lists) available
     """
     field_names = create_header_routes_csv(warehouse)
-    file_name = 'routes_from_{}_to_{}.csv'.format(source_id,destination_id)
+    
+    file_name = './csv_files/warehouse_{}/routes/routes_from_{}_to_{}.csv'.format(warehouse.warehouse_id, source_id, destination_id)
+    file_exists = os.path.isfile(file_name)
+    os.makedirs(os.path.dirname(file_name), exist_ok=True)
+
     file_exists = os.path.isfile(file_name)
     with open(file_name, 'a', newline='') as f:
         writer = csv.DictWriter(f, fieldnames=field_names)
@@ -198,23 +291,18 @@ def export_warehouse_to_csv(warehouse: Warehouse) :
     Args:
         warehouse (Warehouse)
     """
-    file_name = 'warehouse_{}/warehouse_{}_information.csv'.format(warehouse.warehouse_id, warehouse.warehouse_id)
+    file_name = './csv_files/warehouse/routes/warehouse_{}_information.csv'.format(warehouse.warehouse_id, warehouse.warehouse_id)
+    file_exists = os.path.isfile(file_name)
+
+    os.makedirs(os.path.dirname(file_name), exist_ok=True)
     with open(file_name, 'w', newline='') as f:
         field_names = create_header_warehouse_csv(warehouse)
         writer = csv.DictWriter(f, fieldnames=field_names)
-        writer.writeheader()
+        if not file_exists:
+            writer.writeheader()
         
         row = create_row_warehouse_csv(warehouse)
         writer.writerow(row)
-
-
-def create_tagged_routes_by_MPR_WS(warehouse: Warehouse):
-    tagged_routes: List[Tuple[Tuple[int, int], List]] = []
-    for i, source in enumerate(warehouse.sources):
-        for j, destination in enumerate(warehouse.destinations):
-            routes = create_routes_from_source_to_destination_by_MPR_WS(warehouse, source, destination)
-            tagged_routes.append(((i, j), routes))
-
 
 def export_plan_to_csv(algorithm_name, plan, warehouse):
     """   Generates a .csv file using the above input
@@ -224,23 +312,21 @@ def export_plan_to_csv(algorithm_name, plan, warehouse):
         plan (list): list of all the routes(lists) available
         warehouse (Warehouse)
     """
-    target_dir = "./warehouse_{}".format(warehouse.warehouse_id)
-    if not os.path.isdir(target_dir):
-        os.mkdir(target_dir)
-        export_warehouse_information_to_csv(warehouse)
-
     for route in plan:
         source_id = get_source_id_from_route(warehouse, route)
         destination_id = get_destination_id_from_route(warehouse, route)
 
-        # TODO: create warehouse_{} directory if doesn't exist
         warehouse_id = warehouse.warehouse_id
-        file_name = '/warehouse_{}/routes_from_{}_to_{}.csv'.format(warehouse_id, source_id, destination_id)
+        file_name = './csv_files/warehouse_{}/routes/routes_from_{}_to_{}.csv'.format(warehouse_id, source_id, destination_id)
+        file_exists = os.path.isfile(file_name)
+
         os.makedirs(os.path.dirname(file_name), exist_ok=True)
+
         with open(file_name, 'a', newline='') as f:
-            field_names = create_header_routes_csv(plan, warehouse)
+            field_names = create_header_routes_csv(warehouse)
             writer = csv.DictWriter(f, fieldnames=field_names)
-            writer.writeheader()
+            if not file_exists:
+                writer.writeheader()
 
             row = create_row_routes_csv(algorithm_name, source_id, destination_id, field_names, route)
             writer.writerow(row)
