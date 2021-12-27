@@ -356,3 +356,10 @@ def build_routes_for_database(warehouse, algorithm_name="MPR_WS"):
         plan, running_time, routing_requests = generate_example(warehouse, algorithm_name, [combination])
         export_plan_to_csv(algorithm_name, plan, warehouse)
 
+
+def sample_routing_request_plan_from_database(warehouse, routing_requests):
+    plan = []
+    for request in routing_requests:
+        plan.append(sample_routing_request_route_from_database(warehouse, [request]))
+
+    return plan

@@ -1,5 +1,6 @@
 from DatabaseBuilding import export_plan_to_csv, import_routes_from_csv, export_all_routes_to_csv, \
-    build_routes_for_database, import_routing_request_routes_from_database, sample_routing_request_route_from_database
+    build_routes_for_database, import_routing_request_routes_from_database, sample_routing_request_route_from_database, \
+    sample_routing_request_plan_from_database
 from ExampleGeneration import generate_example
 from EnvironmentUtils import generate_warehouse
 from Visualization import visualize_plan
@@ -34,13 +35,13 @@ def main():
     warehouse = generate_warehouse(WAREHOUSE_TYPES["small structured"])
     algorithm_name = "MPR_WS"
 
-    plan, running_time, routing_requests = generate_example(warehouse, algorithm_name, CSV_GENERATION_ROUTING_REQUEST)
+    # plan, running_time, routing_requests = generate_example(warehouse, algorithm_name, CSV_GENERATION_ROUTING_REQUEST)
     # plan, running_time, routing_requests = generate_example(warehouse, algorithm_name)
 
     # plan = import_routing_request_routes_from_database(warehouse, CSV_GENERATION_ROUTING_REQUEST)
-    # plan = [sample_routing_request_route_from_database(warehouse, CSV_GENERATION_ROUTING_REQUEST)]
+    plan = sample_routing_request_plan_from_database(warehouse, TWO_WAVE_ROUTING_REQUEST_TEST)
 
-    # export_all_routes_to_csv(warehouse, source_dest_list)
+    # export_all_routes_to_csv(warehouse, TWO_WAVE_ROUTING_REQUEST_TEST)
 
     if VISUALIZE_RESULT:
         visualization_type = "animation"
