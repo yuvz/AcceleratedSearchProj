@@ -21,6 +21,8 @@ TEN_WAVE_ROUTING_REQUESTS_TEST = [(0, 3), (1, 3), (2, 3), (3, 5), (4, 1), (5, 2)
 TWO_WAVE_ROUTING_REQUEST_TEST = [(0, 6), (1, 6), (2, 6), (3, 2), (4, 6), (5, 2), (6, 3),
                                  (0, 0), (1, 6), (2, 3), (3, 6), (4, 6), (5, 2), (6, 4)]
 
+ONE_WAVE_ROUTING_REQUEST_TEST = [(0, 6), (1, 6), (2, 6), (3, 2), (4, 6), (5, 2), (6, 3)]
+
 CSV_GENERATION_ROUTING_REQUEST = [(2, 1)]
 
 
@@ -29,17 +31,10 @@ def main():
     Supported values for algorithm_name: [BFS, RND, LNS_RND, CBS, ROR, k-ROR, IPWS, k-IPWS, MPR, k-MPR, MPR_WS,
     k-MPR_WS, sample_database] - check generate_example() in ExampleGeneration.py to see which algorithm is referred to by each abbr.
     """
-    running_time = -1   # here for functions that don't return running_time TODO: remove this dependency
     warehouse = generate_warehouse(WAREHOUSE_TYPES["small structured"])
     algorithm_name = "sample_database"
 
-    plan, running_time, routing_requests = generate_example(warehouse, algorithm_name, TEN_WAVE_ROUTING_REQUESTS_TEST)
-    # plan, running_time, routing_requests = generate_example(warehouse, algorithm_name)
-
-    # plan = import_routing_request_routes_from_database(warehouse, CSV_GENERATION_ROUTING_REQUEST)
-    # plan = sample_routing_request_plan_from_database(warehouse, TWO_WAVE_ROUTING_REQUEST_TEST)
-
-    # export_all_routes_to_csv(warehouse, TWO_WAVE_ROUTING_REQUEST_TEST)
+    plan, running_time, routing_requests = generate_example(warehouse, algorithm_name, ONE_WAVE_ROUTING_REQUEST_TEST)
 
     if VISUALIZE_RESULT:
         visualization_type = "animation"

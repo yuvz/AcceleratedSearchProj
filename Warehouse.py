@@ -220,7 +220,7 @@ class Warehouse:
         self.set_destination_distances()
 
     def plot_layout(self):
-        fig = plt.figure(figsize=(8, 6), dpi=100)
+        fig = plt.figure(figsize=(8, 7), dpi=100)
         ax = plt.axes(xlim=(0, self.width - 1), ylim=(0, self.length - 1))
         for source in self.sources:
             plt.scatter(source.coordinates[1], source.coordinates[0], s=250, marker='v', c='#00964b')

@@ -174,3 +174,36 @@ def get_all_source_and_destination_combinations(warehouse):
             combinations.append((i, j))
 
     return combinations
+
+
+def count_edge_conflicts(plan):
+    count = 0
+    for i in range(len(plan)):
+        for j in range(len(plan)):
+            if i <= j:
+                continue
+
+            for time in range(min(len(plan[i]), len(plan[j])) - 1):
+                if plan[i][time + 1] == plan[j][time] and plan[i][time] == plan[j][time + 1]:
+                    count += 1
+    return count
+
+
+def count_vertex_conflicts(plan):
+    count = 0
+    for i in range(len(plan)):
+        for j in range(len(plan)):
+            if i <= j:
+                continue
+
+            for time in range(min(len(plan[i]), len(plan[j]))):
+                if plan[i][time] == plan[j][time]:
+                    count += 1
+    return count
+
+
+def count_plan_conflicts(plan):
+    vertex_conflicts = count_vertex_conflicts(plan)
+    edge_conflicts = count_edge_conflicts(plan)
+
+    return vertex_conflicts, edge_conflicts

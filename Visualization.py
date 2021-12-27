@@ -7,7 +7,7 @@ from colorsys import hls_to_rgb
 from copy import deepcopy
 from time import time
 
-from EnvironmentUtils import get_source_id_from_route, get_destination_id_from_route
+from EnvironmentUtils import get_source_id_from_route, get_destination_id_from_route, count_plan_conflicts
 from RouteGenerationAlgorithms import ROUTE_GENERATION_ALGORITHMS_ABBR
 
 SHOW_ANIMATION_TRAIL = False
@@ -94,6 +94,34 @@ def set_routing_solution_title_and_info(warehouse, plan, running_time, algorithm
     plt.suptitle(title)
 
 
+def set_sample_database_title_and_info(warehouse, plan, running_time, algorithm_name, title):
+    sum_of_costs = sum([len(remove_duplicate_destinations_from_route(route)) for route in plan])
+    obstacle_density = round(len(warehouse.static_obstacles) / (warehouse.width * warehouse.length), 2)
+    num_vertex_conflicts, num_edge_conflicts = count_plan_conflicts(plan)
+
+    map_size_str = "map_size = " + str(warehouse.width) + "*" + str(warehouse.length)
+    obstacle_density_str = "obstacle_density = " + str(obstacle_density)
+    first_line = map_size_str + "    " + obstacle_density_str
+
+    num_sources_and_destinations_str = "(num_sources, num_destinations) = " + \
+                                       str((warehouse.number_of_sources, warehouse.number_of_destinations))
+    num_agents_str = "num_agents = " + str(len(plan))
+    second_line = "\n" + num_sources_and_destinations_str + "    " + num_agents_str
+
+    algorithm_name_str = "Algorithm = " + algorithm_name
+    sum_of_costs_str = "sum_of_costs = " + str(sum_of_costs)
+    running_time_str = "running_time = " + str(running_time)
+    third_line = "\n" + algorithm_name_str + "    " + sum_of_costs_str + "    " + running_time_str
+
+    vertex_conflict_str = "vertex_conflicts = " + str(num_vertex_conflicts)
+    edge_conflict_str = "edge_conflicts = " + str(num_edge_conflicts)
+    fourth_line = "\n" + vertex_conflict_str + "    " + edge_conflict_str
+    title_left = first_line + second_line + third_line + fourth_line
+
+    plt.title(title_left, loc='left')
+    plt.suptitle(title)
+
+
 def set_path_generation_title_and_info(warehouse, plan, running_time, algorithm_name, title):
     source_id = get_source_id_from_route(warehouse, plan[0])
     destination_id = get_destination_id_from_route(warehouse, plan[0])
@@ -110,6 +138,8 @@ def set_path_generation_title_and_info(warehouse, plan, running_time, algorithm_
 def set_plot_title_and_info(warehouse, plan, running_time, algorithm_name, title):
     if algorithm_name in ROUTE_GENERATION_ALGORITHMS_ABBR:
         set_path_generation_title_and_info(warehouse, plan, running_time, algorithm_name, title)
+    elif algorithm_name == "sample_database":
+        set_sample_database_title_and_info(warehouse, plan, running_time, algorithm_name, title)
     else:
         set_routing_solution_title_and_info(warehouse, plan, running_time, algorithm_name, title)
 
@@ -170,12 +200,9 @@ def show_plan_as_animation(warehouse, plan, algorithm_name="TODO", running_time=
         print("Export done")
 
 
-def show_plan_as_image(warehouse, plan, running_time=-1.0, algorithm_name="TODO", title="", export_image=False):
+def show_plan_as_image(warehouse, plan, algorithm_name="TODO", running_time=-1.0, title="", export_image=False):
     warehouse.plot_layout()
-    if algorithm_name in ROUTE_GENERATION_ALGORITHMS_ABBR:
-        set_path_generation_title_and_info(warehouse, plan, running_time, algorithm_name, title)
-    else:
-        set_plot_title_and_info(warehouse, plan, running_time, algorithm_name, title)
+    set_plot_title_and_info(warehouse, plan, running_time, algorithm_name, title)
 
     for i, route in enumerate(plan):
         for coordinates in route:
