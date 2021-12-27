@@ -3,7 +3,7 @@ from EnvironmentUtils import find_route_using_Astar
 from Utils import update_plan
 import datetime
 
-TIMEOUT = 10
+TIMEOUT = 1000
 
 
 class TimeoutError(Exception):

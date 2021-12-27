@@ -1,3 +1,4 @@
+from math import floor
 from queue import Queue
 from typing import List, Set, Tuple
 import matplotlib.pyplot as plt
@@ -78,7 +79,7 @@ class Warehouse:
 
             for neighbor in destination.neighbors:
                 if (neighbor.coordinates[0] - destination_coordinates[0],
-                        neighbor.coordinates[1] - destination_coordinates[1]) != (1, 0):
+                    neighbor.coordinates[1] - destination_coordinates[1]) != (1, 0):
                     neighbor.neighbors.remove(destination)
 
             destination.neighbors = set()
@@ -99,15 +100,13 @@ class Warehouse:
             source.neighbors = source.neighbors.difference(neighbors_to_remove)
 
     def set_sources_and_destinations(self, number_of_targets, row_idx, target_array, is_destination=False):
-        offset = DESTINATION_OFFSET if is_destination else SOURCE_OFFSET
-        area_without_offsets = self.width - offset
-        remainder_from_right_wall = area_without_offsets % number_of_targets
+        targets_with_dummies = number_of_targets + 1
+        distance_between_targets = floor(self.width / targets_with_dummies)
 
-        first_target_position = offset
-        last_target_position = self.width - remainder_from_right_wall
-        distance_between_targets = int((area_without_offsets - remainder_from_right_wall) / number_of_targets)
+        first_target_position = distance_between_targets
+        last_dummy_position = distance_between_targets * targets_with_dummies
 
-        for i, column_idx in enumerate(range(first_target_position, last_target_position, distance_between_targets)):
+        for i, column_idx in enumerate(range(first_target_position, last_dummy_position, distance_between_targets)):
             vertex = self.vertices[row_idx][column_idx]
             target_array.append(vertex)
 
