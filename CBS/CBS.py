@@ -7,6 +7,7 @@ from CBS.constraints import Constraints
 from RoutingRequest import RoutingRequest
 from EnvironmentUtils import find_route_using_Astar
 from heapq import heappush, heappop
+from tqdm import tqdm
 
 
 class CBS:
@@ -38,16 +39,20 @@ class CBS:
             # Min heap for quick extraction
             open.append(node)
 
-        while open:
-            results = []
-            self.search_node(heappop(open), results, plan)
-            for result in results:
-                if len(result) == 1:
-                    return self.format_result(result[0])
-                if result[0]:
-                    heappush(open, result[0])
-                if result[1]:
-                    heappush(open, result[1])
+        progress_bar_len = round(1.142**len(agents))
+
+        with tqdm(total=progress_bar_len, desc="Running CBS... Estimated progress") as progress_bar:
+            while open:
+                progress_bar.update(1)
+                results = []
+                self.search_node(heappop(open), results, plan)
+                for result in results:
+                    if len(result) == 1:
+                        return self.format_result(result[0])
+                    if result[0]:
+                        heappush(open, result[0])
+                    if result[1]:
+                        heappush(open, result[1])
         return plan  # Failed
 
     def format_result(self, result):
@@ -103,7 +108,7 @@ class CBS:
         # Check collision pair-wise
         for agent_i, agent_j in combinations(agents, 2):
             time_of_conflict = self.safe_distance(node.solution, agent_i, agent_j)
-            # time_of_conflict=1 if there is not conflict
+            # time_of_conflict=-1 if there is not conflict
             if time_of_conflict == -1:
                 continue
             return agent_i, agent_j, time_of_conflict
@@ -112,9 +117,10 @@ class CBS:
     def safe_distance(self, solution: Dict[RoutingRequest, np.ndarray], agent_i: RoutingRequest,
                       agent_j: RoutingRequest) -> int:
         for idx, (point_i, point_j) in enumerate(zip(solution[agent_i], solution[agent_j])):
-            if (all(point_i == agent_i.source.coordinates) and all(point_j == agent_j.source.coordinates)) or \
-                (all(point_i == agent_i.destination.coordinates) or all(point_j == agent_j.destination.coordinates)) \
-                    or any(point_i != point_j):
+            if any(point_i != point_j) \
+                    or (all(point_i == agent_i.source.coordinates) and all(point_j == agent_j.source.coordinates)) \
+                    or (
+                    all(point_i == agent_i.destination.coordinates) or all(point_j == agent_j.destination.coordinates)):
                 continue
             return idx
         return -1
@@ -133,7 +139,7 @@ class CBS:
         pivot = unchanged_path[time_of_conflict]
         conflict_end_time = time_of_conflict
         try:
-            while self.dist(contrained_path[conflict_end_time], pivot) < 2 * self.robot_radius:
+            while self.dist(contrained_path[conflict_end_time], pivot) < 1 * self.robot_radius:
                 conflict_end_time += 1
         except IndexError:
             pass

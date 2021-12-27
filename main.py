@@ -32,14 +32,36 @@ def main():
     k-MPR_WS, sample_database] - check generate_example() in ExampleGeneration.py to see which algorithm is referred to by each abbr.
     """
     warehouse = generate_warehouse(WAREHOUSE_TYPES["small structured"])
-    algorithm_name = "sample_database"
+    algorithm_name = "CBS"
 
-    plan, running_time, routing_requests = generate_example(warehouse, algorithm_name, ONE_WAVE_ROUTING_REQUEST_TEST)
+    plan, running_time, routing_requests = generate_example(warehouse, algorithm_name, TWO_WAVE_ROUTING_REQUEST_TEST)
 
     if VISUALIZE_RESULT:
         visualization_type = "animation"
         title = ""
-        is_export_visualization = False
+        is_export_visualization = True
+        visualize_plan(warehouse, plan, algorithm_name, running_time, visualization_type, title,
+                       is_export_visualization)
+
+    algorithm_name = "RND"
+
+    plan, running_time, routing_requests = generate_example(warehouse, algorithm_name, TWO_WAVE_ROUTING_REQUEST_TEST)
+
+    if VISUALIZE_RESULT:
+        visualization_type = "animation"
+        title = ""
+        is_export_visualization = True
+        visualize_plan(warehouse, plan, algorithm_name, running_time, visualization_type, title,
+                       is_export_visualization)
+
+    algorithm_name = "LNS_RND"
+
+    plan, running_time, routing_requests = generate_example(warehouse, algorithm_name, TWO_WAVE_ROUTING_REQUEST_TEST)
+
+    if VISUALIZE_RESULT:
+        visualization_type = "animation"
+        title = ""
+        is_export_visualization = True
         visualize_plan(warehouse, plan, algorithm_name, running_time, visualization_type, title,
                        is_export_visualization)
 

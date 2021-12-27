@@ -196,7 +196,7 @@ def show_plan_as_animation(warehouse, plan, algorithm_name="TODO", running_time=
     if export_animation:
         print("***")
         print("Exporting animation")
-        animation.save('animation.gif', writer='ffmpeg')
+        animation.save(f'{algorithm_name}.gif', writer='ffmpeg')
         print("Export done")
 
 
