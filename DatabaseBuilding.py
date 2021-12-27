@@ -309,37 +309,40 @@ def export_warehouse_information_to_csv(warehouse: Warehouse):
         writer.writerow(row)
 
 
-def export_plan_to_csv(algorithm_name, plan, warehouse):
-    """   Generates a .csv file using the above input
+def write_route_information_to_file(file_name, warehouse, algorithm_name, source_id, destination_id, route):
+    with open(file_name, 'a', newline='') as f:
+        field_names = create_header_routes_csv(warehouse, route)
+        writer = csv.DictWriter(f, fieldnames=field_names)
 
-    Args:
-        algorithm_name (str): name of the algorithm
-        plan (list): list of all the routes(lists) available
-        warehouse (Warehouse)
-    """
+        row = create_row_routes_csv(algorithm_name, source_id, destination_id, field_names, route)
+        writer.writerow(row)
+
+
+def create_file_if_does_not_exist(file_name, warehouse):
+    file_exists = os.path.isfile(file_name)
+    if not file_exists:
+        with open(file_name, 'w', newline='') as f:
+            field_names = create_header_routes_csv(warehouse)
+            writer = csv.DictWriter(f, fieldnames=field_names)
+            writer.writeheader()
+
+
+def create_dir_if_does_not_exist(warehouse):
     target_dir = "./csv_files/warehouse_{}/routes/".format(warehouse.warehouse_id)
 
     if not os.path.isdir(target_dir):
         os.makedirs(os.path.dirname(target_dir), exist_ok=True)
         export_warehouse_information_to_csv(warehouse)
 
+
+def export_plan_to_csv(algorithm_name, plan, warehouse):
+    create_dir_if_does_not_exist(warehouse)
+
     for route in plan:
         source_id = get_source_id_from_route(warehouse, route)
         destination_id = get_destination_id_from_route(warehouse, route)
-
         warehouse_id = warehouse.warehouse_id
         file_name = './csv_files/warehouse_{}/routes/routes_from_{}_to_{}.csv'.format(warehouse_id, source_id,
                                                                                       destination_id)
-        file_exists = os.path.isfile(file_name)
-        if not file_exists:
-            with open(file_name, 'w', newline='') as f:
-                field_names = create_header_routes_csv(warehouse)
-                writer = csv.DictWriter(f, fieldnames=field_names)
-                writer.writeheader()
-
-        with open(file_name, 'a', newline='') as f:
-            field_names = create_header_routes_csv(warehouse, route)
-            writer = csv.DictWriter(f, fieldnames=field_names)
-
-            row = create_row_routes_csv(algorithm_name, source_id, destination_id, field_names, route)
-            writer.writerow(row)
+        create_file_if_does_not_exist(file_name, warehouse)
+        write_route_information_to_file(file_name, warehouse, algorithm_name, source_id, destination_id, route)
