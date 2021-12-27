@@ -34,11 +34,11 @@ def main():
     warehouse = generate_warehouse(WAREHOUSE_TYPES["small structured"])
     algorithm_name = "MPR_WS"
 
-    # plan, running_time, routing_requests = generate_example(warehouse, algorithm_name, CSV_GENERATION_ROUTING_REQUEST)
+    plan, running_time, routing_requests = generate_example(warehouse, algorithm_name, CSV_GENERATION_ROUTING_REQUEST)
     # plan, running_time, routing_requests = generate_example(warehouse, algorithm_name)
 
     # plan = import_routing_request_routes_from_database(warehouse, CSV_GENERATION_ROUTING_REQUEST)
-    plan = [sample_routing_request_route_from_database(warehouse, CSV_GENERATION_ROUTING_REQUEST)]
+    # plan = [sample_routing_request_route_from_database(warehouse, CSV_GENERATION_ROUTING_REQUEST)]
 
     # export_all_routes_to_csv(warehouse, source_dest_list)
 
