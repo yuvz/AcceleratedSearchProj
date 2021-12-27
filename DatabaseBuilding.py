@@ -9,8 +9,8 @@ from EnvironmentUtils import get_source_id_from_route, get_destination_id_from_r
 import operator as op
 from functools import reduce
 
-from EnvironmentUtils import get_source_id_from_route, get_destination_id_from_route
-from ExampleGeneration import generate_example
+import ExampleGeneration
+# from ExampleGeneration import generate_example
 
 
 def nCk(n, r):
@@ -353,7 +353,7 @@ def build_routes_for_database(warehouse, algorithm_name="MPR_WS"):
     all_source_and_destination_combinations = get_all_source_and_destination_combinations(warehouse)
 
     for combination in all_source_and_destination_combinations:
-        plan, running_time, routing_requests = generate_example(warehouse, algorithm_name, [combination])
+        plan, running_time, routing_requests = ExampleGeneration.generate_example(warehouse, algorithm_name, [combination])
         export_plan_to_csv(algorithm_name, plan, warehouse)
 
 

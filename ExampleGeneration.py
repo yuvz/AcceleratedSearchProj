@@ -1,6 +1,8 @@
 import random
 from time import time
 from CBS.CBS import CBS
+import DatabaseBuilding
+# from DatabaseBuilding import sample_routing_request_plan_from_database
 from EnvironmentUtils import generate_rand_routing_requests, generate_rand_routing_request
 from BFS import generate_bfs_plan_for_first_routing_request
 from RND import generate_rnd_plan
@@ -25,6 +27,10 @@ def generate_plan(warehouse, routing_requests, plan_generation_algorithm, option
         plan = plan_generation_algorithm(warehouse, routing_requests)
     t1 = time()
     return plan, t0, t1
+
+
+def generate_sample_database_example(warehouse, routing_requests):
+    return generate_plan(warehouse, routing_requests, DatabaseBuilding.sample_routing_request_plan_from_database)
 
 
 def generate_midpoints_restricted_example(warehouse, routing_requests, is_split_at_midpoint=False):
@@ -123,6 +129,9 @@ def generate_example(warehouse, algorithm_name, routing_requests_in_tuples_forma
     elif algorithm_name == "k-MPR_WS":
         plan, t0, t1 = generate_midpoints_restricted_with_splits_example(warehouse, routing_requests)
         plan = random.sample(plan, K_SAMPLE_SIZE)
+
+    elif algorithm_name == "sample_database":
+        plan, t0, t1 = generate_sample_database_example(warehouse, routing_requests_in_tuples_format)
 
     else:
         print("Unsupported algorithm_name.\n", "Currently supports:", "BFS, RND, LNS_RND")

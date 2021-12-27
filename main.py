@@ -1,6 +1,4 @@
-from DatabaseBuilding import export_plan_to_csv, import_routes_from_csv, export_all_routes_to_csv, \
-    build_routes_for_database, import_routing_request_routes_from_database, sample_routing_request_route_from_database, \
-    sample_routing_request_plan_from_database
+from DatabaseBuilding import export_plan_to_csv
 from ExampleGeneration import generate_example
 from EnvironmentUtils import generate_warehouse
 from Visualization import visualize_plan
@@ -29,17 +27,17 @@ CSV_GENERATION_ROUTING_REQUEST = [(2, 1)]
 def main():
     """
     Supported values for algorithm_name: [BFS, RND, LNS_RND, CBS, ROR, k-ROR, IPWS, k-IPWS, MPR, k-MPR, MPR_WS,
-    k-MPR_WS] - check generate_example() in ExampleGeneration.py to see which algorithm is referred to by each abbr.
+    k-MPR_WS, sample_database] - check generate_example() in ExampleGeneration.py to see which algorithm is referred to by each abbr.
     """
     running_time = -1   # here for functions that don't return running_time TODO: remove this dependency
     warehouse = generate_warehouse(WAREHOUSE_TYPES["small structured"])
-    algorithm_name = "MPR_WS"
+    algorithm_name = "sample_database"
 
-    # plan, running_time, routing_requests = generate_example(warehouse, algorithm_name, CSV_GENERATION_ROUTING_REQUEST)
+    plan, running_time, routing_requests = generate_example(warehouse, algorithm_name, TEN_WAVE_ROUTING_REQUESTS_TEST)
     # plan, running_time, routing_requests = generate_example(warehouse, algorithm_name)
 
     # plan = import_routing_request_routes_from_database(warehouse, CSV_GENERATION_ROUTING_REQUEST)
-    plan = sample_routing_request_plan_from_database(warehouse, TWO_WAVE_ROUTING_REQUEST_TEST)
+    # plan = sample_routing_request_plan_from_database(warehouse, TWO_WAVE_ROUTING_REQUEST_TEST)
 
     # export_all_routes_to_csv(warehouse, TWO_WAVE_ROUTING_REQUEST_TEST)
 
