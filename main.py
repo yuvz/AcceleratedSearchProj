@@ -1,4 +1,4 @@
-from DatabaseBuilding import export_plan_to_csv
+from DatabaseBuilding import build_routes_for_database, export_plan_to_csv
 from ExampleGeneration import generate_example
 from EnvironmentUtils import generate_warehouse
 from Visualization import visualize_plan
@@ -32,9 +32,9 @@ def main():
     k-MPR_WS, sample_database] - check generate_example() in ExampleGeneration.py to see which algorithm is referred to by each abbr.
     """
     warehouse = generate_warehouse(WAREHOUSE_TYPES["small structured"])
-    algorithm_name = "CBS"
-
-    plan, running_time, routing_requests = generate_example(warehouse, algorithm_name, TWO_WAVE_ROUTING_REQUEST_TEST)
+    build_routes_for_database(warehouse)
+    
+    # plan, running_time, routing_requests = generate_example(warehouse, algorithm_name, ONE_WAVE_ROUTING_REQUEST_TEST)
 
     if VISUALIZE_RESULT:
         visualization_type = "animation"

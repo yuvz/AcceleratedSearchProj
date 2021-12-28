@@ -4,6 +4,14 @@ from RoutingRequest import RoutingRequest
 from CBS.constraints import Constraints
 
 
+def remove_duplicate_destinations_from_sol(route):
+    if any(route[-1] != route[-2]):
+        return route
+    for i, (item1, item2) in enumerate(zip(route[::-1], route[:-1][::-1])):
+        if any(item1 != item2):
+            return route[:-i]
+
+
 class CTNode:
 
     def __init__(self, constraints: Constraints, solution: Dict[RoutingRequest, np.ndarray]):
@@ -14,7 +22,7 @@ class CTNode:
     # Sum-of-Individual-Costs heuristics
     @staticmethod
     def sic(solution):
-        return sum(len(sol) for sol in solution.items())
+        return sum(len(remove_duplicate_destinations_from_sol(sol[1])) for sol in solution.items())
 
     def __lt__(self, other):
         return self.cost < other.cost

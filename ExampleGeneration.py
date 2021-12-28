@@ -1,6 +1,6 @@
 import random
 from time import time
-from CBS.CBS import CBS
+#from CBS.CBS import CBS
 import DatabaseBuilding
 # from DatabaseBuilding import sample_routing_request_plan_from_database
 from EnvironmentUtils import generate_rand_routing_requests, generate_rand_routing_request

@@ -3,7 +3,7 @@ from typing import List, Tuple, Dict
 import csv
 import Warehouse
 import random
-import math
+import pandas as pd
 from EnvironmentUtils import get_source_id_from_route, get_destination_id_from_route, \
     get_all_source_and_destination_combinations
 import operator as op
@@ -12,6 +12,27 @@ from functools import reduce
 import ExampleGeneration
 # from ExampleGeneration import generate_example
 
+SORT_BY = 'Deviation Cost'
+
+def sort_rows_and_remove_duplicates_in_csv(file_name: str) -> None:
+    """ saving the file_name with updated csv - sorted by 'SORT_BY' value, and without duplicates
+
+    Args:
+        file_name (str): a name of a file which exists
+    """
+    data = pd.read_csv(file_name, index_col=False)
+    sorted_csv = data.sort_values(by=[SORT_BY], ascending=True)
+    sorted_csv = sorted_csv.drop_duplicates()
+    x = len(sorted_csv.index)
+    y = len(data.index)
+    sorted_csv.to_csv(file_name, index=False)
+
+def calculate_deviation_cost(route: List) -> int:
+    """ calculates the cost of deviation
+    """
+    #TODO: decide how to calculate the deviation cost
+    # Note: for now it is the length of the route
+    return len(route) 
 
 def nCk(n, r):
     """ claculatimg combinatorics: n chose r
@@ -144,6 +165,7 @@ def export_all_routes_to_csv(warehouse: Warehouse, source_dest_list: List) -> No
         calc_values = [total_length_str, number_of_collisions_Str]
         writer.writerow(calc_values)
 
+        sort_rows_and_remove_duplicates_in_csv(file_name)
 
 def import_routes_from_csv(csv_file: str, field_names: List = None) -> List:
     """ 
@@ -209,14 +231,14 @@ def sample_routing_request_route_from_database(warehouse, routing_request):
 
 def create_header_routes_csv(warehouse: Warehouse, route=None) -> List:
     columns_length = warehouse.length + warehouse.width if not route else len(route)
-    field_names = ['Algorithm Name', 'Source Id', 'Destination Id']
+    field_names = ['Warehouse Id', 'Algorithm Name', 'Source Id', 'Destination Id', SORT_BY]
     for i in range(columns_length):
         field_name = 'Time = {}'.format(i + 1)
         field_names.append(field_name)
     return field_names
 
 
-def create_route_information_dictionary(algorithm_name: str, source_id: int, destination_id: int, field_names: List,
+def create_route_information_dictionary(warehouse: Warehouse, algorithm_name: str, source_id: int, destination_id: int, field_names: List,
                                         route: List) -> Dict:
     """
 
@@ -230,9 +252,13 @@ def create_route_information_dictionary(algorithm_name: str, source_id: int, des
     Returns:
         Dict: [Table row of {header_type_1:value_1, ... header_type_n:value_n}]
     """
-    row = {'Algorithm Name': algorithm_name, 'Source Id': source_id, 'Destination Id': destination_id}
+
+    deviation_cost = calculate_deviation_cost(route)
+    row = {'Warehouse Id': warehouse.warehouse_id, 'Algorithm Name': algorithm_name,
+     'Source Id': source_id, 'Destination Id': destination_id, SORT_BY: deviation_cost}
+    write_from_column = len(row)
     for i in range(len(route)):
-        row[field_names[i + 3]] = route[i]
+        row[field_names[i + write_from_column]] = route[i]
 
     return row
 
@@ -295,7 +321,7 @@ def write_route_information_to_file(file_name, warehouse, algorithm_name, source
         field_names = create_header_routes_csv(warehouse, route)
         writer = csv.DictWriter(f, fieldnames=field_names)
 
-        row = create_route_information_dictionary(algorithm_name, source_id, destination_id, field_names, route)
+        row = create_route_information_dictionary(warehouse, algorithm_name, source_id, destination_id, field_names, route)
         writer.writerow(row)
 
 
@@ -335,7 +361,6 @@ def create_dir_if_does_not_exist(warehouse):
         os.makedirs(os.path.dirname(target_dir), exist_ok=True)
         export_warehouse_information_to_csv(warehouse)
 
-
 def export_plan_to_csv(algorithm_name, plan, warehouse):
     create_dir_if_does_not_exist(warehouse)
 
@@ -345,9 +370,10 @@ def export_plan_to_csv(algorithm_name, plan, warehouse):
         warehouse_id = warehouse.warehouse_id
         file_name = './csv_files/warehouse_{}/routes/routes_from_{}_to_{}.csv'.format(warehouse_id, source_id,
                                                                                       destination_id)
-        create_routes_file_if_does_not_exist(file_name, warehouse)
+        create_routes_file_if_does_not_exist(file_name, warehouse) 
         write_route_information_to_file(file_name, warehouse, algorithm_name, source_id, destination_id, route)
 
+    sort_rows_and_remove_duplicates_in_csv(file_name)
 
 def build_routes_for_database(warehouse, algorithm_name="MPR_WS"):
     all_source_and_destination_combinations = get_all_source_and_destination_combinations(warehouse)
