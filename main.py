@@ -34,7 +34,7 @@ def main():
     warehouse = generate_warehouse(WAREHOUSE_TYPES["small structured"])
     algorithm_name = "CBS"
 
-    plan, running_time, routing_requests = generate_example(warehouse, algorithm_name, TWO_WAVE_ROUTING_REQUEST_TEST)
+    plan, running_time, routing_requests = generate_example(warehouse, algorithm_name, TEN_WAVE_ROUTING_REQUESTS_TEST)
 
     if VISUALIZE_RESULT:
         visualization_type = "animation"
@@ -45,7 +45,7 @@ def main():
 
     algorithm_name = "RND"
 
-    plan, running_time, routing_requests = generate_example(warehouse, algorithm_name, TWO_WAVE_ROUTING_REQUEST_TEST)
+    plan, running_time, routing_requests = generate_example(warehouse, algorithm_name, TEN_WAVE_ROUTING_REQUESTS_TEST)
 
     if VISUALIZE_RESULT:
         visualization_type = "animation"
@@ -56,7 +56,7 @@ def main():
 
     algorithm_name = "LNS_RND"
 
-    plan, running_time, routing_requests = generate_example(warehouse, algorithm_name, TWO_WAVE_ROUTING_REQUEST_TEST)
+    plan, running_time, routing_requests = generate_example(warehouse, algorithm_name, TEN_WAVE_ROUTING_REQUESTS_TEST)
 
     if VISUALIZE_RESULT:
         visualization_type = "animation"
