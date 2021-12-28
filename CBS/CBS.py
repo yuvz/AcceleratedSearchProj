@@ -39,7 +39,7 @@ class CBS:
             # Min heap for quick extraction
             open.append(node)
 
-        progress_bar_len = round(1.142**len(agents))
+        progress_bar_len = round(1.145**len(agents))
 
         with tqdm(total=progress_bar_len, desc="Running CBS... Estimated progress") as progress_bar:
             while open:
