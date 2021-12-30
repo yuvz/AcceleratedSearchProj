@@ -22,7 +22,7 @@ def sort_rows_and_remove_duplicates_in_csv(file_name: str) -> None:
     Args:
         file_name (str): a name of a file which exists
     """
-    data = pd.read_csv(file_name, index_col=False)
+    data = pd.read_csv(file_name, index_col=False, na_values='')
     sorted_csv = data.sort_values(by=[SORT_BY], ascending=True)
     sorted_csv = sorted_csv.drop_duplicates()
     x = len(sorted_csv.index)
@@ -38,138 +38,138 @@ def calculate_deviation_cost(route: List) -> int:
     return len(route)
 
 
-def nCk(n, r):
-    """ claculatimg combinatorics: n chose r
-    """
-    if n == 0:
-        return 0
-
-    r = min(r, n - r)
-    numer = reduce(op.mul, range(n, n - r, -1), 1)
-    denom = reduce(op.mul, range(1, r + 1), 1)
-    return numer // denom
-
-
-def create_number_of_collision(rows: List, field_names: List, column_length: int) -> int:
-    """ calculates the total number of collision
-
-    Args:
-        rows (List): List of all the routes
-        column_length (int): max length of columns
-    Returns:
-        int: number of collision  (1: switching places; 2: standing in same place in same time)
-    """
-    # column length = n; number of rows = m
-
-    same_place_count = 0
-    same_place_count_time_i = 0
-    # checking collisions inside columns - O(m^2 * n)
-    for time_i in range(column_length):
-        same_place_count_time_i = 0
-        for row in range(len(rows)):
-            if rows[row][field_names[time_i]] == '' or time_i in [0, 1, 2]:
-                continue
-            row_below = row + 1
-            while row_below < len(rows):
-                if rows[row_below][field_names[time_i]] == '':
-                    row_below = row_below + 1
-                    continue
-                if rows[row][field_names[time_i]] == rows[row_below][field_names[time_i]]:
-                    same_place_count_time_i = same_place_count_time_i + 1
-                row_below = row_below + 1
-
-        same_place_count = same_place_count + nCk(same_place_count_time_i, 2)  # n chose k
-
-    # checking collisions with changing places - O(n^2 * m)
-    changing_places_count = 0
-    for row in range(len(rows) - 1):
-        for time_i in range(column_length - 1):
-            if rows[row][field_names[time_i]] == '' or \
-                    rows[row + 1][field_names[time_i]] == '' or time_i in [0, 1, 2]:
-                continue
-            row_below = row + 1
-            while row_below < len(rows):
-                if rows[row_below][field_names[time_i]] == '' or \
-                        rows[row_below][field_names[time_i + 1]] == '':
-                    row_below = row_below + 1
-                    continue
-                if rows[row][field_names[time_i]] == rows[row_below][field_names[time_i + 1]] and \
-                        rows[row][field_names[time_i + 1]] == rows[row_below][field_names[time_i]]:
-                    changing_places_count = changing_places_count + 1
-                row_below = row_below + 1
-
-    return same_place_count + changing_places_count
+# def nCk(n, r):
+#     """ claculatimg combinatorics: n chose r
+#     """
+#     if n == 0:
+#         return 0
+#
+#     r = min(r, n - r)
+#     numer = reduce(op.mul, range(n, n - r, -1), 1)
+#     denom = reduce(op.mul, range(1, r + 1), 1)
+#     return numer // denom
 
 
-def create_length(rows: List) -> int:
-    """
-    Args:
-        rows (List): list of dictyonarys - each row is a dictionary of source to target route
+# def create_number_of_collision(rows: List, field_names: List, column_length: int) -> int:
+#     """ calculates the total number of collision
+#
+#     Args:
+#         rows (List): List of all the routes
+#         column_length (int): max length of columns
+#     Returns:
+#         int: number of collision  (1: switching places; 2: standing in same place in same time)
+#     """
+#     # column length = n; number of rows = m
+#
+#     same_place_count = 0
+#     same_place_count_time_i = 0
+#     # checking collisions inside columns - O(m^2 * n)
+#     for time_i in range(column_length):
+#         same_place_count_time_i = 0
+#         for row in range(len(rows)):
+#             if rows[row][field_names[time_i]] == '' or time_i in [0, 1, 2]:
+#                 continue
+#             row_below = row + 1
+#             while row_below < len(rows):
+#                 if rows[row_below][field_names[time_i]] == '':
+#                     row_below = row_below + 1
+#                     continue
+#                 if rows[row][field_names[time_i]] == rows[row_below][field_names[time_i]]:
+#                     same_place_count_time_i = same_place_count_time_i + 1
+#                 row_below = row_below + 1
+#
+#         same_place_count = same_place_count + nCk(same_place_count_time_i, 2)  # n chose k
+#
+#     # checking collisions with changing places - O(n^2 * m)
+#     changing_places_count = 0
+#     for row in range(len(rows) - 1):
+#         for time_i in range(column_length - 1):
+#             if rows[row][field_names[time_i]] == '' or \
+#                     rows[row + 1][field_names[time_i]] == '' or time_i in [0, 1, 2]:
+#                 continue
+#             row_below = row + 1
+#             while row_below < len(rows):
+#                 if rows[row_below][field_names[time_i]] == '' or \
+#                         rows[row_below][field_names[time_i + 1]] == '':
+#                     row_below = row_below + 1
+#                     continue
+#                 if rows[row][field_names[time_i]] == rows[row_below][field_names[time_i + 1]] and \
+#                         rows[row][field_names[time_i + 1]] == rows[row_below][field_names[time_i]]:
+#                     changing_places_count = changing_places_count + 1
+#                 row_below = row_below + 1
+#
+#     return same_place_count + changing_places_count
 
-    Returns:
-        int: sum of total length of the routes
-    """
-    length = 0
-    for row in rows:
-        row['Algorithm Name'] = ''
-        row['Source Id'] = ''
-        row['Destination Id'] = ''
-        row = dict((k, v) for k, v in row.items() if v != '')
-        length = length + len(row)
-    return length
+
+# def create_length(rows: List) -> int:
+#     """
+#     Args:
+#         rows (List): list of dictyonarys - each row is a dictionary of source to target route
+#
+#     Returns:
+#         int: sum of total length of the routes
+#     """
+#     length = 0
+#     for row in rows:
+#         row['Algorithm Name'] = ''
+#         row['Source Id'] = ''
+#         row['Destination Id'] = ''
+#         row = dict((k, v) for k, v in row.items() if v != '')
+#         length = length + len(row)
+#     return length
 
 
-def create_row_from_tupple(source: int, target: int, field_names: List, warehouse: Warehouse) -> Dict:
-    """ Generate a path from source to target from existing csv file
+# def create_row_from_tupple(source: int, target: int, field_names: List, warehouse: Warehouse) -> Dict:
+#     """ Generate a path from source to target from existing csv file
+#
+#     Args:
+#         source (int): Source Id
+#         target (int): Target Id
+#         field_names (List) : a list of the headers
+#         warehouse (Warehouse)
+#     Returns:
+#         Dict: Returns random route from source to target
+#     """
+#
+#     file_name = './csv_files/warehouse_{}/routes/routes_from_{}_to_{}.csv'.format(warehouse.warehouse_id, source,
+#                                                                                   target)
+#     file_exists = os.path.isfile(file_name)
+#     if not file_exists:
+#         return None
+#     data = import_routes_from_csv(file_name, field_names)
+#     random_route_number = random.randint(0, (len(data) - 1))
+#     return data[random_route_number]
 
-    Args:
-        source (int): Source Id
-        target (int): Target Id
-        field_names (List) : a list of the headers
-        warehouse (Warehouse)
-    Returns:
-        Dict: Returns random route from source to target
-    """
 
-    file_name = './csv_files/warehouse_{}/routes/routes_from_{}_to_{}.csv'.format(warehouse.warehouse_id, source,
-                                                                                  target)
-    file_exists = os.path.isfile(file_name)
-    if not file_exists:
-        return None
-    data = import_routes_from_csv(file_name, field_names)
-    random_route_number = random.randint(0, (len(data) - 1))
-    return data[random_route_number]
-
-
-def export_all_routes_to_csv(warehouse: Warehouse, source_dest_list: List) -> None:
-    """ Creates a .csv file of routes for all the souce,dest tupples that were given
-
-    Args:
-        source_dest_list (List): List of tupples of wanted (source, dest) routes
-    """
-
-    field_names = create_header_routes_csv(warehouse)
-    file_name = './csv_files/warehouse_{}/all_chosen_routes.csv'.format(warehouse.warehouse_id)
-    file_exists = os.path.isfile(file_name)
-    os.makedirs(os.path.dirname(file_name), exist_ok=True)
-    with open(file_name, 'w', newline='') as f:
-        writer = csv.writer(f)
-        rows = []
-        for tupple in source_dest_list:
-            row = create_row_from_tupple(tupple[0], tupple[1], field_names, warehouse)
-            rows.append(row)
-        writer = csv.DictWriter(f, fieldnames=field_names)
-        writer.writerows(rows)
-        total_length = create_length(rows)
-        columns_length = warehouse.length + warehouse.width
-        number_of_collisions = create_number_of_collision(rows, field_names, columns_length)
-        writer = csv.writer(f)
-        total_length_str = 'Total Lenth:' + str(total_length)
-        number_of_collisions_Str = 'Total collisions:' + str(number_of_collisions)
-        calc_values = [total_length_str, number_of_collisions_Str]
-        writer.writerow(calc_values)
-
-        sort_rows_and_remove_duplicates_in_csv(file_name)
+# def export_all_routes_to_csv(warehouse: Warehouse, source_dest_list: List) -> None:
+#     """ Creates a .csv file of routes for all the souce,dest tupples that were given
+#
+#     Args:
+#         source_dest_list (List): List of tupples of wanted (source, dest) routes
+#     """
+#
+#     field_names = create_header_routes_csv(warehouse)
+#     file_name = './csv_files/warehouse_{}/all_chosen_routes.csv'.format(warehouse.warehouse_id)
+#     file_exists = os.path.isfile(file_name)
+#     os.makedirs(os.path.dirname(file_name), exist_ok=True)
+#     with open(file_name, 'w', newline='') as f:
+#         writer = csv.writer(f)
+#         rows = []
+#         for tupple in source_dest_list:
+#             row = create_row_from_tupple(tupple[0], tupple[1], field_names, warehouse)
+#             rows.append(row)
+#         writer = csv.DictWriter(f, fieldnames=field_names)
+#         writer.writerows(rows)
+#         total_length = create_length(rows)
+#         columns_length = warehouse.length + warehouse.width
+#         number_of_collisions = create_number_of_collision(rows, field_names, columns_length)
+#         writer = csv.writer(f)
+#         total_length_str = 'Total Lenth:' + str(total_length)
+#         number_of_collisions_Str = 'Total collisions:' + str(number_of_collisions)
+#         calc_values = [total_length_str, number_of_collisions_Str]
+#         writer.writerow(calc_values)
+#
+#         sort_rows_and_remove_duplicates_in_csv(file_name)
 
 
 def import_routes_from_csv(csv_file: str, field_names: List = None) -> List:
@@ -190,8 +190,8 @@ def import_routes_from_csv(csv_file: str, field_names: List = None) -> List:
             reader = csv.reader(f)
             file_content = list(reader)
             file_content_without_header = file_content[1:]
-            routes_in_string_format = [row[3:] for row in file_content_without_header if row]
-            routes = [[eval(tupple) for tupple in row] for row in routes_in_string_format]
+            routes_in_string_format = [row[5:] for row in file_content_without_header if row]
+            routes = [[eval(tupple) for tupple in row] for row in routes_in_string_format if tupple]
         else:
             with open(csv_file, newline='') as f:
                 reader = csv.DictReader(f)
@@ -228,8 +228,8 @@ def sample_routing_request_route_from_database(warehouse, routing_request):
         file_content = list(reader)
         file_content_without_header = file_content[1:]
         sampled_row_in_string_format = random.choice(file_content_without_header)
-        sampled_route_in_string_format = sampled_row_in_string_format[3:]
-        route = [eval(tupple) for tupple in sampled_route_in_string_format]
+        sampled_route_in_string_format = sampled_row_in_string_format[5:]
+        route = [eval(tupple) for tupple in sampled_route_in_string_format if tupple]
 
         return route
 
@@ -238,7 +238,7 @@ def create_header_routes_csv(warehouse: Warehouse, route=None) -> List:
     columns_length = warehouse.length + warehouse.width if not route else len(route)
     field_names = ['Warehouse Id', 'Algorithm Name', 'Source Id', 'Destination Id', SORT_BY]
     for i in range(columns_length):
-        field_name = 'Time = {}'.format(i + 1)
+        field_name = 'Time = {}'.format(i)
         field_names.append(field_name)
     return field_names
 
@@ -395,8 +395,26 @@ def build_routes_for_database(warehouse, algorithm_name="MPR_WS"):
 
 def sample_routing_request_plan_from_database(warehouse, routing_requests):
     plan = []
+    agent_scheduling_by_source = [set() for _ in range(warehouse.number_of_sources)]
+
     for request in routing_requests:
-        plan.append(sample_routing_request_route_from_database(warehouse, [request]))
+        agent_plan = sample_routing_request_route_from_database(warehouse, [request])
+        time = 0
+        agent_source = request[0]
+        scheduled = False
+        while not scheduled:
+            agent_source_busy = time in agent_scheduling_by_source[agent_source]
+            if not agent_source_busy:
+                random_wait_at_source = random.choice([True, False])
+
+                if not random_wait_at_source:
+                    agent_scheduling_by_source[agent_source].add(time)
+                    scheduled = True
+
+            else:
+                agent_plan.insert(0, agent_plan[0])
+                time += 1
+        plan.append(agent_plan)
 
     return plan
 
@@ -406,7 +424,7 @@ def create_header_for_tagged_examples_csv(warehouse: Warehouse, route=None) -> L
     field_names = ['Source Id', 'Destination Id']
 
     for i in range(columns_length):
-        field_name = 'Time = {}'.format(i + 1)
+        field_name = 'Time = {}'.format(i)
         field_names.append(field_name)
     return field_names
 

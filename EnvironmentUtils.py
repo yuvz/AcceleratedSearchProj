@@ -184,6 +184,12 @@ def count_edge_conflicts(plan):
                 continue
 
             for time in range(min(len(plan[i]), len(plan[j])) - 1):
+                is_agent_at_source = plan[i][time] == plan[i][0]
+                is_agent_at_destination = plan[i][time] == plan[i][-1]
+
+                if is_agent_at_source or is_agent_at_destination:
+                    continue
+
                 if plan[i][time + 1] == plan[j][time] and plan[i][time] == plan[j][time + 1]:
                     count += 1
     return count
@@ -197,6 +203,12 @@ def count_vertex_conflicts(plan):
                 continue
 
             for time in range(min(len(plan[i]), len(plan[j]))):
+                is_agent_at_source = plan[i][time] == plan[i][0]
+                is_agent_at_destination = plan[i][time] == plan[i][-1]
+
+                if is_agent_at_source or is_agent_at_destination:
+                    continue
+
                 if plan[i][time] == plan[j][time]:
                     count += 1
     return count

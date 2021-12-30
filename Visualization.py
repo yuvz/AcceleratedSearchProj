@@ -1,5 +1,3 @@
-from typing import Tuple, List
-
 import matplotlib.pyplot as plt
 import random
 from matplotlib.animation import FuncAnimation
@@ -11,8 +9,9 @@ from EnvironmentUtils import get_source_id_from_route, get_destination_id_from_r
 from RouteGenerationAlgorithms import ROUTE_GENERATION_ALGORITHMS_ABBR
 
 SHOW_ANIMATION_TRAIL = False
+REPEAT_ANIMATION = True
 
-COLOR_BY_DESTINATION_ID = False
+COLOR_BY_DESTINATION_ID = True
 COLOR_BY_SOURCE_ID = False
 
 WAREHOUSE_FPS = [24, 3, 6, 12]
@@ -190,7 +189,8 @@ def show_plan_as_animation(warehouse, plan, algorithm_name="TODO", running_time=
 
     interval = 1000 * dt - (t1 - t0)
 
-    animation = FuncAnimation(fig, animate, frames=frames, init_func=init, blit=True, interval=interval)
+    animation = FuncAnimation(fig, animate, frames=frames, init_func=init, blit=True, interval=interval,
+                              repeat=REPEAT_ANIMATION)
 
     plt.show()
     if export_animation:
