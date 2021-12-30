@@ -24,7 +24,7 @@ def generate_midpoints_restricted_plan(warehouse, source, destination, is_split_
         midpoint_node = AStar.Node(midpoint_vertex, 0, maxsize, None, False)
         a_star_framework = AStar(source_node, midpoint_node)
 
-        route_to_midpoint = a_star_framework.classic_astar()
+        route_to_midpoint = a_star_framework.classic_astar(warehouse)
         if not route_to_midpoint:
             continue
 
@@ -33,7 +33,7 @@ def generate_midpoints_restricted_plan(warehouse, source, destination, is_split_
         destination_node = AStar.Node(destination, 0, maxsize, None, False)
         a_star_framework = AStar(source_node, destination_node)
 
-        route_from_midpoint = a_star_framework.classic_astar()
+        route_from_midpoint = a_star_framework.classic_astar(warehouse)
         if not route_from_midpoint:
             continue
 
@@ -160,7 +160,7 @@ def generate_random_obstacles_restricted_plan(warehouse, routing_request, obstac
 
     tries = 0
     while len(plan) < max_routes and tries < PROGRESSIVELY_OBSTACLE_RESTRICTED_PLANS_MAX_TRIES:
-        route = a_star_framework.search_with_added_obstacles(routing_request, added_obstacles)
+        route = a_star_framework.search_with_added_obstacles(warehouse, routing_request, added_obstacles)
 
         if route and len(route) + initial_dist <= warehouse.width + warehouse.length:
             tries = 0

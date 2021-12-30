@@ -33,10 +33,10 @@ def main():
     Supported values for algorithm_name: [BFS, RND, LNS_RND, CBS, ROR, k-ROR, IPWS, k-IPWS, MPR, k-MPR, MPR_WS,
     k-MPR_WS, sample_database] - check generate_example() in ExampleGeneration.py to see which algorithm is referred to by each abbr.
     """
-    warehouse = generate_warehouse(WAREHOUSE_TYPES["small structured"])
-    algorithm_name = "sample_database"
+    warehouse = generate_warehouse(WAREHOUSE_TYPES["toy"])
+    algorithm_name = "RND"
 
-    # for _ in range(10):
+    # for _ in range(1):
     #     build_routes_for_database(warehouse)
     # plan, running_time, routing_requests = generate_example(warehouse, algorithm_name, ONE_WAVE_ROUTING_REQUEST_TEST)
     # plan, running_time, routing_requests = generate_example(warehouse, algorithm_name, TWO_WAVE_ROUTING_REQUEST_TEST)

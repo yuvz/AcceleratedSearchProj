@@ -215,7 +215,7 @@ def show_plan_as_image(warehouse, plan, algorithm_name="TODO", running_time=-1.0
     if export_image:
         print("***")
         print("Exporting figure")
-        plt.savefig('figure.png')
+        plt.savefig(f'{algorithm_name}.png')
         print("Export done")
     plt.show()
 

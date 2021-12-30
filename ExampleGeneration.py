@@ -12,7 +12,7 @@ from RouteGenerationAlgorithms import generate_ideal_path_with_splits_plan_for_f
     generate_random_obstacles_restricted_plan_for_first_routing_request, ROUTE_GENERATION_ALGORITHMS_ABBR
 from RoutingRequest import RoutingRequest
 
-WAVES_PER_WAREHOUSE = [5, 1, 2, 1]
+WAVES_PER_WAREHOUSE = [5, 70, 2, 1]
 K_SAMPLE_SIZE = 5
 
 

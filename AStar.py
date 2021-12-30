@@ -1,5 +1,7 @@
 import heapq
 from typing import Dict, Set, Tuple
+
+import EnvironmentUtils
 from RoutingRequest import ALLOW_DIAGONAL_MOVEMENT
 from Utils import distance
 
@@ -8,11 +10,12 @@ PRIORITIZE_AGENTS_WAITING_AT_SOURCE = False
 
 class AStar:
     class Node:
-        def __init__(self, vertex, h_value, g_value, parent, is_source=False, waits_at_source=0):
+        def __init__(self, vertex, h_value, g_value, parent, is_source=False, waits_at_source=0, energy_cost=0):
             self.vertex = vertex
             self.h_value = h_value
             self.g_value = g_value
             self.parent = parent
+            self.energy_cost = energy_cost
 
             self.f_value = h_value + g_value
             self.is_source = is_source
@@ -63,8 +66,8 @@ class AStar:
                     routing_request_current_coordinates = routing_request_plan[self.g_value]
                     routing_request_next_coordinates = routing_request_plan[self.g_value + 1]
                     routing_request_midpoint_coordinates = (
-                    (routing_request_current_coordinates[0] + routing_request_next_coordinates[0]) / 2,
-                    (routing_request_current_coordinates[1] + routing_request_next_coordinates[1]) / 2)
+                        (routing_request_current_coordinates[0] + routing_request_next_coordinates[0]) / 2,
+                        (routing_request_current_coordinates[1] + routing_request_next_coordinates[1]) / 2)
 
                     if routing_request_midpoint_coordinates in valid_neighbors_edge_midpoints:
                         conflicting_neighbor_index = valid_neighbors_edge_midpoints.index(
@@ -168,7 +171,7 @@ class AStar:
 
         priority_queue = []
         heapq.heappush(priority_queue, source)
-        visited = {(source.g_value, source.vertex): source}
+        visited = {(source.g_value, source.vertex, source.energy_cost): source}
 
         while priority_queue:
             current_node = heapq.heappop(priority_queue)
@@ -189,9 +192,13 @@ class AStar:
 
             for neighbor in valid_neighbors:
                 is_neighbor_equals_source = neighbor == source.vertex
+                neighbor_energy_cost = current_node.energy_cost + (not is_neighbor_equals_source)
 
-                if (path_cost, neighbor) in visited:
-                    neighbor_node = visited[(path_cost, neighbor)]
+                if not EnvironmentUtils.is_energy_cost_valid(warehouse, neighbor_energy_cost):
+                    continue
+
+                if (path_cost, neighbor, neighbor_energy_cost) in visited:
+                    neighbor_node = visited[(path_cost, neighbor, neighbor_energy_cost)]
 
                     if path_cost < neighbor_node.g_value or \
                             (PRIORITIZE_AGENTS_WAITING_AT_SOURCE and path_cost == neighbor_node.g_value and
@@ -200,20 +207,22 @@ class AStar:
                         neighbor_node.g_value = path_cost
                         neighbor_node.f_value = neighbor_node.g_value + neighbor_node.h_value
                         neighbor_node.waits_at_source = current_node.waits_at_source + is_neighbor_equals_source
+                        neighbor_node.energy_cost = neighbor_energy_cost
 
                         heapq.heappush(priority_queue, neighbor_node)
 
                 else:
                     neighbor_node = AStar.Node(neighbor, neighbor.destination_distance[destination_id],
                                                path_cost, current_node, is_neighbor_equals_source,
-                                               current_node.waits_at_source + is_neighbor_equals_source)
+                                               current_node.waits_at_source + is_neighbor_equals_source,
+                                               neighbor_energy_cost)
 
                     heapq.heappush(priority_queue, neighbor_node)
-                    visited[(path_cost, neighbor)] = neighbor_node
+                    visited[(path_cost, neighbor, neighbor_energy_cost)] = neighbor_node
 
         print("search failed for routing_request ", routing_request.routing_request_id)
 
-    def search_with_added_obstacles(self, routing_request, added_obstacles):
+    def search_with_added_obstacles(self, warehouse, routing_request, added_obstacles):
         """
         Treats coordinates in added_obstacles as static obstacles
         """
@@ -235,6 +244,8 @@ class AStar:
                 return route
 
             path_cost = current_node.g_value + 1
+            if not EnvironmentUtils.is_energy_cost_valid(warehouse, path_cost):
+                return None
 
             valid_neighbors = current_node.get_valid_neighbors_from_added_obstacles(added_obstacles)
 
@@ -249,7 +260,7 @@ class AStar:
 
         return None
 
-    def classic_astar(self):
+    def classic_astar(self, warehouse):
         """
         In this method the source and the destination may be any two warehouse nodes.
         Cartesian distance is used as the heuristic.
@@ -271,6 +282,9 @@ class AStar:
                 return route
 
             path_cost = current_node.g_value + 1
+            if not EnvironmentUtils.is_energy_cost_valid(warehouse, path_cost):
+                return None
+
             current_vertex = current_node.vertex
 
             for neighbor in current_vertex.neighbors:

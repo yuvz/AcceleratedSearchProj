@@ -2,7 +2,7 @@ import random
 from math import floor, sqrt
 from sys import maxsize
 from typing import List, Tuple, Dict, Set
-from AStar import AStar
+import AStar
 from RoutingRequest import RoutingRequest
 from Warehouse import Warehouse
 
@@ -33,10 +33,10 @@ def generate_rand_routing_request(warehouse, *unused_variables):
 def find_route_using_Astar(warehouse, plan, routing_request, is_first_routing_request=False, wait_at_source_left=0,
                            constraints: Dict[int, Set[Tuple[int, int]]] = None) -> List[Tuple[int, int]]:
     routing_request_vertex = routing_request.source
-    source_node = AStar.Node(routing_request_vertex, routing_request_vertex.destination_distance[routing_request.destination.destination_id], 0,
+    source_node = AStar.AStar.Node(routing_request_vertex, routing_request_vertex.destination_distance[routing_request.destination.destination_id], 0,
                              None, True)
-    destination_node = AStar.Node(routing_request.destination, 0, maxsize, None, False)
-    a_star_framework = AStar(source_node, destination_node)
+    destination_node = AStar.AStar.Node(routing_request.destination, 0, maxsize, None, False)
+    a_star_framework = AStar.AStar(source_node, destination_node)
     route = a_star_framework.space_time_search(warehouse, routing_request, plan, is_first_routing_request, wait_at_source_left, constraints)
     return route
 
@@ -163,8 +163,12 @@ def generate_warehouse(warehouse_id):
                          obstacle_width)
 
 
+def is_energy_cost_valid(warehouse, energy_cost):
+    return energy_cost < warehouse.length + warehouse.width
+
+
 def is_valid_route_length(warehouse, route):
-    return len(route) < warehouse.length + warehouse.width
+    return is_energy_cost_valid(warehouse, len(route))
 
 
 def get_all_source_and_destination_combinations(warehouse):
