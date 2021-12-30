@@ -3,6 +3,7 @@ from EnvironmentUtils import find_route_using_Astar
 from Utils import update_plan
 import datetime
 
+IS_TIMEOUT_ENABLED = False
 TIMEOUT = 1000
 
 
@@ -23,7 +24,7 @@ def generate_rnd_plan(warehouse, routing_requests, sequential_exit=False):
         update_plan(plan, i, route)
         if route_number % 5 == 0:
             print("Found route for", route_number + 1, "out of", num_of_routing_requests, "routing_requests")
-        if datetime.datetime.now() > time_to_end:
+        if IS_TIMEOUT_ENABLED and datetime.datetime.now() > time_to_end:
             raise TimeoutError("failed to find a solution in time!")
 
     print("***")

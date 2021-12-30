@@ -12,6 +12,7 @@ NEIGHBORHOOD_SIZE = 15
 AGENT_BASED_NEIGHBORHOOD_ITERATIONS = 100
 INTERSECTION_THRESHOLD = 3
 WEIGHTS_FACTOR = 0.01
+IS_TIMEOUT_ENABLED = False
 TIMEOUT_TO_RESTART = 1000
 
 
@@ -34,7 +35,7 @@ def replan(warehouse, plan, neighborhood, routing_requests):
     for route_number, i in enumerate(neighborhood):
         route = find_route_using_Astar(warehouse, plan, routing_requests[i], route_number == 0)
         update_plan(plan, i, route)
-        if datetime.datetime.now() > time_to_end:
+        if IS_TIMEOUT_ENABLED and datetime.datetime.now() > time_to_end:
             raise TimeoutError("failed to find a solution in time!")
     return plan
 
