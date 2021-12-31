@@ -1,5 +1,4 @@
 import random
-from math import sqrt
 from sys import maxsize
 from EnvironmentUtils import find_route_using_Astar, get_source_id_from_route, get_destination_id_from_route
 from RND import generate_rnd_plan, TimeoutError, TIMEOUT

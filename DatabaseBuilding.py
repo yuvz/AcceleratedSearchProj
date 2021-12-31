@@ -8,6 +8,7 @@ from EnvironmentUtils import get_source_id_from_route, get_destination_id_from_r
     get_all_source_and_destination_combinations, count_plan_conflicts
 import operator as op
 from functools import reduce
+from math import sqrt
 
 import ExampleGeneration
 
@@ -30,12 +31,20 @@ def sort_rows_and_remove_duplicates_in_csv(file_name: str) -> None:
     sorted_csv.to_csv(file_name, index=False)
 
 
-def calculate_deviation_cost(route: List) -> int:
+def calculate_deviation_cost(route: List, source_id: int, destination_id: int, warehouse: Warehouse) -> int:
     """ calculates the cost of deviation
     """
-    # TODO: decide how to calculate the deviation cost
-    # Note: for now it is the length of the route
-    return len(route)
+    if len(route) == 0:
+        return len(route)
+    mid_point_of_shortest_route_coordinates = warehouse.sources_to_destinations_mid_point[source_id][destination_id]
+    sum_of_euclidian_distance_to_mid_point = 0.0
+    for node_coordinates in route:
+        sum_of_euclidian_distance_to_mid_point += sqrt(pow(node_coordinates[0]-mid_point_of_shortest_route_coordinates[0], 2)+
+                                                       pow(node_coordinates[1]-mid_point_of_shortest_route_coordinates[1], 2))
+    average_euclidian_distance_to_mid_point = sum_of_euclidian_distance_to_mid_point/len(route)
+    deviation_cost = average_euclidian_distance_to_mid_point-warehouse.sources_to_destinations_average_euclidian_distance_to_mid_point[source_id][destination_id]
+    print("deviation_cost", deviation_cost)
+    return deviation_cost
 
 
 # def nCk(n, r):
@@ -259,7 +268,7 @@ def create_route_information_dictionary(warehouse: Warehouse, algorithm_name: st
         Dict: [Table row of {header_type_1:value_1, ... header_type_n:value_n}]
     """
 
-    deviation_cost = calculate_deviation_cost(route)
+    deviation_cost = calculate_deviation_cost(route, source_id, destination_id, warehouse)
     row = {'Warehouse Id': warehouse.warehouse_id, 'Algorithm Name': algorithm_name,
            'Source Id': source_id, 'Destination Id': destination_id, SORT_BY: deviation_cost}
     write_from_column = len(row)

@@ -2,6 +2,7 @@ from math import floor
 from queue import Queue
 from typing import List, Set, Tuple
 import matplotlib.pyplot as plt
+from math import sqrt
 
 PLOT_OBSTACLE_INTERIOR = True
 
@@ -26,7 +27,7 @@ class Warehouse:
         def __init__(self, coordinates, number_of_destinations):
             self.coordinates = coordinates
             self.destination_distance = [0 for _ in range(number_of_destinations)]
-
+            self.destination_routs = [[] for _ in range(number_of_destinations)]
             self.is_static_obstacle = False
             self.source_id = -1  # not optimal solution, but simplifies implementation
             self.destination_id = -1  # not optimal solution, but simplifies implementation
@@ -49,6 +50,7 @@ class Warehouse:
 
         destination.destination_distance[i] = 0
         destination_entrance.destination_distance[i] = 1
+        destination_entrance.destination_routs[i].append(destination_coordinates)
 
         queue = Queue()
         queue.put(destination_entrance)
@@ -60,14 +62,19 @@ class Warehouse:
             for v in u.neighbors:
                 if v not in visited:
                     v.destination_distance[i] = u.destination_distance[i] + 1
+                    v.destination_routs[i].append(u.coordinates)
+                    for node in u.destination_routs[i]:
+                        v.destination_routs[i].append(node)
                     visited.add(v)
                     queue.put(v)
             visited.add(u)
-
         for source in self.sources:
             source_coordinates = source.coordinates
             source_entrance = self.vertices[source_coordinates[0] - 1][source_coordinates[1]]
             source.destination_distance[i] = 1 + source_entrance.destination_distance[i]
+            source.destination_routs[i].append(source_entrance.coordinates)
+            for node in source_entrance.destination_routs[i]:
+                source.destination_routs[i].append(node)
 
     def set_destination_distances(self):
         for i in range(self.number_of_destinations):
@@ -191,6 +198,32 @@ class Warehouse:
 
             self.vertices.append(column)
 
+    def set_mid_points(self):
+        for source in self.sources:
+            mid_points = []
+            for i, distance in enumerate(source.destination_distance):
+                mid_points.append(source.destination_routs[i][distance//2])
+            self.sources_to_destinations_mid_point.append(mid_points)
+
+    def set_averages(self):
+        for j, source in enumerate(self.sources):
+            averages_to_mid_point = []
+            for i, route in enumerate(source.destination_routs):
+                euclidian_distance_to_mid_point = 0.0
+                mid_point_coordinates = self.sources_to_destinations_mid_point[j][i]
+                for node_coordinates in route:
+                    euclidian_distance_to_mid_point += sqrt(pow(node_coordinates[0]-mid_point_coordinates[0], 2)+
+                                                            pow(node_coordinates[1]-mid_point_coordinates[1], 2))
+                averages_to_mid_point.append(euclidian_distance_to_mid_point/source.destination_distance[i])
+            self.sources_to_destinations_average_euclidian_distance_to_mid_point.append(averages_to_mid_point)
+
+    def print(self):
+        for i, source in enumerate(self.sources):
+            print("source.destination_distance:", source.destination_distance)
+            print("source.destination_routs:", source.destination_routs)
+            print("self.sources_to_destinations_mid_point:", self.sources_to_destinations_mid_point[i])
+            print("self.sources_to_destinations_average_euclidian_distance_to_mid_point", self.sources_to_destinations_average_euclidian_distance_to_mid_point[i])
+
     def __init__(self, warehouse_id, length, width, number_of_sources, number_of_destinations, static_obstacle_length,
                  static_obstacle_width):
         self.warehouse_id = warehouse_id
@@ -207,6 +240,8 @@ class Warehouse:
         self.static_obstacle_coordinates_split_by_obstacle = []
         self.sources: List[Warehouse.WarehouseNode] = []
         self.destinations: List[Warehouse.WarehouseNode] = []
+        self.sources_to_destinations_mid_point: List[List[Tuple[int, int]]] = []
+        self.sources_to_destinations_average_euclidian_distance_to_mid_point: List[List[float]] = []
 
         self.initialize_vertices()
         self.set_static_obstacles()
@@ -218,6 +253,9 @@ class Warehouse:
         self.adjust_sources_neighbors()
         self.adjust_destinations_neighbors()
         self.set_destination_distances()
+        self.set_mid_points()
+        self.set_averages()
+        self.print()
 
     def plot_layout(self):
         fig = plt.figure(figsize=(8, 7), dpi=100)
