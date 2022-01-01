@@ -17,9 +17,10 @@ TIMEOUT_ITERATIONS = 10
 
 class LnsRnd:
 
-    def __init__(self, agent_based_neighborhood_weight=1, map_based_neighborhood_weight=1, pick_random_neighborhood_weight=1,
+    def __init__(self, neighborhood_size, agent_based_neighborhood_weight=1, map_based_neighborhood_weight=1, pick_random_neighborhood_weight=1,
                  pick_rand_source_and_destination_weight=1, pick_worst_source_and_destination_weight=1,
                  pick_best_and_worst_sources_weight=1, current_pick_func_name=None, tabu_list=[]):
+        self.neighborhood_size = neighborhood_size
         self.agent_based_neighborhood_weight = agent_based_neighborhood_weight
         self.map_based_neighborhood_weight = map_based_neighborhood_weight
         self.pick_random_neighborhood_weight = pick_random_neighborhood_weight
@@ -31,7 +32,9 @@ class LnsRnd:
 
     def pick_random_neighborhood(self, routing_requests, *unused_variables):
         num_of_routing_requests = len(routing_requests)
-        neighborhood = random.sample(range(num_of_routing_requests), NEIGHBORHOOD_SIZE)
+        if self.neighborhood_size > num_of_routing_requests:
+            self.neighborhood_size = num_of_routing_requests
+        neighborhood = random.sample(range(num_of_routing_requests), self.neighborhood_size)
         random.shuffle(neighborhood)
         return neighborhood
 
@@ -49,7 +52,7 @@ class LnsRnd:
         time = random.randrange(len(plan[chosen_routing_request_index]))
         curr_coordinates = plan[chosen_routing_request_index][time]
         chosen_routing_request_destination_id = routing_requests[chosen_routing_request_index].destination.destination_id
-        while len(neighborhood) < NEIGHBORHOOD_SIZE:
+        while len(neighborhood) < self.neighborhood_size:
             coordinates_to_vertex = warehouse.vertices[curr_coordinates[0]][curr_coordinates[1]]
             neighbors_to_consider = [neighbor for neighbor in coordinates_to_vertex.neighbors if
                                      time + 1 + neighbor.get_destination_distance(
@@ -92,7 +95,7 @@ class LnsRnd:
         neighborhood = set()
         neighborhood.add(chosen_routing_request_index)
         for i in range(AGENT_BASED_NEIGHBORHOOD_ITERATIONS):
-            if len(neighborhood) == NEIGHBORHOOD_SIZE:
+            if len(neighborhood) == self.neighborhood_size:
                 break
             self.random_walk(warehouse, plan, neighborhood, chosen_routing_request_index, routing_requests)
             chosen_routing_request_index = random.choice(list(neighborhood))
@@ -110,7 +113,7 @@ class LnsRnd:
                                          routs_with_chosen_vertex])
         time = random.randint(0, max_time_of_chosen_vertex)
         delta = 0
-        while len(neighborhood) < NEIGHBORHOOD_SIZE and delta <= max([time, max_time_of_chosen_vertex - time]):
+        while len(neighborhood) < self.neighborhood_size and delta <= max([time, max_time_of_chosen_vertex - time]):
             for route_id, route in enumerate(plan):
                 start_index = max([0, time - delta])
                 end_index = min([len(route) - 1, time + delta])
@@ -134,7 +137,7 @@ class LnsRnd:
         queue = [random_vertex]
         neighborhood = set()
         visited = []
-        while len(queue) > 0 and len(neighborhood) < NEIGHBORHOOD_SIZE:
+        while len(queue) > 0 and len(neighborhood) < self.neighborhood_size:
             vertex = queue.pop(0)
             visited.append(vertex)
             if len(vertex.neighbors) >= INTERSECTION_THRESHOLD:
@@ -288,14 +291,14 @@ def timeout_wrapper(func_to_wrap, *args):
     return plan
 
 
-def generate_lns_rnd_plan(warehouse, routing_requests):
+def generate_lns_rnd_plan(warehouse, routing_requests, neighborhood_size=NEIGHBORHOOD_SIZE):
     """
     Supported values for neighborhood_picking_function: [pick_random_neighborhood, agent_based_neighborhood,
      map_based_neighborhood, adaptive_neighborhood, pick_rand_source_and_destination, pick_worst_source_and_destination,
      pick_best_and_worst_sources]
     """
     plan = timeout_wrapper(generate_rnd_plan, warehouse, routing_requests, False)
-    lns_rnd_instance = LnsRnd()
+    lns_rnd_instance = LnsRnd(neighborhood_size)
     for _ in range(LNS_ITERATIONS):
         plan_backup = plan.copy()
         # neighborhood contains the list of indexes of routing_requests to replan for
