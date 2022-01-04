@@ -9,6 +9,8 @@ from EnvironmentUtils import find_route_using_Astar
 from heapq import heappush, heappop
 from tqdm import tqdm
 
+from Warehouse import Warehouse
+
 
 class CBS:
     def __init__(self):
@@ -21,7 +23,7 @@ class CBS:
         the closest goal to each start.
     '''
 
-    def solve(self, warehouse, agents: List[RoutingRequest]):
+    def solve(self, warehouse: Warehouse, agents: List[RoutingRequest]):
         self.warehouse = warehouse
         self.agents: List[RoutingRequest] = agents
         plan: List[List[Tuple[int, int]]] = [[] for _ in range(len(self.agents))]
@@ -39,21 +41,21 @@ class CBS:
             # Min heap for quick extraction
             open.append(node)
 
-        progress_bar_len = round(1.145**len(agents))
-
-        with tqdm(total=progress_bar_len, desc="Running CBS... Estimated progress") as progress_bar:
+        with tqdm(total=0, desc="Running CBS...") as progress_bar:
             while open:
                 progress_bar.update(1)
                 results = []
                 self.search_node(heappop(open), results, plan)
                 for result in results:
                     if len(result) == 1:
+                        print("CBS Finished")
                         return self.format_result(result[0])
                     if result[0]:
                         heappush(open, result[0])
                     if result[1]:
                         heappush(open, result[1])
-        return plan  # Failed
+        print("CBS Failed")
+        return plan
 
     def format_result(self, result):
         plan = []

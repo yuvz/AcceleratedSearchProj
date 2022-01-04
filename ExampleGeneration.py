@@ -3,6 +3,7 @@ from time import time
 #from CBS.CBS import CBS
 import DatabaseBuilding
 # from DatabaseBuilding import sample_routing_request_plan_from_database
+from CBS.CBS import CBS
 from EnvironmentUtils import generate_rand_routing_requests, generate_rand_routing_request
 from BFS import generate_bfs_plan_for_first_routing_request
 from RND import generate_rnd_plan
