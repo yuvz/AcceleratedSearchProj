@@ -217,12 +217,12 @@ class Warehouse:
                 averages_to_mid_point.append(euclidian_distance_to_mid_point/source.destination_distance[i])
             self.sources_to_destinations_average_euclidian_distance_to_mid_point.append(averages_to_mid_point)
 
-    def print(self):
-        for i, source in enumerate(self.sources):
-            print("source.destination_distance:", source.destination_distance)
-            print("source.destination_routs:", source.destination_routs)
-            print("self.sources_to_destinations_mid_point:", self.sources_to_destinations_mid_point[i])
-            print("self.sources_to_destinations_average_euclidian_distance_to_mid_point", self.sources_to_destinations_average_euclidian_distance_to_mid_point[i])
+    # def print(self):
+    #     for i, source in enumerate(self.sources):
+    #         print("source.destination_distance:", source.destination_distance)
+    #         print("source.destination_routs:", source.destination_routs)
+    #         print("self.sources_to_destinations_mid_point:", self.sources_to_destinations_mid_point[i])
+    #         print("self.sources_to_destinations_average_euclidian_distance_to_mid_point", self.sources_to_destinations_average_euclidian_distance_to_mid_point[i])
 
     def __init__(self, warehouse_id, length, width, number_of_sources, number_of_destinations, static_obstacle_length,
                  static_obstacle_width):
@@ -255,7 +255,7 @@ class Warehouse:
         self.set_destination_distances()
         self.set_mid_points()
         self.set_averages()
-        self.print()
+        # self.print()
 
     def plot_layout(self):
         fig = plt.figure(figsize=(8, 7), dpi=100)

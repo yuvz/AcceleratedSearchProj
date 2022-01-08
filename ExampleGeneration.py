@@ -12,6 +12,7 @@ from RouteGenerationAlgorithms import generate_ideal_path_with_splits_plan_for_f
     generate_midpoints_restricted_plan_for_first_routing_request, \
     generate_random_obstacles_restricted_plan_for_first_routing_request, ROUTE_GENERATION_ALGORITHMS_ABBR
 from RoutingRequest import RoutingRequest
+from RHCR import RHCR
 
 WAVES_PER_WAREHOUSE = [5, 70, 2, 1]
 K_SAMPLE_SIZE = 5
@@ -69,7 +70,12 @@ def generate_cbs_example(warehouse, routing_requests):
     return generate_plan(warehouse, routing_requests, cbs.solve)
 
 
-def generate_example(warehouse, algorithm_name, routing_requests_in_tuples_format=None):
+def generate_rhcr_example(warehouse, routing_requests, window, time_to_plan):
+    rhcr = RHCR(window, time_to_plan)
+    return generate_plan(warehouse, routing_requests, rhcr.generate_rhcr_plan)
+
+
+def generate_example(warehouse, algorithm_name, routing_requests_in_tuples_format=None, window=0, time_to_plan=0):
     """
     if no value for routing_requests_in_tuples_format is supplied, a random value for routing_requests_in_tuples_format
     is generated
@@ -103,6 +109,8 @@ def generate_example(warehouse, algorithm_name, routing_requests_in_tuples_forma
     elif algorithm_name == "CBS":
         plan, t0, t1 = generate_cbs_example(warehouse, routing_requests)
 
+    elif algorithm_name == "RHCR":
+        plan, t0, t1 = generate_rhcr_example(warehouse, routing_requests, window, time_to_plan)
     elif algorithm_name == "ROR":
         plan, t0, t1 = generate_random_obstacles_restricted_example(warehouse, routing_requests)
 

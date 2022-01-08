@@ -23,7 +23,7 @@ class CBS:
         the closest goal to each start.
     '''
 
-    def solve(self, warehouse: Warehouse, agents: List[RoutingRequest]):
+    def solve(self, warehouse: Warehouse, agents: List[RoutingRequest], window=float('inf')):
         self.warehouse = warehouse
         self.agents: List[RoutingRequest] = agents
         plan: List[List[Tuple[int, int]]] = [[] for _ in range(len(self.agents))]
@@ -45,14 +45,16 @@ class CBS:
             while open:
                 progress_bar.update(1)
                 results = []
-                self.search_node(heappop(open), results, plan)
+                self.search_node(heappop(open), results, plan, window)
                 for result in results:
                     if len(result) == 1:
                         print("CBS Finished")
                         return self.format_result(result[0])
                     if result[0]:
+                        # print("result[0]: ", result[0])
                         heappush(open, result[0])
                     if result[1]:
+                        # print("result[1]: ", result[1])
                         heappush(open, result[1])
         print("CBS Failed")
         return plan
@@ -63,8 +65,8 @@ class CBS:
             plan.append([tuple(coordinate) for coordinate in route])
         return plan
 
-    def search_node(self, best: CTNode, results, plan):
-        agent_i, agent_j, time_of_conflict = self.validate_paths(self.agents, best)
+    def search_node(self, best: CTNode, results, plan, window: int):
+        agent_i, agent_j, time_of_conflict = self.validate_paths(self.agents, best, window)
 
         # If there is no conflict, validate_paths returns (None, None, -1)
         if agent_i is None:
@@ -79,7 +81,10 @@ class CBS:
                                               constraints=agent_i_constraint.agent_constraints[agent_i])
         agent_j_path = find_route_using_Astar(self.warehouse, plan, agent_j,
                                               constraints=agent_j_constraint.agent_constraints[agent_j])
-
+        # print(agent_i_path)
+        # print(best.solution[agent_j])
+        # print(agent_j_path)
+        # print(best.solution[agent_i])
         # Replace old paths with new ones in solution
         solution_i = best.solution
         solution_j = self.deep_copy_solution(best.solution)
@@ -106,19 +111,24 @@ class CBS:
     Pair of agent, point of conflict
     '''
 
-    def validate_paths(self, agents, node: CTNode):
+    def validate_paths(self, agents, node: CTNode, window: int):
         # Check collision pair-wise
         for agent_i, agent_j in combinations(agents, 2):
-            time_of_conflict = self.safe_distance(node.solution, agent_i, agent_j)
+            time_of_conflict = self.safe_distance(node.solution, agent_i, agent_j, window)
             # time_of_conflict=-1 if there is not conflict
             if time_of_conflict == -1:
                 continue
+            # print("time_of_conflict", time_of_conflict)
+            # print("agent_i", agent_i)
+            # print("agent_j", agent_j)
             return agent_i, agent_j, time_of_conflict
         return None, None, -1
 
     def safe_distance(self, solution: Dict[RoutingRequest, np.ndarray], agent_i: RoutingRequest,
-                      agent_j: RoutingRequest) -> int:
+                      agent_j: RoutingRequest, window: int) -> int:
         for idx, (point_i, point_j) in enumerate(zip(solution[agent_i], solution[agent_j])):
+            if idx >= window:
+                break
             if any(point_i != point_j) \
                     or (all(point_i == agent_i.source.coordinates) and all(point_j == agent_j.source.coordinates)) \
                     or (
