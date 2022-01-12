@@ -1,4 +1,6 @@
 import heapq
+import random
+from sys import maxsize
 from typing import Dict, Set, Tuple
 
 import EnvironmentUtils
@@ -6,6 +8,7 @@ from RoutingRequest import ALLOW_DIAGONAL_MOVEMENT
 from Utils import distance
 
 PRIORITIZE_AGENTS_WAITING_AT_SOURCE = False
+RANDOMIZE_NEIGHBORS = True
 
 
 class AStar:
@@ -25,8 +28,8 @@ class AStar:
             return self.vertex == other.vertex
 
         def __lt__(self, other):
-            if self.f_value == other.f_value:
-                return self.waits_at_source > other.waits_at_source
+            # if self.f_value == other.f_value:
+            #     return self.waits_at_source > other.waits_at_source
 
             return self.f_value < other.f_value
 
@@ -287,7 +290,11 @@ class AStar:
 
             current_vertex = current_node.vertex
 
-            for neighbor in current_vertex.neighbors:
+            neighbors = list(current_vertex.neighbors)
+            if RANDOMIZE_NEIGHBORS:
+                random.shuffle(neighbors)
+
+            for neighbor in neighbors:
                 if neighbor in visited:
                     check_visited_neighbor(visited, neighbor, path_cost, current_node, priority_queue)
                 else:
@@ -310,3 +317,15 @@ def check_visited_neighbor(visited, neighbor, path_cost, current_node, priority_
             heapq.heappush(priority_queue, neighbor_node)
         else:
             heapq.heapify(priority_queue)
+
+
+def generate_astar_plan_for_first_routing_request(warehouse, routing_requests):
+    routing_request = routing_requests[0]
+    routing_request_vertex = routing_request.source
+    source_node = AStar.Node(routing_request_vertex, routing_request_vertex.destination_distance[routing_request.destination.destination_id], 0,
+                             None, True)
+    destination_node = AStar.Node(routing_request.destination, 0, maxsize, None, False)
+    a_star_framework = AStar(source_node, destination_node)
+    route = a_star_framework.classic_astar(warehouse)
+    plan = [route]
+    return plan

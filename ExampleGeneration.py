@@ -4,6 +4,7 @@ from time import time
 import DatabaseBuilding
 # from DatabaseBuilding import sample_routing_request_plan_from_database
 from CBS.CBS import CBS
+from AStar import generate_astar_plan_for_first_routing_request
 from EnvironmentUtils import generate_rand_routing_requests, generate_rand_routing_request
 from BFS import generate_bfs_plan_for_first_routing_request
 from RND import generate_rnd_plan
@@ -14,7 +15,7 @@ from RouteGenerationAlgorithms import generate_ideal_path_with_splits_plan_for_f
 from RoutingRequest import RoutingRequest
 from RHCR import RHCR
 
-WAVES_PER_WAREHOUSE = [5, 70, 2, 1]
+WAVES_PER_WAREHOUSE = [2, 5, 10, 1]
 K_SAMPLE_SIZE = 5
 
 
@@ -29,6 +30,14 @@ def generate_plan(warehouse, routing_requests, plan_generation_algorithm, option
         plan = plan_generation_algorithm(warehouse, routing_requests)
     t1 = time()
     return plan, t0, t1
+
+
+def generate_astar_example(warehouse, routing_requests):
+    return generate_plan(warehouse, routing_requests, generate_astar_plan_for_first_routing_request)
+
+
+def generate_sample_database_avoiding_conflicts_example(warehouse, routing_requests):
+    return generate_plan(warehouse, routing_requests, DatabaseBuilding.sample_routing_database_avoiding_conflicts)
 
 
 def generate_sample_database_example(warehouse, routing_requests):
@@ -111,6 +120,7 @@ def generate_example(warehouse, algorithm_name, routing_requests_in_tuples_forma
 
     elif algorithm_name == "RHCR":
         plan, t0, t1 = generate_rhcr_example(warehouse, routing_requests, window, time_to_plan)
+
     elif algorithm_name == "ROR":
         plan, t0, t1 = generate_random_obstacles_restricted_example(warehouse, routing_requests)
 
@@ -142,6 +152,11 @@ def generate_example(warehouse, algorithm_name, routing_requests_in_tuples_forma
     elif algorithm_name == "sample_database":
         plan, t0, t1 = generate_sample_database_example(warehouse, routing_requests_in_tuples_format)
 
+    elif algorithm_name == "sample_database_avoiding_conflicts":
+        plan, t0, t1 = generate_sample_database_avoiding_conflicts_example(warehouse, routing_requests_in_tuples_format)
+
+    elif algorithm_name == 'AStar':
+        plan, t0, t1 = generate_astar_example(warehouse, routing_requests)
     else:
         print("Unsupported algorithm_name.\n", "Currently supports:", "BFS, RND, LNS_RND")
         return [[]], -1

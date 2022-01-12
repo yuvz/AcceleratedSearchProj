@@ -107,10 +107,10 @@ class Warehouse:
             source.neighbors = source.neighbors.difference(neighbors_to_remove)
 
     def set_sources_and_destinations(self, number_of_targets, row_idx, target_array, is_destination=False):
-        targets_with_dummies = number_of_targets + 1
+        targets_with_dummies = number_of_targets
         distance_between_targets = floor(self.width / targets_with_dummies)
 
-        first_target_position = distance_between_targets
+        first_target_position = 0
         last_dummy_position = distance_between_targets * targets_with_dummies
 
         for i, column_idx in enumerate(range(first_target_position, last_dummy_position, distance_between_targets)):
@@ -257,28 +257,39 @@ class Warehouse:
         self.set_averages()
         # self.print()
 
+    def plot_obstacles(self):
+        for point in WAREHOUSE_3_WALL_CORNERS:
+            lower_left_corner = [point[0], point[1]]
+            upper_left_corner = [point[0] + self.static_obstacle_length - 1, point[1]]
+            upper_right_corner = [point[0] + self.static_obstacle_length - 1, point[1] + self.static_obstacle_width - 1]
+            lower_right_corner = [point[0], point[1] + self.static_obstacle_width - 1]
+
+            # draw corners
+            corner_x_values = [lower_left_corner[0], upper_left_corner[0], upper_right_corner[0], lower_right_corner[0], lower_left_corner[0]]
+            corner_y_values = [lower_left_corner[1], upper_left_corner[1], upper_right_corner[1], lower_right_corner[1], lower_left_corner[1]]
+            plt.plot(corner_y_values, corner_x_values, c='#484848', linewidth=2)
+
+            # draw diagonals
+            primary_diagonal_x = [lower_right_corner[0], upper_left_corner[0]]
+            primary_diagonal_y = [lower_right_corner[1], upper_left_corner[1]]
+            plt.plot(primary_diagonal_y, primary_diagonal_x, c='gray', linewidth=1)
+
+            secondary_diagonal_x = [lower_left_corner[0], upper_right_corner[0]]
+            secondary_diagonal_y = [lower_left_corner[1], upper_right_corner[1]]
+            plt.plot(secondary_diagonal_y, secondary_diagonal_x, c='gray', linewidth=1)
+
     def plot_layout(self):
         fig = plt.figure(figsize=(8, 7), dpi=100)
         ax = plt.axes(xlim=(0, self.width - 1), ylim=(0, self.length - 1))
         for source in self.sources:
             plt.scatter(source.coordinates[1], source.coordinates[0], s=250, marker='v', c='#00964b')
 
-        if PLOT_OBSTACLE_INTERIOR:
-            for obstacle in self.static_obstacles:
-                plt.scatter(obstacle[1], obstacle[0], s=5, marker='8', c='black')
-
-        for obstacle in self.static_obstacle_corners:
-            if self.warehouse_id == 1:
-                plt.scatter(obstacle[1], obstacle[0], s=10, c='black')
-            elif self.warehouse_id == 2:
-                plt.scatter(obstacle[1], obstacle[0], s=50, marker='s', c='black')
-            else:
-                plt.scatter(obstacle[1], obstacle[0], s=10, marker='s', c='black')
+        self.plot_obstacles()
 
         for destination in self.destinations:
             plt.scatter(destination.coordinates[1], destination.coordinates[0], s=250, marker='^', c='hotpink')
 
-        plt.xlim(0, self.width)
+        plt.xlim(-1, self.width)
         plt.ylim(0, self.length - 1)
         plt.grid()
 

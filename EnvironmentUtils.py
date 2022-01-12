@@ -7,6 +7,7 @@ from RoutingRequest import RoutingRequest
 from Warehouse import Warehouse
 
 RANDOM_MIDPOINTS_MAX_TRIES = 5
+IS_ENERGY_RULE_ENFORCED = False
 
 
 def generate_rand_routing_requests(warehouse, waves_per_warehouse):
@@ -138,12 +139,12 @@ def generate_warehouse(warehouse_id):
         return Warehouse(warehouse_id, length, width, number_of_sources, number_of_destinations, obstacle_length,
                          obstacle_width)
 
-    # small warehouse
+    # small structured
     if warehouse_id == 3:
         length = 40
         width = 40
-        number_of_sources = 7
-        number_of_destinations = 7
+        number_of_sources = 40
+        number_of_destinations = 40
         obstacle_length = round(0.1 * length)
         obstacle_width = round(0.1 * width)
 
@@ -164,10 +165,14 @@ def generate_warehouse(warehouse_id):
 
 
 def is_energy_cost_valid(warehouse, energy_cost):
+    if not IS_ENERGY_RULE_ENFORCED:
+        return True
     return energy_cost < warehouse.length + warehouse.width
 
 
 def is_valid_route_length(warehouse, route):
+    if not IS_ENERGY_RULE_ENFORCED:
+        return True
     return is_energy_cost_valid(warehouse, len(route))
 
 
@@ -223,3 +228,38 @@ def count_plan_conflicts(plan):
     edge_conflicts = count_edge_conflicts(plan)
 
     return vertex_conflicts, edge_conflicts
+
+
+def is_vertex_conflict_between_plans(this, other):
+    for i in range(min(len(this), len(other))):
+        is_agent_at_source = this[i] == this[0]
+        is_agent_at_destination = this[i] == this[-1]
+
+        if is_agent_at_source or is_agent_at_destination:
+            continue
+        if this[i] == other[i]:
+            return True
+    return False
+
+
+def is_edge_conflict_between_plans(this, other):
+    for i in range(min(len(this), len(other))):
+        is_agent_at_source = this[i] == this[0]
+        is_agent_at_destination = this[i] == this[-1]
+
+        if is_agent_at_source or is_agent_at_destination:
+            continue
+        if i == 0:
+            continue
+
+        if this[i] == other[i - 1] and this[i - 1] == other[i]:
+            return True
+    return False
+
+
+def is_agent_plan_conflicting_with_plan(plan, agent_plan):
+    for other_plan in plan:
+        if is_vertex_conflict_between_plans(agent_plan, other_plan) or \
+                is_edge_conflict_between_plans(agent_plan, other_plan):
+            return True
+    return False

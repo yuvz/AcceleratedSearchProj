@@ -5,7 +5,7 @@ import Warehouse
 import random
 import pandas as pd
 from EnvironmentUtils import get_source_id_from_route, get_destination_id_from_route, \
-    get_all_source_and_destination_combinations, count_plan_conflicts
+    get_all_source_and_destination_combinations, count_plan_conflicts, is_agent_plan_conflicting_with_plan
 import operator as op
 from functools import reduce
 from math import sqrt
@@ -15,6 +15,9 @@ import ExampleGeneration
 # from ExampleGeneration import generate_example
 
 SORT_BY = 'Deviation Cost'
+ROUTE_SAMPLING_TRIES = 3
+
+DATABASE_GENERATION_ALGORITHMS = ["sample_database", "sample_database_avoiding_conflicts"]
 
 
 def sort_rows_and_remove_duplicates_in_csv(file_name: str) -> None:
@@ -410,6 +413,7 @@ def sample_routing_request_plan_from_database(warehouse, routing_requests):
         agent_plan = sample_routing_request_route_from_database(warehouse, [request])
         time = 0
         agent_source = request[0]
+        agent_source_coordinates = warehouse.sources[agent_source].coordinates
         scheduled = False
         while not scheduled:
             agent_source_busy = time in agent_scheduling_by_source[agent_source]
@@ -421,7 +425,7 @@ def sample_routing_request_plan_from_database(warehouse, routing_requests):
                     scheduled = True
 
             else:
-                agent_plan.insert(0, agent_plan[0])
+                agent_plan.insert(0, agent_source_coordinates)
                 time += 1
         plan.append(agent_plan)
 
@@ -457,3 +461,57 @@ def build_tagged_examples_for_database(warehouse, num_of_waves=1, iterations=1):
     for _ in range(iterations):
         plan = ExampleGeneration.generate_example(warehouse, "sample_database")[0]
         vertex_conflicts, edge_conflicts = count_plan_conflicts(plan)
+
+
+def sample_routing_database_avoiding_conflicts(warehouse, routing_requests):
+    plan = []
+    agent_scheduling_by_source = [set() for _ in range(warehouse.number_of_sources)]
+
+    for request in routing_requests:
+        time = 0
+        agent_source = request[0]
+        agent_source_coordinates = warehouse.sources[agent_source].coordinates
+        waits_at_source = []
+        scheduled = False
+
+        while not scheduled:
+            agent_source_busy = time in agent_scheduling_by_source[agent_source]
+            if not agent_source_busy:
+                for _ in range(ROUTE_SAMPLING_TRIES):
+                    sampled_solution = sample_routing_request_route_from_database(warehouse, [request])
+                    agent_plan = waits_at_source + sampled_solution
+
+                    if not is_agent_plan_conflicting_with_plan(plan, agent_plan):
+                        plan.append(agent_plan)
+                        agent_scheduling_by_source[agent_source].add(time)
+                        scheduled = True
+                        break
+
+                if not scheduled:
+                    waits_at_source.append(agent_source_coordinates)
+                    time += 1
+            else:
+                waits_at_source.append(agent_source_coordinates)
+                time += 1
+            # for _ in range(ROUTE_SAMPLING_TRIES):
+            #     while not scheduled:
+            #         agent_source_busy = time in agent_scheduling_by_source[agent_source]
+            #         if not agent_source_busy:
+            #             sampled_solution = sample_routing_request_route_from_database(warehouse, [request])
+            #             agent_plan = waits_at_source + sampled_solution
+            #
+            #             if not is_agent_plan_conflicting_with_plan(plan, agent_plan):
+            #                 plan.append(agent_plan)
+            #                 agent_scheduling_by_source[agent_source].add(time)
+            #                 print("found at time", time)
+            #                 scheduled = True
+            #         else:
+            #             waits_at_source.append(agent_source_coordinates)
+            #             time += 1
+            #
+            # if not scheduled:
+            #     waits_at_source.append(agent_source_coordinates)
+            #     time += 1
+            #     print("trying again for time", time)
+
+    return plan

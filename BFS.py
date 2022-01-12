@@ -3,8 +3,13 @@ import random
 from RoutingRequest import RoutingRequest
 from Utils import update_plan
 
+RANDOMIZE_NEIGHBORS = True
+
 
 class BFS:
+    """
+    Best First Search
+    """
     def __init__(self, source, destination, vertex=None):
         self.source = source
         self.destination = destination
@@ -17,13 +22,18 @@ class BFS:
         ideal_neighbor = None
         min_destination_distance = self.get_destination_distance() + 1
 
-        for neighbor in self.vertex.neighbors:
+        neighbors = list(self.vertex.neighbors)
+        if RANDOMIZE_NEIGHBORS:
+            random.shuffle(neighbors)
+
+        for neighbor in neighbors:
             neighbor_destination_distance = neighbor.get_destination_distance(self.destination.destination_id)
             if neighbor_destination_distance < min_destination_distance:
-                min_destination_distance = neighbor_destination_distance
-                ideal_neighbor = neighbor
-
-        return ideal_neighbor
+                return neighbor
+        #         min_destination_distance = neighbor_destination_distance
+        #         ideal_neighbor = neighbor
+        #
+        # return ideal_neighbor
 
     def search(self):
         route = [self.vertex.coordinates]
@@ -42,11 +52,11 @@ class BFS:
         return plan
 
 
-def generate_bfs_plan(routing_request):
+def generate_bfs_plan(warehouse, routing_request):
     bfs = BFS(routing_request.source, routing_request.destination)
 
     return bfs.generate_plan()
 
 
-def generate_bfs_plan_for_first_routing_request(unused_variable, routing_requests):
-    return generate_bfs_plan(routing_requests[0])
+def generate_bfs_plan_for_first_routing_request(warehouse, routing_requests):
+    return generate_bfs_plan(warehouse, routing_requests[0])

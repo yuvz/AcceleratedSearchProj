@@ -4,7 +4,7 @@ from sys import maxsize
 
 from AStar import AStar
 from BFS import BFS
-from EnvironmentUtils import get_random_points_throughout_warehouse, is_valid_route_length
+from EnvironmentUtils import get_random_points_throughout_warehouse, is_valid_route_length, is_energy_cost_valid
 from RoutingRequest import RoutingRequest
 from Utils import distance
 
@@ -16,7 +16,6 @@ OBSTACLE_PATTERNS = ["cross", "square", "vertical_line", "horizontal_line", "dot
 
 def generate_midpoints_restricted_plan(warehouse, source, destination, is_split_at_midpoint=False):
     midpoints = get_random_points_throughout_warehouse(warehouse)
-
     plan = []
     for i, midpoint_coordinates in enumerate(midpoints):
         midpoint_vertex = warehouse.vertices[midpoint_coordinates[0]][midpoint_coordinates[1]]
@@ -52,6 +51,7 @@ def generate_midpoints_restricted_plan(warehouse, source, destination, is_split_
                                                                                        len(route_to_midpoint)):
                     if is_valid_route_length(warehouse, route_to_midpoint + routing_request_route):
                         plan.append(route_to_midpoint + routing_request_route)
+
             else:
                 plan.append(complete_route)
 
@@ -162,7 +162,7 @@ def generate_random_obstacles_restricted_plan(warehouse, routing_request, obstac
     while len(plan) < max_routes and tries < PROGRESSIVELY_OBSTACLE_RESTRICTED_PLANS_MAX_TRIES:
         route = a_star_framework.search_with_added_obstacles(warehouse, routing_request, added_obstacles)
 
-        if route and len(route) + initial_dist <= warehouse.width + warehouse.length:
+        if route and is_energy_cost_valid(warehouse, len(route) + initial_dist):
             tries = 0
             route_backup = route
             added_obstacles_backup = added_obstacles
@@ -175,6 +175,8 @@ def generate_random_obstacles_restricted_plan(warehouse, routing_request, obstac
             tries += 1
             added_obstacles = added_obstacles_backup
             route = route_backup
+        if not route:
+            break
 
         obstacle_pattern = random.choice(obstacle_patterns)
         added_obstacle_size = random.randint(1, max_added_obstacle_size)

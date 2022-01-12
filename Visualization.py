@@ -5,6 +5,7 @@ from colorsys import hls_to_rgb
 from copy import deepcopy
 from time import time
 
+from DatabaseBuilding import DATABASE_GENERATION_ALGORITHMS
 from EnvironmentUtils import get_source_id_from_route, get_destination_id_from_route, count_plan_conflicts
 from RouteGenerationAlgorithms import ROUTE_GENERATION_ALGORITHMS_ABBR
 
@@ -137,7 +138,7 @@ def set_path_generation_title_and_info(warehouse, plan, running_time, algorithm_
 def set_plot_title_and_info(warehouse, plan, running_time, algorithm_name, title):
     if algorithm_name in ROUTE_GENERATION_ALGORITHMS_ABBR:
         set_path_generation_title_and_info(warehouse, plan, running_time, algorithm_name, title)
-    elif algorithm_name == "sample_database":
+    elif algorithm_name in DATABASE_GENERATION_ALGORITHMS:
         set_sample_database_title_and_info(warehouse, plan, running_time, algorithm_name, title)
     else:
         set_routing_solution_title_and_info(warehouse, plan, running_time, algorithm_name, title)
