@@ -11,7 +11,8 @@ from RND import generate_rnd_plan
 from LNS_PP import generate_lns_rnd_plan
 from RouteGenerationAlgorithms import generate_ideal_path_with_splits_plan_for_first_routing_request, \
     generate_midpoints_restricted_plan_for_first_routing_request, \
-    generate_random_obstacles_restricted_plan_for_first_routing_request, ROUTE_GENERATION_ALGORITHMS_ABBR
+    generate_random_obstacles_restricted_plan_for_first_routing_request, ROUTE_GENERATION_ALGORITHMS_ABBR, \
+    generate_stupid_search_plan
 from RoutingRequest import RoutingRequest
 from RHCR import RHCR
 
@@ -30,6 +31,10 @@ def generate_plan(warehouse, routing_requests, plan_generation_algorithm, option
         plan = plan_generation_algorithm(warehouse, routing_requests)
     t1 = time()
     return plan, t0, t1
+
+
+def generate_stupid_search_example(warehouse, routing_requests, stupid_moves_left=0):
+    return generate_plan(warehouse, routing_requests, generate_stupid_search_plan, stupid_moves_left)
 
 
 def generate_astar_example(warehouse, routing_requests):
@@ -157,6 +162,7 @@ def generate_example(warehouse, algorithm_name, routing_requests_in_tuples_forma
 
     elif algorithm_name == 'AStar':
         plan, t0, t1 = generate_astar_example(warehouse, routing_requests)
+
     else:
         print("Unsupported algorithm_name.\n", "Currently supports:", "BFS, RND, LNS_RND")
         return [[]], -1

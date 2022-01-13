@@ -29,7 +29,7 @@ TWO_WAVE_ROUTING_REQUEST_TEST = [(0, 6), (1, 6), (2, 6), (3, 2), (4, 6), (5, 2),
 
 ONE_WAVE_ROUTING_REQUEST_TEST = [(0, 6), (1, 6), (2, 6), (3, 2), (4, 6), (5, 2), (6, 3)]
 
-CSV_GENERATION_ROUTING_REQUEST = [(0, 4)]
+CSV_GENERATION_ROUTING_REQUEST = [(0, 20)]
 
 
 def main():
@@ -38,7 +38,7 @@ def main():
     k-MPR_WS, sample_database, sample_database_avoiding_conflicts, AStar] - check generate_example() in ExampleGeneration.py to see which algorithm is referred to by each abbr.
     """
     warehouse = generate_warehouse(WAREHOUSE_TYPES["small structured"])
-    algorithm_name = "BFS"
+    algorithm_name = "AStar"
 
     # for _ in range(1):
     #     build_routes_for_database(warehouse)

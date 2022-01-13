@@ -16,6 +16,8 @@ OBSTACLE_PATTERNS = ["cross", "square", "vertical_line", "horizontal_line", "dot
 
 def generate_midpoints_restricted_plan(warehouse, source, destination, is_split_at_midpoint=False):
     midpoints = get_random_points_throughout_warehouse(warehouse)
+    midpoints.add(source.coordinates)
+
     plan = []
     for i, midpoint_coordinates in enumerate(midpoints):
         midpoint_vertex = warehouse.vertices[midpoint_coordinates[0]][midpoint_coordinates[1]]
@@ -40,7 +42,8 @@ def generate_midpoints_restricted_plan(warehouse, source, destination, is_split_
 
         if is_valid_route_length(warehouse, route_to_midpoint + route_from_midpoint):
             if is_split_at_midpoint:
-                obstacle_patterns = ["cross", "square", "vertical_line", "horizontal_line", "dot"]
+                # obstacle_patterns = ["cross", "square", "vertical_line", "horizontal_line", "dot"]
+                obstacle_patterns = ["dot"]
                 max_obstacle_size = min(warehouse.static_obstacle_length, warehouse.static_obstacle_width)
                 split_step_size = max(2 * max_obstacle_size, 2)
 
@@ -203,3 +206,9 @@ def generate_random_obstacles_restricted_plan_for_first_routing_request(warehous
     first_routing_request = routing_requests[0]
 
     return generate_random_obstacles_restricted_plan(warehouse, first_routing_request, obstacle_patterns)
+
+
+def generate_stupid_search_plan(warehouse, routing_requests, stupid_moves_left=0):
+    stupid_moves_left = 2
+
+    return

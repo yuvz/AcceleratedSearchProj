@@ -12,7 +12,7 @@ from RouteGenerationAlgorithms import ROUTE_GENERATION_ALGORITHMS_ABBR
 SHOW_ANIMATION_TRAIL = False
 REPEAT_ANIMATION = True
 
-COLOR_BY_DESTINATION_ID = True
+COLOR_BY_DESTINATION_ID = False
 COLOR_BY_SOURCE_ID = False
 
 WAREHOUSE_FPS = [24, 3, 6, 12]
@@ -205,20 +205,26 @@ def show_plan_as_image(warehouse, plan, algorithm_name="TODO", running_time=-1.0
     warehouse.plot_layout()
     set_plot_title_and_info(warehouse, plan, running_time, algorithm_name, title)
 
+    coordinates_painted = set()
     for i, route in enumerate(plan):
         for coordinates in route:
+            if coordinates in coordinates_painted:
+                continue
+            else:
+                coordinates_painted.add(coordinates)
+
             if COLOR_BY_DESTINATION_ID:
                 plt.scatter(coordinates[1], coordinates[0], s=20,
                             color=distinct_colors[
                                 get_destination_id_from_route(warehouse, route) % len(distinct_colors)])
             else:  # colors by source_id
                 plt.scatter(coordinates[1], coordinates[0], s=20, color=distinct_colors[i % len(distinct_colors)])
+    plt.show()
     if export_image:
         print("***")
         print("Exporting figure")
         plt.savefig(f'{algorithm_name}.png')
         print("Export done")
-    plt.show()
 
 
 def visualize_plan(warehouse, plan, algorithm_name, running_time=-1, visualization_type="animation", title="",

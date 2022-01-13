@@ -30,6 +30,9 @@ class AStar:
         def __lt__(self, other):
             # if self.f_value == other.f_value:
             #     return self.waits_at_source > other.waits_at_source
+            # return random.choice([True, False])
+            if RANDOMIZE_NEIGHBORS and self.f_value < other.f_value:
+                return random.choice([True, False])
 
             return self.f_value < other.f_value
 
@@ -300,6 +303,7 @@ class AStar:
                 else:
                     neighbor_node = AStar.Node(neighbor, distance(neighbor.coordinates, destination.vertex.coordinates),
                                                path_cost, current_node)
+
                     heapq.heappush(priority_queue, neighbor_node)
                     visited[neighbor] = neighbor_node
 
