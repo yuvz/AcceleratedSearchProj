@@ -30,9 +30,6 @@ class AStar:
         def __lt__(self, other):
             # if self.f_value == other.f_value:
             #     return self.waits_at_source > other.waits_at_source
-            # return random.choice([True, False])
-            if RANDOMIZE_NEIGHBORS and self.f_value < other.f_value:
-                return random.choice([True, False])
 
             return self.f_value < other.f_value
 
