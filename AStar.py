@@ -187,7 +187,8 @@ class AStar:
             path_cost = current_node.g_value + 1
 
             valid_neighbors = current_node.get_valid_neighbors_from_plan(warehouse, plan, constraints)
-            if current_node.is_source:
+            # if current_node.is_source:
+            if current_node.vertex in warehouse.sources:
                 valid_neighbors.add(current_node.vertex)
                 if wait_at_source_left > 0:
                     valid_neighbors = [current_node.vertex]

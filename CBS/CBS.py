@@ -51,10 +51,8 @@ class CBS:
                         print("CBS Finished")
                         return self.format_result(result[0])
                     if result[0]:
-                        # print("result[0]: ", result[0])
                         heappush(open, result[0])
                     if result[1]:
-                        # print("result[1]: ", result[1])
                         heappush(open, result[1])
         print("CBS Failed")
         return plan
@@ -118,9 +116,6 @@ class CBS:
             # time_of_conflict=-1 if there is not conflict
             if time_of_conflict == -1:
                 continue
-            # print("time_of_conflict", time_of_conflict)
-            # print("agent_i", agent_i)
-            # print("agent_j", agent_j)
             return agent_i, agent_j, time_of_conflict
         return None, None, -1
 
