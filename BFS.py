@@ -30,10 +30,6 @@ class BFS:
             neighbor_destination_distance = neighbor.get_destination_distance(self.destination.destination_id)
             if neighbor_destination_distance < min_destination_distance:
                 return neighbor
-        #         min_destination_distance = neighbor_destination_distance
-        #         ideal_neighbor = neighbor
-        #
-        # return ideal_neighbor
 
     def search(self):
         route = [self.vertex.coordinates]

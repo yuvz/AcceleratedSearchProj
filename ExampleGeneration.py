@@ -1,8 +1,8 @@
 import random
 from time import time
 #from CBS.CBS import CBS
-import DatabaseBuilding
-# from DatabaseBuilding import sample_routing_request_plan_from_database
+import NoDeviationFactorDatabase
+# from NoDeviationFactorDatabase import sample_routing_request_plan_from_database
 from CBS.CBS import CBS
 from AStar import generate_astar_plan_for_first_routing_request
 from EnvironmentUtils import generate_rand_routing_requests, generate_rand_routing_request
@@ -42,11 +42,11 @@ def generate_astar_example(warehouse, routing_requests):
 
 
 def generate_sample_database_avoiding_conflicts_example(warehouse, routing_requests):
-    return generate_plan(warehouse, routing_requests, DatabaseBuilding.sample_routing_database_avoiding_conflicts)
+    return generate_plan(warehouse, routing_requests, NoDeviationFactorDatabase.sample_routing_database_avoiding_conflicts)
 
 
 def generate_sample_database_example(warehouse, routing_requests):
-    return generate_plan(warehouse, routing_requests, DatabaseBuilding.sample_routing_request_plan_from_database)
+    return generate_plan(warehouse, routing_requests, NoDeviationFactorDatabase.sample_routing_request_plan_from_database)
 
 
 def generate_midpoints_restricted_example(warehouse, routing_requests, is_split_at_midpoint=False):

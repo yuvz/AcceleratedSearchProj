@@ -1,3 +1,4 @@
+import sys
 from math import floor
 from queue import Queue
 from typing import List, Set, Tuple
@@ -11,23 +12,15 @@ DESTINATION_OFFSET = 5
 ALLOW_DIAGONAL_MOVEMENT = False
 PRIORITIZE_AGENTS_WAITING_AT_SOURCE = True
 
-WAREHOUSE_1_WALL_CORNERS = [(21, 15), (21, 46), (21, 105), (28, 82), (45, 50), (45, 70), (45, 95), (57, 19),
-                            (73, 70), (60, 115)]
-WAREHOUSE_2_WALL_CORNERS = [(3, 2), (3, 5), (4, 7), (6, 5)]
-WAREHOUSE_3_WALL_CORNERS = [(30, 5), (30, 15), (30, 25), (30, 35), (25, 0), (25, 10), (25, 20), (25, 30),
-                            (20, 5), (20, 15), (20, 25), (20, 35), (15, 0), (15, 10), (15, 20), (15, 30),
-                            (10, 5), (10, 15), (10, 25), (10, 35), (5, 0), (5, 10), (5, 20), (5, 30)]
-WAREHOUSE_4_WALL_CORNERS = []
-WAREHOUSE_CORNERS = [WAREHOUSE_1_WALL_CORNERS, WAREHOUSE_2_WALL_CORNERS, WAREHOUSE_3_WALL_CORNERS,
-                     WAREHOUSE_4_WALL_CORNERS]
-
 
 class Warehouse:
     class WarehouseNode:
-        def __init__(self, coordinates, number_of_destinations):
+        def __init__(self, coordinates, number_of_sources, number_of_destinations):
             self.coordinates = coordinates
+            self.source_distance = [0 for _ in range(number_of_sources)]
+            self.source_routes = [[] for _ in range(number_of_sources)]
             self.destination_distance = [0 for _ in range(number_of_destinations)]
-            self.destination_routs = [[] for _ in range(number_of_destinations)]
+            self.destination_routes = [[] for _ in range(number_of_destinations)]
             self.is_static_obstacle = False
             self.source_id = -1  # not optimal solution, but simplifies implementation
             self.destination_id = -1  # not optimal solution, but simplifies implementation
@@ -50,7 +43,7 @@ class Warehouse:
 
         destination.destination_distance[i] = 0
         destination_entrance.destination_distance[i] = 1
-        destination_entrance.destination_routs[i].append(destination_coordinates)
+        destination_entrance.destination_routes[i].append(destination_coordinates)
 
         queue = Queue()
         queue.put(destination_entrance)
@@ -62,9 +55,9 @@ class Warehouse:
             for v in u.neighbors:
                 if v not in visited:
                     v.destination_distance[i] = u.destination_distance[i] + 1
-                    v.destination_routs[i].append(u.coordinates)
-                    for node in u.destination_routs[i]:
-                        v.destination_routs[i].append(node)
+                    v.destination_routes[i].append(u.coordinates)
+                    for node in u.destination_routes[i]:
+                        v.destination_routes[i].append(node)
                     visited.add(v)
                     queue.put(v)
             visited.add(u)
@@ -72,13 +65,52 @@ class Warehouse:
             source_coordinates = source.coordinates
             source_entrance = self.vertices[source_coordinates[0] - 1][source_coordinates[1]]
             source.destination_distance[i] = 1 + source_entrance.destination_distance[i]
-            source.destination_routs[i].append(source_entrance.coordinates)
-            for node in source_entrance.destination_routs[i]:
-                source.destination_routs[i].append(node)
+            source.destination_routes[i].append(source_entrance.coordinates)
+            for node in source_entrance.destination_routes[i]:
+                source.destination_routes[i].append(node)
 
     def set_destination_distances(self):
         for i in range(self.number_of_destinations):
             self.set_ith_destination_distances(i)
+
+    """
+         Uses a breadth first search to calculate the distances of all vertices in the warehouse from the ith 
+         source.
+         This algorithm avoids static obstacles and ignores dynamic obstacles
+    """
+
+    def set_ith_source_distances(self, i):
+        source = self.sources[i]
+        source_coordinates = source.coordinates
+
+        source.source_distance[i] = 0
+        source.source_routes[i].append(source_coordinates)
+
+        queue = Queue()
+        queue.put(source)
+        visited = set()
+        visited.add(source)
+        while not queue.empty():
+            u = queue.get()
+            for v in u.neighbors:
+                if v not in visited:
+                    v.source_distance[i] = u.source_distance[i] + 1
+                    v.source_routes[i].append(u.coordinates)
+                    for node in u.source_routes[i]:
+                        v.source_routes[i].append(node)
+                    visited.add(v)
+                    queue.put(v)
+            visited.add(u)
+
+        for other_source in self.sources:
+            if other_source == source:
+                continue
+
+            other_source.source_distance[i] = sys.maxsize
+
+    def set_source_distances(self):
+        for i in range(self.number_of_sources):
+            self.set_ith_source_distances(i)
 
     def adjust_destinations_neighbors(self):
         for destination in self.destinations:
@@ -175,15 +207,15 @@ class Warehouse:
                         self.static_obstacles.add((obstacle_row_idx, obstacle_column_idx))
 
                         # used for animations
-                        if i == 0 or i == self.static_obstacle_length - 1 or j == 0 \
-                                or j == self.static_obstacle_width - 1:
-                            self.static_obstacle_corners.add((obstacle_row_idx, obstacle_column_idx))
-                            obstacle_corners.add((obstacle_row_idx, obstacle_column_idx))
-        self.static_obstacle_coordinates_split_by_obstacle.append(obstacle_corners)
+                        # if i == 0 or i == self.static_obstacle_length - 1 or j == 0 \
+                        #         or j == self.static_obstacle_width - 1:
+                        #     self.static_obstacle_corners.add((obstacle_row_idx, obstacle_column_idx))
+                        #     obstacle_corners.add((obstacle_row_idx, obstacle_column_idx))
+        # self.static_obstacle_coordinates_split_by_obstacle.append(obstacle_corners)
 
     def set_static_obstacles(self):
-        corners_coordinates = WAREHOUSE_CORNERS[self.warehouse_id - 1]
-        for corner_coordinates in corners_coordinates:
+        # corners_coordinates = WAREHOUSE_CORNERS[self.warehouse_id - 1]
+        for corner_coordinates in self.static_obstacle_layout:
             self.set_static_obstacle(corner_coordinates[0], corner_coordinates[1])
 
     def initialize_vertices(self):
@@ -192,7 +224,7 @@ class Warehouse:
 
             for column_idx in range(self.width):
                 coordinates = (row_idx, column_idx)
-                new_vertex = self.WarehouseNode(coordinates, self.number_of_destinations)
+                new_vertex = self.WarehouseNode(coordinates, self.number_of_sources, self.number_of_destinations)
 
                 column.append(new_vertex)
 
@@ -202,30 +234,30 @@ class Warehouse:
         for source in self.sources:
             mid_points = []
             for i, distance in enumerate(source.destination_distance):
-                mid_points.append(source.destination_routs[i][distance//2])
+                mid_points.append(source.destination_routes[i][distance // 2])
             self.sources_to_destinations_mid_point.append(mid_points)
 
     def set_averages(self):
         for j, source in enumerate(self.sources):
             averages_to_mid_point = []
-            for i, route in enumerate(source.destination_routs):
+            for i, route in enumerate(source.destination_routes):
                 euclidian_distance_to_mid_point = 0.0
                 mid_point_coordinates = self.sources_to_destinations_mid_point[j][i]
                 for node_coordinates in route:
-                    euclidian_distance_to_mid_point += sqrt(pow(node_coordinates[0]-mid_point_coordinates[0], 2)+
-                                                            pow(node_coordinates[1]-mid_point_coordinates[1], 2))
-                averages_to_mid_point.append(euclidian_distance_to_mid_point/source.destination_distance[i])
+                    euclidian_distance_to_mid_point += sqrt(pow(node_coordinates[0] - mid_point_coordinates[0], 2) +
+                                                            pow(node_coordinates[1] - mid_point_coordinates[1], 2))
+                averages_to_mid_point.append(euclidian_distance_to_mid_point / source.destination_distance[i])
             self.sources_to_destinations_average_euclidian_distance_to_mid_point.append(averages_to_mid_point)
 
     # def print(self):
     #     for i, source in enumerate(self.sources):
     #         print("source.destination_distance:", source.destination_distance)
-    #         print("source.destination_routs:", source.destination_routs)
+    #         print("source.destination_routes:", source.destination_routes)
     #         print("self.sources_to_destinations_mid_point:", self.sources_to_destinations_mid_point[i])
     #         print("self.sources_to_destinations_average_euclidian_distance_to_mid_point", self.sources_to_destinations_average_euclidian_distance_to_mid_point[i])
 
     def __init__(self, warehouse_id, length, width, number_of_sources, number_of_destinations, static_obstacle_length,
-                 static_obstacle_width):
+                 static_obstacle_width, static_obstacle_layout):
         self.warehouse_id = warehouse_id
         self.length = length
         self.width = width
@@ -233,11 +265,12 @@ class Warehouse:
         self.number_of_destinations = number_of_destinations
         self.static_obstacle_length = static_obstacle_length
         self.static_obstacle_width = static_obstacle_width
+        self.static_obstacle_layout = static_obstacle_layout
 
         self.vertices: List[List[Warehouse.WarehouseNode]] = []
         self.static_obstacles = set()
-        self.static_obstacle_corners: Set[Tuple[int, int]] = set()
-        self.static_obstacle_coordinates_split_by_obstacle = []
+        # self.static_obstacle_corners: Set[Tuple[int, int]] = set()
+        # self.static_obstacle_coordinates_split_by_obstacle = []
         self.sources: List[Warehouse.WarehouseNode] = []
         self.destinations: List[Warehouse.WarehouseNode] = []
         self.sources_to_destinations_mid_point: List[List[Tuple[int, int]]] = []
@@ -251,6 +284,7 @@ class Warehouse:
         self.set_destinations()
 
         self.adjust_sources_neighbors()
+        self.set_source_distances()
         self.adjust_destinations_neighbors()
         self.set_destination_distances()
         self.set_mid_points()
@@ -258,27 +292,32 @@ class Warehouse:
         # self.print()
 
     def plot_obstacles(self):
-        for point in WAREHOUSE_3_WALL_CORNERS:
+        for point in self.static_obstacle_layout:
             lower_left_corner = [point[0], point[1]]
             upper_left_corner = [point[0] + self.static_obstacle_length - 1, point[1]]
             upper_right_corner = [point[0] + self.static_obstacle_length - 1, point[1] + self.static_obstacle_width - 1]
             lower_right_corner = [point[0], point[1] + self.static_obstacle_width - 1]
 
             # draw corners
-            corner_x_values = [lower_left_corner[0], upper_left_corner[0], upper_right_corner[0], lower_right_corner[0], lower_left_corner[0]]
-            corner_y_values = [lower_left_corner[1], upper_left_corner[1], upper_right_corner[1], lower_right_corner[1], lower_left_corner[1]]
-            plt.plot(corner_y_values, corner_x_values, c='#484848', linewidth=2)
+            corner_x_values = [lower_left_corner[0], upper_left_corner[0], upper_right_corner[0], lower_right_corner[0],
+                               lower_left_corner[0]]
+            corner_y_values = [lower_left_corner[1], upper_left_corner[1], upper_right_corner[1], lower_right_corner[1],
+                               lower_left_corner[1]]
+            plt.fill(corner_y_values, corner_x_values, c='#bababa', linewidth=2)
+            plt.plot(corner_y_values, corner_x_values, c='#adadad', linewidth=2)
+            #
+            # # draw diagonals
+            # primary_diagonal_x = [lower_right_corner[0], upper_left_corner[0]]
+            # primary_diagonal_y = [lower_right_corner[1], upper_left_corner[1]]
+            # plt.plot(primary_diagonal_y, primary_diagonal_x, c='gray', linewidth=1)
+            #
+            # secondary_diagonal_x = [lower_left_corner[0], upper_right_corner[0]]
+            # secondary_diagonal_y = [lower_left_corner[1], upper_right_corner[1]]
+            # plt.plot(secondary_diagonal_y, secondary_diagonal_x, c='gray', linewidth=1)
 
-            # draw diagonals
-            primary_diagonal_x = [lower_right_corner[0], upper_left_corner[0]]
-            primary_diagonal_y = [lower_right_corner[1], upper_left_corner[1]]
-            plt.plot(primary_diagonal_y, primary_diagonal_x, c='gray', linewidth=1)
+    def plot_layout(self, plot_grid=False):
+        # plt.style.use('tableau-colorblind10')
 
-            secondary_diagonal_x = [lower_left_corner[0], upper_right_corner[0]]
-            secondary_diagonal_y = [lower_left_corner[1], upper_right_corner[1]]
-            plt.plot(secondary_diagonal_y, secondary_diagonal_x, c='gray', linewidth=1)
-
-    def plot_layout(self):
         fig = plt.figure(figsize=(8, 7), dpi=100)
         ax = plt.axes(xlim=(0, self.width - 1), ylim=(0, self.length - 1))
         for source in self.sources:
@@ -289,9 +328,10 @@ class Warehouse:
         for destination in self.destinations:
             plt.scatter(destination.coordinates[1], destination.coordinates[0], s=250, marker='^', c='hotpink')
 
-        plt.xlim(-1, self.width)
+        plt.xlim(-0.5, self.width - 0.5)
         plt.ylim(0, self.length - 1)
-        plt.grid()
+        if plot_grid:
+            plt.grid()
 
         return fig, ax
 

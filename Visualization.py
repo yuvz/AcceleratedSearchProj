@@ -1,11 +1,13 @@
 import matplotlib.pyplot as plt
+import pandas as pd
+import seaborn as sns
 import random
 from matplotlib.animation import FuncAnimation
 from colorsys import hls_to_rgb
 from copy import deepcopy
 from time import time
 
-from DatabaseBuilding import DATABASE_GENERATION_ALGORITHMS
+from NoDeviationFactorDatabase import DATABASE_GENERATION_ALGORITHMS
 from EnvironmentUtils import get_source_id_from_route, get_destination_id_from_route, count_plan_conflicts
 from RouteGenerationAlgorithms import ROUTE_GENERATION_ALGORITHMS_ABBR
 
@@ -144,7 +146,7 @@ def set_plot_title_and_info(warehouse, plan, running_time, algorithm_name, title
         set_routing_solution_title_and_info(warehouse, plan, running_time, algorithm_name, title)
 
 
-def show_plan_as_animation(warehouse, plan, algorithm_name="TODO", running_time=-1.0, title="", export_animation=False):
+def show_plan_as_animation(warehouse, plan, is_export_visualization=False, title="", algorithm_name="", running_time=-1):
     fig, ax = warehouse.plot_layout()
     set_plot_title_and_info(warehouse, plan, running_time, algorithm_name, title)
 
@@ -194,45 +196,46 @@ def show_plan_as_animation(warehouse, plan, algorithm_name="TODO", running_time=
                               repeat=REPEAT_ANIMATION)
 
     plt.show()
-    if export_animation:
+    if is_export_visualization:
         print("***")
         print("Exporting animation")
         animation.save(f'{algorithm_name}.gif', writer='ffmpeg')
         print("Export done")
 
 
-def show_plan_as_image(warehouse, plan, algorithm_name="TODO", running_time=-1.0, title="", export_image=False):
+def show_plan_as_image(warehouse, plan, is_export_visualization=False, title="", algorithm_name="", running_time=-1):
     warehouse.plot_layout()
     set_plot_title_and_info(warehouse, plan, running_time, algorithm_name, title)
 
-    coordinates_painted = set()
+    random.shuffle(plan)
     for i, route in enumerate(plan):
-        for coordinates in route:
-            if coordinates in coordinates_painted:
-                continue
-            else:
-                coordinates_painted.add(coordinates)
+        if i > 10:
+            # print("remove this")
+            continue
 
-            if COLOR_BY_DESTINATION_ID:
-                plt.scatter(coordinates[1], coordinates[0], s=20,
-                            color=distinct_colors[
-                                get_destination_id_from_route(warehouse, route) % len(distinct_colors)])
-            else:  # colors by source_id
-                plt.scatter(coordinates[1], coordinates[0], s=20, color=distinct_colors[i % len(distinct_colors)])
+        x_coordinates = [coordinate[0] for coordinate in route]
+        y_coordinates = [coordinate[1] for coordinate in route]
+
+        if COLOR_BY_DESTINATION_ID:
+            plt.plot(y_coordinates, x_coordinates, c=distinct_colors[
+                get_destination_id_from_route(warehouse, route) % len(distinct_colors)], linewidth=(7 - (i / 2)))
+        else:  # colors by source_id
+            plt.plot(y_coordinates, x_coordinates, linewidth=(7 - (i / 2)))
+
     plt.show()
-    if export_image:
+    if is_export_visualization:
         print("***")
         print("Exporting figure")
         plt.savefig(f'{algorithm_name}.png')
         print("Export done")
 
 
-def visualize_plan(warehouse, plan, algorithm_name, running_time=-1, visualization_type="animation", title="",
-                   is_export_visualization=False):
+def visualize_plan(warehouse, plan, visualization_type, is_export_visualization=False, title="", algorithm_name="",
+                   running_time=-1):
     if visualization_type == "animation":
-        show_plan_as_animation(warehouse, plan, algorithm_name, running_time, title, is_export_visualization)
+        show_plan_as_animation(warehouse, plan, is_export_visualization, title, algorithm_name, running_time)
     elif visualization_type == "image":
-        show_plan_as_image(warehouse, plan, algorithm_name, running_time, title, is_export_visualization)
+        show_plan_as_image(warehouse, plan, is_export_visualization, title, algorithm_name, running_time)
 
     else:
         print("visualization_type must be in", ["animation", "image"])

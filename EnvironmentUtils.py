@@ -34,11 +34,13 @@ def generate_rand_routing_request(warehouse, *unused_variables):
 def find_route_using_Astar(warehouse, plan, routing_request, is_first_routing_request=False, wait_at_source_left=0,
                            constraints: Dict[int, Set[Tuple[int, int]]] = None) -> List[Tuple[int, int]]:
     routing_request_vertex = routing_request.source
-    source_node = AStar.AStar.Node(routing_request_vertex, routing_request_vertex.destination_distance[routing_request.destination.destination_id], 0,
-                             None, True)
+    source_node = AStar.AStar.Node(routing_request_vertex, routing_request_vertex.destination_distance[
+        routing_request.destination.destination_id], 0,
+                                   None, True)
     destination_node = AStar.AStar.Node(routing_request.destination, 0, maxsize, None, False)
     a_star_framework = AStar.AStar(source_node, destination_node)
-    route = a_star_framework.space_time_search(warehouse, routing_request, plan, is_first_routing_request, wait_at_source_left, constraints)
+    route = a_star_framework.space_time_search(warehouse, routing_request, plan, is_first_routing_request,
+                                               wait_at_source_left, constraints)
     return route
 
 
@@ -67,13 +69,15 @@ def order_routing_requests_by_source_then_destination_id(routing_requests):
 
 def get_destination_id_from_route(warehouse, route):
     routing_request_final_coordinates = route[-1]
-    routing_request_destination = warehouse.vertices[routing_request_final_coordinates[0]][routing_request_final_coordinates[1]]
+    routing_request_destination = warehouse.vertices[routing_request_final_coordinates[0]][
+        routing_request_final_coordinates[1]]
     return routing_request_destination.destination_id
 
 
 def get_source_id_from_route(warehouse, route):
     routing_request_initial_coordinates = route[0]
-    routing_request_source = warehouse.vertices[routing_request_initial_coordinates[0]][routing_request_initial_coordinates[1]]
+    routing_request_source = warehouse.vertices[routing_request_initial_coordinates[0]][
+        routing_request_initial_coordinates[1]]
     return routing_request_source.source_id
 
 
@@ -123,9 +127,11 @@ def generate_warehouse(warehouse_id):
         number_of_destinations = 9
         obstacle_length = round(0.1 * length)
         obstacle_width = round(0.1 * width)
+        obstacle_layout = [(21, 15), (21, 46), (21, 105), (28, 82), (45, 50), (45, 70), (45, 95), (57, 19),
+                           (73, 70), (60, 115)]
 
         return Warehouse(warehouse_id, length, width, number_of_sources, number_of_destinations, obstacle_length,
-                         obstacle_width)
+                         obstacle_width, obstacle_layout)
 
     # Toy warehouse
     if warehouse_id == 2:
@@ -135,9 +141,10 @@ def generate_warehouse(warehouse_id):
         number_of_destinations = 2
         obstacle_length = round(0.1 * length)
         obstacle_width = round(0.1 * width)
+        obstacle_layout = [(3, 2), (3, 5), (4, 7), (6, 5)]
 
         return Warehouse(warehouse_id, length, width, number_of_sources, number_of_destinations, obstacle_length,
-                         obstacle_width)
+                         obstacle_width, obstacle_layout)
 
     # small structured
     if warehouse_id == 3:
@@ -145,11 +152,14 @@ def generate_warehouse(warehouse_id):
         width = 40
         number_of_sources = 40
         number_of_destinations = 40
-        obstacle_length = round(0.1 * length)
+        obstacle_length = round(0.1 * length) + 1
         obstacle_width = round(0.1 * width)
+        obstacle_layout = [(30, 5), (30, 15), (30, 25), (30, 35), (25, 0), (25, 10), (25, 20), (25, 30),
+                           (20, 5), (20, 15), (20, 25), (20, 35), (15, 0), (15, 10), (15, 20), (15, 30),
+                           (10, 5), (10, 15), (10, 25), (10, 35), (5, 0), (5, 10), (5, 20), (5, 30)]
 
         return Warehouse(warehouse_id, length, width, number_of_sources, number_of_destinations, obstacle_length,
-                         obstacle_width)
+                         obstacle_width, obstacle_layout)
 
     # mid warehouse
     if warehouse_id == 4:
@@ -159,9 +169,10 @@ def generate_warehouse(warehouse_id):
         number_of_destinations = 1
         obstacle_length = round(0.1 * length)
         obstacle_width = round(0.1 * width)
+        obstacle_layout = []
 
         return Warehouse(warehouse_id, length, width, number_of_sources, number_of_destinations, obstacle_length,
-                         obstacle_width)
+                         obstacle_width, obstacle_layout)
 
 
 def is_energy_cost_valid(warehouse, energy_cost):
