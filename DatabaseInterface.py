@@ -14,6 +14,7 @@ MAX_APPROXIMATION = 0.04
 MAX_CONTINUED_MOTION = 5
 MAX_CONTINUED_MOTION_FACTOR = 4
 MIDPOINT_DISTANCE_FROM_EDGES_FACTOR = 0.2
+MAX_DEVIATION_FACTOR_IN_DATABASE = 1.1
 
 
 def generate_midpoint_restricted_path_lengths_csv(warehouse, source_id, destination_id, data):
@@ -52,7 +53,9 @@ def get_midpoint_restricted_path_lengths(warehouse, source, destination):
                 continue
 
             ideal_mrp_length = get_ideal_midpoint_restricted_path_length(source, destination, vertex)
-            heapq.heappush(vertices_heap, (round(ideal_mrp_length / ideal_path_length, 2), vertex.coordinates))
+            deviation_factor = round(ideal_mrp_length / ideal_path_length, 2)
+            if deviation_factor <= MAX_DEVIATION_FACTOR_IN_DATABASE:
+                heapq.heappush(vertices_heap, (deviation_factor, vertex.coordinates))
 
     sorted_vertices = []
     while vertices_heap:
