@@ -18,9 +18,9 @@ class Warehouse:
         def __init__(self, coordinates, number_of_sources, number_of_destinations):
             self.coordinates = coordinates
             self.source_distance = [0 for _ in range(number_of_sources)]
-            self.source_routes = [[] for _ in range(number_of_sources)]
+            # self.source_routes = [[] for _ in range(number_of_sources)]
             self.destination_distance = [0 for _ in range(number_of_destinations)]
-            self.destination_routes = [[] for _ in range(number_of_destinations)]
+            # self.destination_routes = [[] for _ in range(number_of_destinations)]
             self.is_static_obstacle = False
             self.source_id = -1  # not optimal solution, but simplifies implementation
             self.destination_id = -1  # not optimal solution, but simplifies implementation
@@ -43,7 +43,7 @@ class Warehouse:
 
         destination.destination_distance[i] = 0
         destination_entrance.destination_distance[i] = 1
-        destination_entrance.destination_routes[i].append(destination_coordinates)
+        # destination_entrance.destination_routes[i].append(destination_coordinates)
 
         queue = Queue()
         queue.put(destination_entrance)
@@ -55,9 +55,9 @@ class Warehouse:
             for v in u.neighbors:
                 if v not in visited:
                     v.destination_distance[i] = u.destination_distance[i] + 1
-                    v.destination_routes[i].append(u.coordinates)
-                    for node in u.destination_routes[i]:
-                        v.destination_routes[i].append(node)
+                    # v.destination_routes[i].append(u.coordinates)
+                    # for node in u.destination_routes[i]:
+                    #     v.destination_routes[i].append(node)
                     visited.add(v)
                     queue.put(v)
             visited.add(u)
@@ -65,9 +65,9 @@ class Warehouse:
             source_coordinates = source.coordinates
             source_entrance = self.vertices[source_coordinates[0] - 1][source_coordinates[1]]
             source.destination_distance[i] = 1 + source_entrance.destination_distance[i]
-            source.destination_routes[i].append(source_entrance.coordinates)
-            for node in source_entrance.destination_routes[i]:
-                source.destination_routes[i].append(node)
+            # source.destination_routes[i].append(source_entrance.coordinates)
+            # for node in source_entrance.destination_routes[i]:
+            #     source.destination_routes[i].append(node)
 
     def set_destination_distances(self):
         for i in range(self.number_of_destinations):
@@ -84,7 +84,7 @@ class Warehouse:
         source_coordinates = source.coordinates
 
         source.source_distance[i] = 0
-        source.source_routes[i].append(source_coordinates)
+        # source.source_routes[i].append(source_coordinates)
 
         queue = Queue()
         queue.put(source)
@@ -95,9 +95,9 @@ class Warehouse:
             for v in u.neighbors:
                 if v not in visited:
                     v.source_distance[i] = u.source_distance[i] + 1
-                    v.source_routes[i].append(u.coordinates)
-                    for node in u.source_routes[i]:
-                        v.source_routes[i].append(node)
+                    # v.source_routes[i].append(u.coordinates)
+                    # for node in u.source_routes[i]:
+                    #     v.source_routes[i].append(node)
                     visited.add(v)
                     queue.put(v)
             visited.add(u)
@@ -273,8 +273,8 @@ class Warehouse:
         # self.static_obstacle_coordinates_split_by_obstacle = []
         self.sources: List[Warehouse.WarehouseNode] = []
         self.destinations: List[Warehouse.WarehouseNode] = []
-        self.sources_to_destinations_mid_point: List[List[Tuple[int, int]]] = []
-        self.sources_to_destinations_average_euclidian_distance_to_mid_point: List[List[float]] = []
+        # self.sources_to_destinations_mid_point: List[List[Tuple[int, int]]] = []
+        # self.sources_to_destinations_average_euclidian_distance_to_mid_point: List[List[float]] = []
 
         self.initialize_vertices()
         self.set_static_obstacles()
@@ -287,8 +287,8 @@ class Warehouse:
         self.set_source_distances()
         self.adjust_destinations_neighbors()
         self.set_destination_distances()
-        self.set_mid_points()
-        self.set_averages()
+        # self.set_mid_points()
+        # self.set_averages()
         # self.print()
 
     def plot_obstacles(self):
@@ -339,3 +339,9 @@ class Warehouse:
         self.plot_layout()
         plt.show()
         plt.clf()
+
+    def save_image(self):
+        self.plot_layout()
+        plt.grid()
+        plt.savefig(f'warehouse_{self.warehouse_id}_layout.png')
+

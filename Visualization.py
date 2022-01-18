@@ -99,7 +99,7 @@ def set_routing_solution_title_and_info(warehouse, plan, running_time, algorithm
 def set_sample_database_title_and_info(warehouse, plan, running_time, algorithm_name, title):
     sum_of_costs = sum([len(remove_duplicate_destinations_from_route(route)) for route in plan])
     obstacle_density = round(len(warehouse.static_obstacles) / (warehouse.width * warehouse.length), 2)
-    num_vertex_conflicts, num_edge_conflicts = count_plan_conflicts(plan)
+    num_vertex_conflicts, num_swapping_conflicts = count_plan_conflicts(plan)
 
     map_size_str = "map_size = " + str(warehouse.width) + "*" + str(warehouse.length)
     obstacle_density_str = "obstacle_density = " + str(obstacle_density)
@@ -116,7 +116,7 @@ def set_sample_database_title_and_info(warehouse, plan, running_time, algorithm_
     third_line = "\n" + algorithm_name_str + "    " + sum_of_costs_str + "    " + running_time_str
 
     vertex_conflict_str = "vertex_conflicts = " + str(num_vertex_conflicts)
-    edge_conflict_str = "edge_conflicts = " + str(num_edge_conflicts)
+    edge_conflict_str = "swapping_conflicts = " + str(num_swapping_conflicts)
     fourth_line = "\n" + vertex_conflict_str + "    " + edge_conflict_str
     title_left = first_line + second_line + third_line + fourth_line
 

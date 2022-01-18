@@ -147,12 +147,24 @@ def generate_warehouse(warehouse_id):
                          obstacle_width, obstacle_layout)
 
     # small structured
-    if warehouse_id == 3:
+    if warehouse_id == 40:
         length = 40
         width = 40
         number_of_sources = 40
         number_of_destinations = 40
-        obstacle_length = round(0.1 * length) + 1
+        obstacle_length = round(0.1 * length)
+        obstacle_width = round(0.1 * width)
+        obstacle_layout = []
+
+        return Warehouse(warehouse_id, length, width, number_of_sources, number_of_destinations, obstacle_length,
+                         obstacle_width, obstacle_layout)
+
+    if warehouse_id == 41:
+        length = 40
+        width = 40
+        number_of_sources = 40
+        number_of_destinations = 40
+        obstacle_length = round(0.1 * length)
         obstacle_width = round(0.1 * width)
         obstacle_layout = [(30, 5), (30, 15), (30, 25), (30, 35), (25, 0), (25, 10), (25, 20), (25, 30),
                            (20, 5), (20, 15), (20, 25), (20, 35), (15, 0), (15, 10), (15, 20), (15, 30),
@@ -161,15 +173,104 @@ def generate_warehouse(warehouse_id):
         return Warehouse(warehouse_id, length, width, number_of_sources, number_of_destinations, obstacle_length,
                          obstacle_width, obstacle_layout)
 
-    # mid warehouse
-    if warehouse_id == 4:
-        length = 40
-        width = 40
-        number_of_sources = 9
-        number_of_destinations = 1
+    if warehouse_id == 200:
+        length = 200
+        width = 200
+        number_of_sources = 200
+        number_of_destinations = 200
         obstacle_length = round(0.1 * length)
         obstacle_width = round(0.1 * width)
         obstacle_layout = []
+
+        return Warehouse(warehouse_id, length, width, number_of_sources, number_of_destinations, obstacle_length,
+                         obstacle_width, obstacle_layout)
+
+    if warehouse_id == 203:
+        length = 200
+        width = 200
+        number_of_sources = 200
+        number_of_destinations = 200
+        obstacle_length = round(0.1 * length)
+        obstacle_width = round(0.1 * width)
+        pre_obstacle_layout = [(30, 5), (30, 15), (30, 25), (30, 35), (25, 0), (25, 10), (25, 20), (25, 30),
+                               (20, 5), (20, 15), (20, 25), (20, 35), (15, 0), (15, 10), (15, 20), (15, 30),
+                               (10, 5), (10, 15), (10, 25), (10, 35), (5, 0), (5, 10), (5, 20), (5, 30)]
+
+        obstacle_layout = [(x * 5, y * 5) for (x, y) in pre_obstacle_layout]
+
+        return Warehouse(warehouse_id, length, width, number_of_sources, number_of_destinations, obstacle_length,
+                         obstacle_width, obstacle_layout)
+
+    if warehouse_id == 202:
+        length = 200
+        width = 200
+        number_of_sources = 200
+        number_of_destinations = 200
+        obstacle_length = round(0.1 * length)
+        obstacle_width = round(0.1 * width)
+        obstacle_layout = [(40, 0), (40, 19), (40, 39), (40, 79), (40, 99), (40, 139), (40, 159), (40, 179),
+                           (90, 0), (90, 19), (90, 39), (90, 59), (90, 119), (90, 139), (90, 159), (90, 179),
+                           (140, 0), (140, 19), (140, 39), (140, 79), (140, 99), (140, 139), (140, 159), (140, 179)]
+
+        return Warehouse(warehouse_id, length, width, number_of_sources, number_of_destinations, obstacle_length,
+                         obstacle_width, obstacle_layout)
+
+    if warehouse_id == 203:
+        length = 200
+        width = 200
+        number_of_sources = 200
+        number_of_destinations = 200
+        obstacle_length = round(0.1 * length)
+        obstacle_width = round(0.1 * width)
+        pre_obstacle_layout = [(30, 5), (30, 15), (30, 25), (30, 35), (25, 0), (25, 10), (25, 20), (25, 30),
+                               (20, 5), (20, 15), (20, 25), (20, 35), (15, 0), (15, 10), (15, 20), (15, 30),
+                               (10, 5), (10, 15), (10, 25), (10, 35), (5, 0), (5, 10), (5, 20), (5, 30)]
+
+        obstacle_layout = [(x * 5, y * 5) for (x, y) in pre_obstacle_layout]
+
+        return Warehouse(warehouse_id, length, width, number_of_sources, number_of_destinations, obstacle_length,
+                         obstacle_width, obstacle_layout)
+
+    if warehouse_id == 204:
+        length = 200
+        width = 200
+        number_of_sources = 200
+        number_of_destinations = 200
+        obstacle_length = round(0.1 * length)
+        obstacle_width = round(0.1 * width)
+        obstacle_layout = [(40, 0), (40, 19), (40, 39), (40, 59), (40, 119), (40, 139), (40, 159), (40, 179),
+                           (90, 39), (90, 59), (90, 79), (90, 99), (90, 119), (90, 139),
+                           (140, 0), (140, 19), (140, 39), (140, 59), (140, 119), (140, 139), (140, 159), (140, 179)]
+
+        return Warehouse(warehouse_id, length, width, number_of_sources, number_of_destinations, obstacle_length,
+                         obstacle_width, obstacle_layout)
+
+    if warehouse_id == 205:
+        length = 200
+        width = 200
+        number_of_sources = 200
+        number_of_destinations = 200
+        obstacle_length = round(0.1 * length)
+        obstacle_width = round(0.1 * width)
+        obstacle_layout = [(40, 0), (40, 19), (30, 59), (30, 79), (30, 99), (30, 119), (40, 159), (40, 179),
+                           (90, 19), (90, 39), (90, 59), (90, 119), (90, 139), (90, 159),
+                           (140, 0), (140, 19), (150, 59), (150, 79), (150, 99), (150, 119), (140, 159), (140, 179)]
+
+        return Warehouse(warehouse_id, length, width, number_of_sources, number_of_destinations, obstacle_length,
+                         obstacle_width, obstacle_layout)
+
+    if warehouse_id == 206:
+        length = 200
+        width = 200
+        number_of_sources = 200
+        number_of_destinations = 200
+        obstacle_length = round(0.1 * length)
+        obstacle_width = round(0.1 * width)
+        obstacle_layout = [(40, 18), (40, 38), (40, 60), (40, 81), (40, 101), (40, 121), (40, 142), (40, 162),
+                           (60, 60), (60, 81), (60, 101),
+                           (90, 18), (90, 39), (90, 59), (90, 119), (90, 139), (90, 160),
+                           (120, 60), (120, 81), (120, 101),
+                           (140, 18), (140, 38), (140, 60), (140, 81), (140, 101), (140, 121), (140, 142), (140, 162)]
 
         return Warehouse(warehouse_id, length, width, number_of_sources, number_of_destinations, obstacle_length,
                          obstacle_width, obstacle_layout)
@@ -196,7 +297,7 @@ def get_all_source_and_destination_combinations(warehouse):
     return combinations
 
 
-def count_edge_conflicts(plan):
+def count_swapping_conflicts(plan):
     count = 0
     for i in range(len(plan)):
         for j in range(len(plan)):
@@ -236,9 +337,9 @@ def count_vertex_conflicts(plan):
 
 def count_plan_conflicts(plan):
     vertex_conflicts = count_vertex_conflicts(plan)
-    edge_conflicts = count_edge_conflicts(plan)
+    swapping_conflicts = count_swapping_conflicts(plan)
 
-    return vertex_conflicts, edge_conflicts
+    return vertex_conflicts, swapping_conflicts
 
 
 def is_vertex_conflict_between_plans(this, other):

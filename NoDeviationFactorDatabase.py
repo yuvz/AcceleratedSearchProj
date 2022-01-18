@@ -494,7 +494,7 @@ def build_tagged_examples_for_database(warehouse, num_of_waves=1, iterations=1):
 
     for _ in range(iterations):
         plan = ExampleGeneration.generate_example(warehouse, "sample_database")[0]
-        vertex_conflicts, edge_conflicts = count_plan_conflicts(plan)
+        vertex_conflicts, swapping_conflicts = count_plan_conflicts(plan)
 
 
 def sample_routing_database_avoiding_conflicts(warehouse, routing_requests):
