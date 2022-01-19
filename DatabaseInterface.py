@@ -78,7 +78,7 @@ def get_midpoint_dataframe(warehouse, source_id, destination_id):
                 f'_to_destination_{destination_id}.csv'
     file_exists = os.path.isfile(file_path)
     if not file_exists:
-        print("Needed files not found. Please run initialize_database_perliminary_files(warehouse)")
+        print("Needed files not found. Please run initialize_database_preliminary_files(warehouse)")
         return None
 
     midpoint_df = pd.read_csv(file_path)
@@ -496,7 +496,7 @@ def generate_path_database(warehouse, paths_per_deviation_factor=30, deviation_f
     return plan
 
 
-def initialize_database_perliminary_files(warehouse):
+def initialize_database_preliminary_files(warehouse):
     """
     Creates the warehouse folder, containing the warehouse layout .csv and .png files.
     Creates the midpoint restricted database.
@@ -521,63 +521,3 @@ def initialize_database_perliminary_files(warehouse):
             build_midpoint_restricted_database(warehouse, source, destination)
     print("Done")
     print("***")
-
-
-def get_midpoint_providing_shortest_path_smaller_than_arrival_time(warehouse, source_id, destination_id, arrival_time):
-    warehouse_id = warehouse.warehouse_id
-    file_path = f'./csv_files/warehouse_{warehouse_id}/midpoint_restricted_path_lengths/from_source_{source_id}' \
-                f'_to_destination_{destination_id}.csv'
-    midpoint_df = pd.read_csv(file_path)
-
-    ideal_path_length = warehouse.sources[source_id].destination_distance[destination_id]
-    deviation_factor = round(arrival_time / ideal_path_length, 2)
-    if deviation_factor != round(deviation_factor):
-        deviation_factor -= 0.01
-
-    values_below_deviation_factor = midpoint_df.loc[midpoint_df.deviation_factor <= deviation_factor]
-
-    sampled_midpoint = eval(values_below_deviation_factor.midpoint.sample().item())
-    return sampled_midpoint
-
-
-def generate_path_arriving_before_arrival_time(warehouse, source_id, destination_id, arrival_time):
-    midpoint = get_midpoint_providing_shortest_path_smaller_than_arrival_time(warehouse, source_id, destination_id,
-                                                                              arrival_time)
-
-    path_to_midpoint = greedily_generate_path_from_source_to_midpoint(warehouse, source_id, midpoint)
-    path_from_midpoint = greedily_generate_path_from_midpoint_to_destination(warehouse, destination_id, midpoint)
-    path = path_to_midpoint + path_from_midpoint[1:]
-
-    return path
-
-
-def generate_path_for_given_arrival_time(warehouse, source_id, destination_id, arrival_time):
-    path_without_waits = generate_path_arriving_before_arrival_time(warehouse, source_id, destination_id, arrival_time)
-    path_length = len(path_without_waits)
-
-    waits_at_source = [path_without_waits[0] for _ in range(arrival_time - path_length)]
-    path_with_waits = waits_at_source + path_without_waits
-
-    return path_with_waits
-
-
-def generate_arrival_time(warehouse, source_id, destination_id, maximal_deviation_factor):
-    ideal_path_length = warehouse.sources[source_id].destination_distance[destination_id]
-    deviation_factor = random.uniform(1, maximal_deviation_factor)
-
-    arrival_time = math.floor(ideal_path_length * deviation_factor)
-    return arrival_time
-
-
-def run_experiment(warehouse, routing_request_size, maximal_deviation_factor=1.1):
-    source_ids = [random.choice(range(warehouse.number_of_sources)) for _ in range(routing_request_size)]
-    destination_ids = [random.choice(range(warehouse.number_of_destinations)) for _ in range(routing_request_size)]
-    arrival_times = [generate_arrival_time(warehouse, source_ids[i], destination_ids[i], maximal_deviation_factor)
-                     for i in range(routing_request_size)]
-
-    plan = [generate_path_for_given_arrival_time(warehouse, source_ids[i], destination_ids[i], arrival_times[i])
-            for i in range(routing_request_size)]
-
-    vertex_conflicts, swapping_conflicts = count_plan_conflicts(plan)
-
-    return plan, vertex_conflicts, swapping_conflicts

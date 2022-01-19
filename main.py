@@ -1,5 +1,10 @@
-from DatabaseInterface import initialize_database_perliminary_files, generate_path_for_given_arrival_time, \
-    generate_path_database, generate_approximately_matching_deviation_factor_path_via_midpoint, run_experiment
+from ConflictsByNumberOfAgentsExperiment import run_experiment, \
+    run_experiments_to_generate_main_data_file, generate_conflict_probability_by_number_of_agents_data, \
+    generate_conflict_probability_by_number_of_agents_visualization, generate_vertex_conflict_heatmap_data, \
+    generate_vertex_conflict_heatmap_visualization, generate_swapping_conflict_heatmap_data, \
+    generate_swapping_conflict_heatmap_visualization
+from DatabaseInterface import initialize_database_preliminary_files
+
 from ExampleGeneration import generate_example
 from EnvironmentUtils import generate_warehouse
 from Visualization import visualize_plan
@@ -11,20 +16,11 @@ VISUALIZE_RESULT = True
 EXPORT_RESULT_TO_CSV = False
 
 
-def main():
-    """
-    Run initialize_database_perliminary_files first
-        -> Then you can start generating the database with generate_path_database
-            -> Then you can start sampling the database with sample_path_database
-
-    You can also use generate_example regardless of the database mentioned above.
-        Check the generate_example code to see what input to supply.
-    """
-    warehouse = generate_warehouse(203)
-    initialize_database_perliminary_files(warehouse)
+def previous_algorithms_template(warehouse_id):
+    warehouse = generate_warehouse(warehouse_id)
 
     t0 = time()
-    plan, vertex_conflicts, swapping_conflicts = run_experiment(warehouse, 10)
+    routing_requests, plan, vertex_conflicts, swapping_conflicts = run_experiment(warehouse, 10)
     t1 = time()
 
     running_time = round(t1 - t0, 2)
@@ -38,12 +34,51 @@ def main():
     #
     if VISUALIZE_RESULT:
         visualization_type = "animation"
-        title = f"vertex_conflicts={vertex_conflicts}, swapping_conflicts={swapping_conflicts}"
+        title = f"vertex_conflicts={vertex_conflicts},\n swapping_conflicts={swapping_conflicts}"
         is_export_visualization = True
         # visualize_plan(warehouse, plan, visualization_type, is_export_visualization, title)
 
         visualization_type = "image"
         visualize_plan(warehouse, plan, visualization_type, is_export_visualization, title, algorithm_name, running_time)
+
+
+def generate_database(warehouse_id, max_number_of_agents, number_of_agents_incrementation_step=1,
+                      number_of_samples=1000):
+    warehouse = generate_warehouse(warehouse_id)
+    initialize_database_preliminary_files(warehouse)
+
+    for i in range(1, max_number_of_agents, number_of_agents_incrementation_step):
+        run_experiments_to_generate_main_data_file(warehouse, i, number_of_samples)
+
+
+def generate_conflict_probability_by_number_of_agents_results(warehouse_id):
+    generate_conflict_probability_by_number_of_agents_data(warehouse_id)
+    generate_conflict_probability_by_number_of_agents_visualization(warehouse_id)
+
+
+def generate_vertex_conflict_heatmap(warehouse_id):
+    warehouse = generate_warehouse(warehouse_id)
+    generate_vertex_conflict_heatmap_data(warehouse)
+    generate_vertex_conflict_heatmap_visualization(warehouse_id)
+
+
+def generate_swapping_conflict_heatmap(warehouse_id):
+    warehouse = generate_warehouse(warehouse_id)
+    generate_swapping_conflict_heatmap_data(warehouse)
+    generate_swapping_conflict_heatmap_visualization(warehouse_id)
+
+
+def main():
+    """
+    Run initialize_database_preliminary_files first
+        -> Then you can start generating the database with generate_path_database
+            -> Then you can start sampling the database with sample_path_database
+
+    You can also use generate_example regardless of the database mentioned above.
+        Check the generate_example code to see what input to supply.
+    """
+    # generate_database(3)
+    generate_swapping_conflict_heatmap(3)
 
 
 if __name__ == "__main__":
