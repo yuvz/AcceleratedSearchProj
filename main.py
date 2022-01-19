@@ -51,7 +51,7 @@ def generate_database(warehouse_id, max_number_of_agents, number_of_agents_incre
         run_experiments_to_generate_main_data_file(warehouse, i, number_of_samples)
 
 
-def generate_conflict_probability_by_number_of_agents_results(warehouse_id):
+def generate_conflict_probability_by_number_of_agents_scatterplot(warehouse_id):
     generate_conflict_probability_by_number_of_agents_data(warehouse_id)
     generate_conflict_probability_by_number_of_agents_visualization(warehouse_id)
 
@@ -77,8 +77,11 @@ def main():
     You can also use generate_example regardless of the database mentioned above.
         Check the generate_example code to see what input to supply.
     """
-    # generate_database(3)
-    generate_swapping_conflict_heatmap(3)
+    # running suggestion with warehouse_id=203. Please pick any warehouse_id between 201-206 for your runs.
+    generate_database(203, 400, 20)
+    generate_conflict_probability_by_number_of_agents_scatterplot(203)
+    generate_vertex_conflict_heatmap(203)
+    generate_swapping_conflict_heatmap(203)
 
 
 if __name__ == "__main__":
