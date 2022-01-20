@@ -173,7 +173,7 @@ def generate_warehouse(warehouse_id):
         return Warehouse(warehouse_id, length, width, number_of_sources, number_of_destinations, obstacle_length,
                          obstacle_width, obstacle_layout)
 
-    if warehouse_id == 200:
+    if warehouse_id == 201:
         length = 200
         width = 200
         number_of_sources = 200
@@ -185,22 +185,6 @@ def generate_warehouse(warehouse_id):
         return Warehouse(warehouse_id, length, width, number_of_sources, number_of_destinations, obstacle_length,
                          obstacle_width, obstacle_layout)
 
-    if warehouse_id == 203:
-        length = 200
-        width = 200
-        number_of_sources = 200
-        number_of_destinations = 200
-        obstacle_length = round(0.1 * length)
-        obstacle_width = round(0.1 * width)
-        pre_obstacle_layout = [(30, 5), (30, 15), (30, 25), (30, 35), (25, 0), (25, 10), (25, 20), (25, 30),
-                               (20, 5), (20, 15), (20, 25), (20, 35), (15, 0), (15, 10), (15, 20), (15, 30),
-                               (10, 5), (10, 15), (10, 25), (10, 35), (5, 0), (5, 10), (5, 20), (5, 30)]
-
-        obstacle_layout = [(x * 5, y * 5) for (x, y) in pre_obstacle_layout]
-
-        return Warehouse(warehouse_id, length, width, number_of_sources, number_of_destinations, obstacle_length,
-                         obstacle_width, obstacle_layout)
-
     if warehouse_id == 202:
         length = 200
         width = 200
@@ -208,9 +192,9 @@ def generate_warehouse(warehouse_id):
         number_of_destinations = 200
         obstacle_length = round(0.1 * length)
         obstacle_width = round(0.1 * width)
-        obstacle_layout = [(40, 0), (40, 19), (40, 39), (40, 79), (40, 99), (40, 139), (40, 159), (40, 179),
-                           (90, 0), (90, 19), (90, 39), (90, 59), (90, 119), (90, 139), (90, 159), (90, 179),
-                           (140, 0), (140, 19), (140, 39), (140, 79), (140, 99), (140, 139), (140, 159), (140, 179)]
+        obstacle_layout = [(40, 0), (40, 20), (40, 40), (40, 80), (40, 100), (40, 140), (40, 160), (40, 180),
+                           (90, 0), (90, 20), (90, 40), (90, 60), (90, 120), (90, 140), (90, 160), (90, 180),
+                           (140, 0), (140, 20), (140, 40), (140, 80), (140, 100), (140, 140), (140, 160), (140, 180)]
 
         return Warehouse(warehouse_id, length, width, number_of_sources, number_of_destinations, obstacle_length,
                          obstacle_width, obstacle_layout)
@@ -238,9 +222,9 @@ def generate_warehouse(warehouse_id):
         number_of_destinations = 200
         obstacle_length = round(0.1 * length)
         obstacle_width = round(0.1 * width)
-        obstacle_layout = [(40, 0), (40, 19), (40, 39), (40, 59), (40, 119), (40, 139), (40, 159), (40, 179),
-                           (90, 39), (90, 59), (90, 79), (90, 99), (90, 119), (90, 139),
-                           (140, 0), (140, 19), (140, 39), (140, 59), (140, 119), (140, 139), (140, 159), (140, 179)]
+        obstacle_layout = [(40, 0), (40, 20), (40, 40), (40, 60), (40, 120), (40, 140), (40, 160), (40, 180),
+                           (90, 40), (90, 60), (90, 80), (90, 100), (90, 120), (90, 140),
+                           (140, 0), (140, 20), (140, 40), (140, 60), (140, 120), (140, 140), (140, 160), (140, 180)]
 
         return Warehouse(warehouse_id, length, width, number_of_sources, number_of_destinations, obstacle_length,
                          obstacle_width, obstacle_layout)
@@ -252,9 +236,9 @@ def generate_warehouse(warehouse_id):
         number_of_destinations = 200
         obstacle_length = round(0.1 * length)
         obstacle_width = round(0.1 * width)
-        obstacle_layout = [(40, 0), (40, 19), (30, 59), (30, 79), (30, 99), (30, 119), (40, 159), (40, 179),
-                           (90, 19), (90, 39), (90, 59), (90, 119), (90, 139), (90, 159),
-                           (140, 0), (140, 19), (150, 59), (150, 79), (150, 99), (150, 119), (140, 159), (140, 179)]
+        obstacle_layout = [(40, 0), (40, 20), (30, 60), (30, 80), (30, 100), (30, 120), (40, 160), (40, 180),
+                           (90, 20), (90, 40), (90, 60), (90, 120), (90, 140), (90, 160),
+                           (140, 0), (140, 20), (150, 60), (150, 80), (150, 100), (150, 120), (140, 160), (140, 180)]
 
         return Warehouse(warehouse_id, length, width, number_of_sources, number_of_destinations, obstacle_length,
                          obstacle_width, obstacle_layout)
@@ -266,11 +250,25 @@ def generate_warehouse(warehouse_id):
         number_of_destinations = 200
         obstacle_length = round(0.1 * length)
         obstacle_width = round(0.1 * width)
-        obstacle_layout = [(40, 18), (40, 38), (40, 60), (40, 81), (40, 101), (40, 121), (40, 142), (40, 162),
+        obstacle_layout = [(40, 18), (40, 38), (40, 60), (40, 81), (40, 101), (40, 121), (40, 143), (40, 163),
                            (60, 60), (60, 81), (60, 101),
                            (90, 18), (90, 39), (90, 59), (90, 119), (90, 139), (90, 160),
                            (120, 60), (120, 81), (120, 101),
-                           (140, 18), (140, 38), (140, 60), (140, 81), (140, 101), (140, 121), (140, 142), (140, 162)]
+                           (140, 17), (140, 37), (140, 60), (140, 81), (140, 101), (140, 121), (140, 142), (140, 162)]
+
+        return Warehouse(warehouse_id, length, width, number_of_sources, number_of_destinations, obstacle_length,
+                         obstacle_width, obstacle_layout)
+
+    if warehouse_id == 207:
+        length = 200
+        width = 200
+        number_of_sources = 200
+        number_of_destinations = 200
+        obstacle_length = round(0.1 * length)
+        obstacle_width = round(0.1 * width)
+        obstacle_layout = [(40, 30), (60, 30), (120, 30), (140, 30),
+                           (40, 90), (140, 90),
+                           (40, 150), (60, 150), (120, 150), (140, 150)]
 
         return Warehouse(warehouse_id, length, width, number_of_sources, number_of_destinations, obstacle_length,
                          obstacle_width, obstacle_layout)
