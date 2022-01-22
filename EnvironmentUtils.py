@@ -146,8 +146,7 @@ def generate_warehouse(warehouse_id):
         return Warehouse(warehouse_id, length, width, number_of_sources, number_of_destinations, obstacle_length,
                          obstacle_width, obstacle_layout)
 
-    # small structured
-    if warehouse_id == 40:
+    if warehouse_id == 4:
         length = 40
         width = 40
         number_of_sources = 40
@@ -159,6 +158,7 @@ def generate_warehouse(warehouse_id):
         return Warehouse(warehouse_id, length, width, number_of_sources, number_of_destinations, obstacle_length,
                          obstacle_width, obstacle_layout)
 
+    # small structured
     if warehouse_id == 3:
         length = 40
         width = 40

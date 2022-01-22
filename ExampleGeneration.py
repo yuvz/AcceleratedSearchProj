@@ -16,7 +16,7 @@ from RouteGenerationAlgorithms import generate_ideal_path_with_splits_plan_for_f
 from RoutingRequest import RoutingRequest
 from RHCR import RHCR
 
-WAVES_PER_WAREHOUSE = [2, 5, 10, 1]
+WAVES_PER_WAREHOUSE = [2, 3, 3, 1]
 K_SAMPLE_SIZE = 5
 
 

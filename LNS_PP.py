@@ -265,6 +265,7 @@ def pick_lower_sum_of_costs_plan(plan, backup_plan, neighborhood):
 
 def replan(warehouse, plan, neighborhood, routing_requests):
     time_to_end = datetime.datetime.now()+datetime.timedelta(seconds=TIMEOUT)
+    print(f"the neighborhood size is: {len(neighborhood)}")
     for route_number, i in enumerate(neighborhood):
         route = find_route_using_Astar(warehouse, plan, routing_requests[i], route_number == 0)
         update_plan(plan, i, route)
