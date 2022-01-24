@@ -258,3 +258,43 @@ def generate_swapping_conflict_heatmap_visualization(warehouse_id):
 
     plt.savefig(results_dir_path + 'swapping_conflict_heatmap_data.png')
     plt.show()
+
+def generate_plan_heatmap_data(warehouse):
+    warehouse_id = warehouse.warehouse_id
+    data_dir_path = f"./csv_files/warehouse_{warehouse_id}/experiments/data/conflicts_by_number_of_agents/"
+    if not os.path.isdir(data_dir_path):
+        print("No data available.")
+        print(f"Please generate data via run_experiments_to_generate_main_data_file for warehouse with "
+              f"warehouse_id={warehouse_id}")
+        return
+
+    results = np.zeros(shape=(warehouse.width, warehouse.length))
+
+    for file_name in os.listdir(data_dir_path):
+        file_path = data_dir_path + file_name
+
+        raw_data = pd.read_csv(file_path)
+        for plan in raw_data.plan:
+            for path in eval(plan):
+                for vertex in path:
+                    results[vertex] += 1
+
+    results_dir_path = f"./csv_files/warehouse_{warehouse_id}/experiments/results/conflicts_by_number_of_agents/"
+    if not os.path.isdir(results_dir_path):
+        os.makedirs(os.path.dirname(results_dir_path), exist_ok=True)
+
+    results_file_path = results_dir_path + 'plan_heatmap_data.csv'
+    results_df = pd.DataFrame(results)
+    results_df.to_csv(results_file_path)
+
+
+def generate_plan_heatmap_visualization(warehouse_id):
+    results_dir_path = f"./csv_files/warehouse_{warehouse_id}/experiments/results/conflicts_by_number_of_agents/"
+    results_file_path = results_dir_path + 'plan_heatmap_data.csv'
+    df = pd.read_csv(results_file_path, index_col='Unnamed: 0')
+    sns.heatmap(data=df.loc[::-1])
+    plt.suptitle('Plan heatmap by location')
+    plt.title(f'warehouse_id = {warehouse_id}', loc='left')
+
+    plt.savefig(results_dir_path + 'plan_heatmap_data.png')
+    plt.show()

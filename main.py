@@ -2,7 +2,7 @@ from ConflictsByNumberOfAgentsExperiment import run_experiment, \
     run_experiments_to_generate_main_data_file, generate_conflict_probability_by_number_of_agents_data, \
     generate_conflict_probability_by_number_of_agents_visualization, generate_vertex_conflict_heatmap_data, \
     generate_vertex_conflict_heatmap_visualization, generate_swapping_conflict_heatmap_data, \
-    generate_swapping_conflict_heatmap_visualization
+    generate_swapping_conflict_heatmap_visualization , generate_plan_heatmap_data, generate_plan_heatmap_visualization
 from DatabaseInterface import initialize_database_preliminary_files
 
 from ExampleGeneration import generate_example
@@ -63,6 +63,10 @@ def generate_swapping_conflict_heatmap(warehouse_id):
     generate_swapping_conflict_heatmap_data(warehouse)
     generate_swapping_conflict_heatmap_visualization(warehouse_id)
 
+def generate_plan_heatmap(warehouse_id):
+    warehouse = generate_warehouse(warehouse_id)
+    generate_plan_heatmap_data(warehouse)
+    generate_plan_heatmap_visualization(warehouse_id)
 
 def main():
     """
@@ -74,7 +78,7 @@ def main():
     generate_conflict_probability_by_number_of_agents_scatterplot(warehouse_id)
     generate_vertex_conflict_heatmap(warehouse_id)
     generate_swapping_conflict_heatmap(warehouse_id)
-
+    generate_plan_heatmap_data(warehouse_id)
 
 if __name__ == "__main__":
     main()
