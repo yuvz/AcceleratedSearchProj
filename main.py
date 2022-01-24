@@ -78,7 +78,7 @@ def main():
     generate_conflict_probability_by_number_of_agents_scatterplot(warehouse_id)
     generate_vertex_conflict_heatmap(warehouse_id)
     generate_swapping_conflict_heatmap(warehouse_id)
-    generate_plan_heatmap_data(warehouse_id)
+    generate_plan_heatmap(warehouse_id)
 
 if __name__ == "__main__":
     main()
