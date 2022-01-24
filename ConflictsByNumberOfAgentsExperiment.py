@@ -293,7 +293,7 @@ def generate_plan_heatmap_visualization(warehouse_id):
     results_dir_path = f"./csv_files/warehouse_{warehouse_id}/experiments/results/conflicts_by_number_of_agents/"
     results_file_path = results_dir_path + 'plan_heatmap_data.csv'
     df = pd.read_csv(results_file_path, index_col='Unnamed: 0')
-    sns.heatmap(data=df.loc[::-1], cmap='cividis')
+    sns.heatmap(data=df.loc[::-1], cmap="Blues")
     plt.suptitle('Plan heatmap by location')
     plt.title(f'warehouse_id = {warehouse_id}', loc='left')
 
