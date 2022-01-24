@@ -100,7 +100,8 @@ if __name__ == "__main__":
 
     warehouse = generate_warehouse(WAREHOUSE_TYPES["small structured"])
     algorithm_name = "LNS_RND"
-    plan, running_time, routing_requests = generate_example(warehouse, algorithm_name)
+    neighborhood_size = 40
+    plan, running_time, routing_requests = generate_example(warehouse=warehouse, algorithm_name=algorithm_name, neighborhood_size=neighborhood_size)
     print("*********************************************************************************************************")
     print("*********************************************************************************************************")
     print("*********************************************************************************************************")

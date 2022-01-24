@@ -7,7 +7,6 @@ import numpy as np
 import datetime
 
 LNS_ITERATIONS = 10
-NEIGHBORHOOD_SIZE = 15
 AGENT_BASED_NEIGHBORHOOD_ITERATIONS = 100
 INTERSECTION_THRESHOLD = 3
 WEIGHTS_FACTOR = 0.01
@@ -223,7 +222,7 @@ class LnsRnd:
         pick_neighborhood_func = np.random.choice(pick_neighborhood_functions, 1, probabilities)[0]
         neighborhood = pick_neighborhood_func(routing_requests, warehouse, plan)
         self.current_pick_func_name = pick_neighborhood_func
-        print("adaptive_neighborhood: self.current_pick_func_name is ", self.current_pick_func_name)
+        print("adaptive_neighborhood picked the heuristic: ", self.current_pick_func_name)
         return neighborhood
 
     def update_weight(self, new_plan, old_plan, neighborhood):
@@ -258,14 +257,14 @@ def pick_lower_sum_of_costs_plan(plan, backup_plan, neighborhood):
     plan_cost = neighborhood_sum_of_costs(plan, neighborhood)
     backup_plan_cost = neighborhood_sum_of_costs(backup_plan, neighborhood)
     if plan_cost < backup_plan_cost:
-        print("cost was", backup_plan_cost, "and is now", plan_cost)
+        print("The sum of costs of the neighborhood was ", backup_plan_cost, "and now is ", plan_cost)
         return plan
     return backup_plan
 
 
 def replan(warehouse, plan, neighborhood, routing_requests):
     time_to_end = datetime.datetime.now()+datetime.timedelta(seconds=TIMEOUT)
-    print(f"the neighborhood size is: {len(neighborhood)}")
+    print(f"The size of the neighborhood picked by the above heuristic is: {len(neighborhood)}")
     for route_number, i in enumerate(neighborhood):
         route = find_route_using_Astar(warehouse, plan, routing_requests[i], route_number == 0)
         update_plan(plan, i, route)
@@ -292,7 +291,7 @@ def timeout_wrapper(func_to_wrap, *args):
     return plan
 
 
-def generate_lns_rnd_plan(warehouse, routing_requests, neighborhood_size=NEIGHBORHOOD_SIZE):
+def generate_lns_rnd_plan(warehouse, routing_requests, neighborhood_size):
     """
     Supported values for neighborhood_picking_function: [pick_random_neighborhood, agent_based_neighborhood,
      map_based_neighborhood, adaptive_neighborhood, pick_rand_source_and_destination, pick_worst_source_and_destination,

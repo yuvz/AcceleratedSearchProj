@@ -16,7 +16,9 @@ from RouteGenerationAlgorithms import generate_ideal_path_with_splits_plan_for_f
 from RoutingRequest import RoutingRequest
 from RHCR import RHCR
 
-WAVES_PER_WAREHOUSE = [2, 3, 3, 1]
+# NEIGHBORHOOD_SIZE is const for LNS_RND algorithm
+NEIGHBORHOOD_SIZE = 15
+WAVES_PER_WAREHOUSE = [2, 2, 3, 1]
 K_SAMPLE_SIZE = 5
 
 
@@ -67,8 +69,8 @@ def generate_random_obstacles_restricted_example(warehouse, routing_requests):
                          generate_random_obstacles_restricted_plan_for_first_routing_request)
 
 
-def generate_lns_rnd_example(warehouse, routing_requests):
-    return generate_plan(warehouse, routing_requests, generate_lns_rnd_plan)
+def generate_lns_rnd_example(warehouse, routing_requests, neighborhood_size):
+    return generate_plan(warehouse, routing_requests, generate_lns_rnd_plan, neighborhood_size)
 
 
 def generate_rnd_example(warehouse, routing_requests):
@@ -89,7 +91,7 @@ def generate_rhcr_example(warehouse, routing_requests, window, time_to_plan):
     return generate_plan(warehouse, routing_requests, rhcr.generate_rhcr_plan)
 
 
-def generate_example(warehouse, algorithm_name, routing_requests_in_tuples_format=None, window=0, time_to_plan=0):
+def generate_example(warehouse, algorithm_name, routing_requests_in_tuples_format=None, window=0, time_to_plan=0, neighborhood_size=NEIGHBORHOOD_SIZE):
     """
     if no value for routing_requests_in_tuples_format is supplied, a random value for routing_requests_in_tuples_format
     is generated
@@ -118,7 +120,7 @@ def generate_example(warehouse, algorithm_name, routing_requests_in_tuples_forma
         plan, t0, t1 = generate_rnd_example(warehouse, routing_requests)
 
     elif algorithm_name == "LNS_RND":
-        plan, t0, t1 = generate_lns_rnd_example(warehouse, routing_requests)
+        plan, t0, t1 = generate_lns_rnd_example(warehouse, routing_requests, neighborhood_size)
 
     elif algorithm_name == "CBS":
         plan, t0, t1 = generate_cbs_example(warehouse, routing_requests)
