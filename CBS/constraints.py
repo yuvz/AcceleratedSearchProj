@@ -12,10 +12,9 @@ class Constraints:
     Deepcopy self with additional constraints
     '''
 
-    def fork(self, agent: RoutingRequest, obstacle: Tuple[int, int], start: int, end: int) -> 'Constraints':
+    def fork(self, agent: RoutingRequest, obstacle: Tuple[int, int], start: int) -> 'Constraints':
         agent_constraints_copy = self.agent_constraints.copy()
-        for time in range(start, end):
-            agent_constraints_copy.setdefault(agent, dict()).setdefault(time, set()).add(obstacle)
+        agent_constraints_copy.setdefault(agent, dict()).setdefault(start, set()).add(obstacle)
         new_constraints = Constraints()
         new_constraints.agent_constraints = agent_constraints_copy
         return new_constraints

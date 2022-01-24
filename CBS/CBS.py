@@ -113,7 +113,7 @@ class CBS:
         # Check collision pair-wise
         for agent_i, agent_j in combinations(agents, 2):
             time_of_conflict = self.safe_distance(node.solution, agent_i, agent_j, window)
-            # time_of_conflict=-1 if there is not conflict
+            # time_of_conflict=-1 if there is no conflict
             if time_of_conflict == -1:
                 continue
             return agent_i, agent_j, time_of_conflict
@@ -121,13 +121,23 @@ class CBS:
 
     def safe_distance(self, solution: Dict[RoutingRequest, np.ndarray], agent_i: RoutingRequest,
                       agent_j: RoutingRequest, window: int) -> int:
+        i_prev: Tuple[int, int]
+        j_prev: Tuple[int, int]
         for idx, (point_i, point_j) in enumerate(zip(solution[agent_i], solution[agent_j])):
             if idx >= window:
                 break
+            if (all(point_i == agent_i.source.coordinates) and all(point_j == agent_j.source.coordinates)) \
+                    or (all(point_i == agent_i.destination.coordinates) or all(point_j == agent_j.destination.coordinates))\
+                :
+                i_prev = point_i
+                j_prev = point_j
+                continue
+            if (idx > 0 and (all(point_i == j_prev) and all(point_j == i_prev))):
+                return idx
             if any(point_i != point_j) \
-                    or (all(point_i == agent_i.source.coordinates) and all(point_j == agent_j.source.coordinates)) \
-                    or (
-                    all(point_i == agent_i.destination.coordinates) or all(point_j == agent_j.destination.coordinates)):
+                    :
+                i_prev = point_i
+                j_prev = point_j
                 continue
             return idx
         return -1
@@ -140,17 +150,11 @@ class CBS:
                               constrained_agent: RoutingRequest,
                               unchanged_agent: RoutingRequest,
                               time_of_conflict: int) -> Constraints:
-        contrained_path = node.solution[constrained_agent]
+        constrained_path = node.solution[constrained_agent]
         unchanged_path = node.solution[unchanged_agent]
 
-        pivot = unchanged_path[time_of_conflict]
-        conflict_end_time = time_of_conflict
-        try:
-            while self.dist(contrained_path[conflict_end_time], pivot) < 1 * self.robot_radius:
-                conflict_end_time += 1
-        except IndexError:
-            pass
-        return node.constraints.fork(constrained_agent, tuple(pivot.tolist()), time_of_conflict, conflict_end_time)
+        pivot = constrained_path[time_of_conflict]
+        return node.constraints.fork(constrained_agent, tuple(pivot.tolist()), time_of_conflict)
 
     '''
     Reformat the solution to a numpy array
