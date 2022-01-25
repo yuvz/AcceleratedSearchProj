@@ -13,14 +13,16 @@ if SINGLE_SOURCE_DESTINATION:
         generate_conflict_probability_by_number_of_agents_visualization, generate_vertex_conflict_heatmap_data, \
         generate_vertex_conflict_heatmap_visualization, generate_swapping_conflict_heatmap_data, \
         generate_swapping_conflict_heatmap_visualization, generate_plan_heatmap_data, \
-        generate_plan_heatmap_visualization, generate_metro_map_visualization
+        generate_plan_heatmap_visualization, generate_metro_map_visualization, \
+        generate_plan_heatmap_visualization_log
 else:
     from ConflictsByNumberOfAgentsExperiment import run_experiment, \
         run_experiments_to_generate_main_data_file, generate_conflict_probability_by_number_of_agents_data, \
         generate_conflict_probability_by_number_of_agents_visualization, generate_vertex_conflict_heatmap_data, \
         generate_vertex_conflict_heatmap_visualization, generate_swapping_conflict_heatmap_data, \
         generate_swapping_conflict_heatmap_visualization, generate_plan_heatmap_data, \
-        generate_plan_heatmap_visualization, generate_metro_map_visualization
+        generate_plan_heatmap_visualization, generate_metro_map_visualization, \
+        generate_plan_heatmap_visualization_log
 
 
 WAREHOUSE_TYPES = {"first paper": 1, "toy": 2, "small structured": 3, "small empty single origin": 4}
@@ -96,6 +98,7 @@ def generate_plan_heatmap(warehouse_id):
     warehouse = generate_warehouse(warehouse_id, False)
     generate_plan_heatmap_data(warehouse)
     generate_plan_heatmap_visualization(warehouse_id)
+    generate_plan_heatmap_visualization_log(warehouse_id)
     print("***")
     print("Done")
 
@@ -108,16 +111,17 @@ def generate_metro_map(warehouse_id):
     print("Done")
 
 
+
 def main():
     """
     Choose a warehouse_id from HUGE_WAREHOUSE_IDS, and run the following code to generate the visualization for it.
     """
-    warehouse_id = 3
-    # warehouse_id = HUGE_WAREHOUSE_IDS[2]
-
-    # generate_database(warehouse_id, 10)
-    # generate_conflict_probability_by_number_of_agents_scatter_plot(warehouse_id)
-    # generate_vertex_conflict_heatmap(warehouse_id)
+    # warehouse_id = 3
+    warehouse_id = HUGE_WAREHOUSE_IDS[0]
+    
+    generate_database(warehouse_id, 400, 20, 100)
+    generate_conflict_probability_by_number_of_agents_scatter_plot(warehouse_id)
+    generate_vertex_conflict_heatmap(warehouse_id)
     generate_swapping_conflict_heatmap(warehouse_id)
     generate_plan_heatmap(warehouse_id)
     # generate_metro_map(warehouse_id)
