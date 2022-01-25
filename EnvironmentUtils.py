@@ -135,13 +135,15 @@ def generate_warehouse(warehouse_id):
 
     # Toy warehouse
     if warehouse_id == 2:
-        length = 10
-        width = 10
-        number_of_sources = 3
-        number_of_destinations = 2
+        length = 40
+        width = 40
+        number_of_sources = 4
+        number_of_destinations = 4
         obstacle_length = round(0.1 * length)
         obstacle_width = round(0.1 * width)
-        obstacle_layout = [(3, 2), (3, 5), (4, 7), (6, 5)]
+        obstacle_layout = [(30, 5), (30, 15), (30, 25), (30, 35), (25, 0), (25, 10), (25, 20), (25, 30),
+                           (20, 5), (20, 15), (20, 25), (20, 35), (15, 0), (15, 10), (15, 20), (15, 30),
+                           (10, 5), (10, 15), (10, 25), (10, 35), (5, 0), (5, 10), (5, 20), (5, 30)]
 
         return Warehouse(warehouse_id, length, width, number_of_sources, number_of_destinations, obstacle_length,
                          obstacle_width, obstacle_layout)

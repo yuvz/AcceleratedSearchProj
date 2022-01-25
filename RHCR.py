@@ -6,7 +6,7 @@ from CBS.CBS import CBS
 class RHCR:
     """
     window - the plan is free of conflicts until window
-    time_to_plan - time to start a new window
+    time_to_plan - time to run CBS again
     """
     def __init__(self, window, time_to_plan):
         self.window = window
@@ -24,8 +24,9 @@ class RHCR:
             remaining_routes = [routing_requests[route_index] for route_index in routes_indexes_to_plan]
             cbs = CBS()
             new_plan = cbs.solve(warehouse, remaining_routes, self.window)
-            for route in new_plan:
-                print(route)
+            # print("The new plan solved by CBS:")
+            # for route in new_plan:
+            #     print(route)
             indexes_to_remove = []
             for i, route_index in enumerate(routes_indexes_to_plan):
                 for j in range(min(self.time_to_plan, len(new_plan[i]))):
@@ -40,7 +41,6 @@ class RHCR:
                         indexes_to_remove.append(route_index)
             for index in indexes_to_remove:
                 routes_indexes_to_plan.remove(index)
-            print(len(routes_indexes_to_plan))
             for route in plan:
                 print(route)
         return plan
