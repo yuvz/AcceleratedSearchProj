@@ -1,3 +1,5 @@
+import numpy as np
+
 from DatabaseInterface import initialize_database_preliminary_files
 
 from ExampleGeneration import generate_example
@@ -153,23 +155,24 @@ def main():
     Choose a warehouse_id from HUGE_WAREHOUSE_IDS, and run the following code to generate the visualization for it.
     """
 
-    number_of_agents_per_experiment = [30, 50, 100, 200, 400]
-    deviation_factors = [1.1, 1.2, 1.3, 1.4, 1.5]
+    number_of_agents_per_experiment = [10, 30, 50, 100, 200, 400]
+    deviation_factors = [round(i, 2) for i in np.linspace(1.05, 1.5, 10)]
 
-    warehouse_id = HUGE_WAREHOUSE_IDS[6]
-    """
-    generate_database_for_deviation_experiment(warehouse_id,
-                                               number_of_samples=100,
-                                               number_of_agents_per_experiment=number_of_agents_per_experiment,
-                                               deviation_factors=deviation_factors)
-    """
-    generate_number_of_conflicts_by_deviation_factor_scatter_plot(warehouse_id, number_of_agents_per_experiment)
-    """
-    generate_vertex_conflict_heatmap(warehouse_id)
-    generate_swapping_conflict_heatmap(warehouse_id)
-    generate_plan_heatmap(warehouse_id)
-    generate_metro_map(warehouse_id)
-    """
+    for i in range(7):
+        warehouse_id = HUGE_WAREHOUSE_IDS[i]
+
+        generate_database_for_deviation_experiment(warehouse_id,
+                                                   number_of_samples=100,
+                                                   number_of_agents_per_experiment=number_of_agents_per_experiment,
+                                                   deviation_factors=deviation_factors)
+
+        generate_number_of_conflicts_by_deviation_factor_scatter_plot(warehouse_id, number_of_agents_per_experiment)
+        """
+        generate_vertex_conflict_heatmap(warehouse_id)
+        generate_swapping_conflict_heatmap(warehouse_id)
+        generate_plan_heatmap(warehouse_id)
+        generate_metro_map(warehouse_id)
+        """
 
 
 if __name__ == "__main__":
