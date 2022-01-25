@@ -8,6 +8,7 @@ import seaborn as sns
 import numpy as np
 from matplotlib import pyplot as plt
 from matplotlib import axes
+from matplotlib.colors import LogNorm
 
 from DatabaseInterface import greedily_generate_path_from_source_to_midpoint, \
     greedily_generate_path_from_midpoint_to_destination
@@ -259,6 +260,7 @@ def generate_swapping_conflict_heatmap_visualization(warehouse_id):
     plt.savefig(results_dir_path + 'swapping_conflict_heatmap_data.png')
     plt.show()
 
+
 def generate_plan_heatmap_data(warehouse):
     warehouse_id = warehouse.warehouse_id
     data_dir_path = f"./csv_files/warehouse_{warehouse_id}/experiments/data/conflicts_by_number_of_agents/"
@@ -276,8 +278,11 @@ def generate_plan_heatmap_data(warehouse):
         raw_data = pd.read_csv(file_path)
         for plan in raw_data.plan:
             for path in eval(plan):
+                prev = None
                 for vertex in path:
-                    results[vertex] += 1
+                    if prev is None or not (prev == vertex):
+                        results[vertex] += 1
+                    prev = vertex
 
     results_dir_path = f"./csv_files/warehouse_{warehouse_id}/experiments/results/conflicts_by_number_of_agents/"
     if not os.path.isdir(results_dir_path):
@@ -297,4 +302,16 @@ def generate_plan_heatmap_visualization(warehouse_id):
     plt.title(f'warehouse_id = {warehouse_id}', loc='left')
 
     plt.savefig(results_dir_path + 'plan_heatmap_data.png')
+    plt.show()
+
+
+def generate_plan_heatmap_visualization_log(warehouse_id):
+    results_dir_path = f"./csv_files/warehouse_{warehouse_id}/experiments/results/conflicts_by_number_of_agents/"
+    results_file_path = results_dir_path + 'plan_heatmap_data.csv'
+    df = pd.read_csv(results_file_path, index_col='Unnamed: 0')
+    sns.heatmap(data=df.loc[::-1], norm=LogNorm())
+    plt.suptitle('Plan heatmap by location')
+    plt.title(f'warehouse_id = {warehouse_id}', loc='left')
+
+    plt.savefig(results_dir_path + 'plan_heatmap_data_log.png')
     plt.show()
