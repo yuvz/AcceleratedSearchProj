@@ -148,7 +148,7 @@ def generate_number_of_conflicts_by_deviation_factor_data(warehouse_id, numbers_
 
             raw_data = pd.read_csv(file_path)
 
-            if int(file_name[:file_name.find('_')]) != number_of_agents:
+            if int(file_name[:file_name.find('-')]) != number_of_agents:
                 continue
 
             number_of_conflicts = np.mean(len(conflicts) for conflicts in raw_data.vertex_conflicts)

@@ -156,12 +156,12 @@ def main():
     deviation_factors = [1.05, 1.1, 1.2, 1.3, 1.4, 1.5]
 
     warehouse_id = HUGE_WAREHOUSE_IDS[6]
-
+    """
     generate_database_for_deviation_experiment(warehouse_id,
                                                number_of_samples=100,
                                                number_of_agents_per_experiment=number_of_agents_per_experiment,
                                                deviation_factors=deviation_factors)
-
+    """
     generate_number_of_conflicts_by_deviation_factor_scatter_plot(warehouse_id, number_of_agents_per_experiment)
     """
     generate_vertex_conflict_heatmap(warehouse_id)
