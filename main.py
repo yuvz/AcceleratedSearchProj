@@ -57,7 +57,7 @@ def generate_example_template(warehouse_id):
                        running_time)
 
 
-def generate_database(warehouse_id, max_number_of_agents, number_of_agents_incrementation_step=1,
+def generate_database_for_deviation_experiment(warehouse_id, max_number_of_agents, number_of_agents_incrementation_step=1,
                       number_of_samples=1000, number_of_agents_per_experiment=None, deviation_factors=None):
     warehouse = generate_warehouse(warehouse_id)
     initialize_database_preliminary_files(warehouse)
@@ -83,6 +83,20 @@ def generate_database(warehouse_id, max_number_of_agents, number_of_agents_incre
             else:
                 run_experiments_to_generate_main_data_file_deviation_graph(warehouse, i, number_of_samples)
             print(f"experiments with {i} agents complete")
+    print("***")
+    print("Done")
+
+
+def generate_database(warehouse_id, max_number_of_agents, number_of_agents_incrementation_step=1,
+                      number_of_samples=1000):
+    warehouse = generate_warehouse(warehouse_id)
+    initialize_database_preliminary_files(warehouse)
+
+    print("***")
+    print("running experiments")
+    for i in range(1, max_number_of_agents + 1, number_of_agents_incrementation_step):
+        run_experiments_to_generate_main_data_file(warehouse, i, number_of_samples)
+        print(f"experiment {i} complete")
     print("***")
     print("Done")
 
@@ -158,7 +172,7 @@ def main():
 
     warehouse_id = HUGE_WAREHOUSE_IDS[6]
 
-    generate_database(warehouse_id,
+    generate_database_for_deviation_experiment(warehouse_id,
                       max_number_of_agents=400,
                       number_of_agents_incrementation_step=20,
                       number_of_samples=100,
