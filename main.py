@@ -16,7 +16,7 @@ from ConflictsByDeviationFactorExperiment import run_experiment, \
     generate_swapping_conflict_heatmap_visualization, generate_plan_heatmap_data, \
     generate_plan_heatmap_visualization
 
-IS_SINGLE_SOURCE_DESTINATION = False
+IS_SINGLE_SOURCE_DESTINATION = True
 
 if IS_SINGLE_SOURCE_DESTINATION:
     from SingleSourceDestinationConflictsByNumberOfAgentsExperiment import run_experiment, \
@@ -150,13 +150,10 @@ def generate_metro_map(warehouse_id):
     print("Done")
 
 
-def main():
-    """
-    Choose a warehouse_id from HUGE_WAREHOUSE_IDS, and run the following code to generate the visualization for it.
-    """
-
+def run_deviation_experiments():
     number_of_agents_per_experiment = [10, 30, 50, 100, 200, 400]
     deviation_factors = [round(i, 2) for i in np.linspace(1.05, 1.5, 10)]
+    number_of_agents_per_experiment = [30, 50, 100, 200, 400]
 
     for i in range(7):
         warehouse_id = HUGE_WAREHOUSE_IDS[i]
@@ -167,12 +164,24 @@ def main():
                                                    deviation_factors=deviation_factors)
 
         generate_number_of_conflicts_by_deviation_factor_scatter_plot(warehouse_id, number_of_agents_per_experiment)
-        """
-        generate_vertex_conflict_heatmap(warehouse_id)
-        generate_swapping_conflict_heatmap(warehouse_id)
-        generate_plan_heatmap(warehouse_id)
-        generate_metro_map(warehouse_id)
-        """
+
+
+def run_conflict_experiments():
+    warehouse_id = 4
+    generate_database(warehouse_id, 10)
+
+    generate_vertex_conflict_heatmap(warehouse_id)
+    generate_swapping_conflict_heatmap(warehouse_id)
+    generate_plan_heatmap(warehouse_id)
+    generate_metro_map(warehouse_id)
+
+
+def main():
+    """
+    Choose a warehouse_id from HUGE_WAREHOUSE_IDS, and run the following code to generate the visualization for it.
+    """
+    # run_deviation_experiments()
+    run_conflict_experiments()
 
 
 if __name__ == "__main__":

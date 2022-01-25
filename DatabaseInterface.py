@@ -141,14 +141,20 @@ def greedily_generate_path_from_midpoint_to_destination(warehouse, destination_i
     while vertex != destination:
         current_destination_distance = vertex.destination_distance[destination_id] + 1
 
-        neighbors = list(vertex.neighbors)
-        random.shuffle(neighbors)
+        improving_neighbors = [neighbor for neighbor in vertex.neighbors if
+                               neighbor.destination_distance[destination_id] < current_destination_distance]
+        if len(improving_neighbors) == 1:
+            vertex = improving_neighbors[0]
+        else:
+            current_width_distance = abs(vertex.coordinates[0] - destination.coordinates[0])
+            first_neighbor_width_distance = abs(improving_neighbors[0].coordinates[0] - destination.coordinates[0])
+            is_first_neighbor_width_improver = first_neighbor_width_distance < current_width_distance
+            width_improver = improving_neighbors[0] if is_first_neighbor_width_improver else improving_neighbors[1]
+            length_improver = improving_neighbors[1] if is_first_neighbor_width_improver else improving_neighbors[0]
 
-        for neighbor in neighbors:
-            neighbor_destination_distance = neighbor.destination_distance[destination_id]
-            if neighbor_destination_distance < current_destination_distance:
-                vertex = neighbor
-                break
+            current_length_distance = abs(vertex.coordinates[1] - destination.coordinates[1])
+            vertex = random.choices([width_improver, length_improver],
+                                    weights=[current_width_distance, 2*current_length_distance])[0]
 
         path.append(vertex.coordinates)
 
@@ -165,14 +171,20 @@ def greedily_generate_path_from_source_to_midpoint(warehouse, source_id, midpoin
     while vertex != source_exit:
         current_source_distance = vertex.source_distance[source_id] + 1
 
-        neighbors = list(vertex.neighbors)
-        random.shuffle(neighbors)
+        improving_neighbors = [neighbor for neighbor in vertex.neighbors if
+                               neighbor.source_distance[source_id] < current_source_distance]
+        if len(improving_neighbors) == 1:
+            vertex = improving_neighbors[0]
+        else:
+            current_width_distance = abs(vertex.coordinates[0] - source.coordinates[0])
+            first_neighbor_width_distance = abs(improving_neighbors[0].coordinates[0] - source.coordinates[0])
+            is_first_neighbor_width_improver = first_neighbor_width_distance < current_width_distance
+            width_improver = improving_neighbors[0] if is_first_neighbor_width_improver else improving_neighbors[1]
+            length_improver = improving_neighbors[1] if is_first_neighbor_width_improver else improving_neighbors[0]
 
-        for neighbor in neighbors:
-            neighbor_source_distance = neighbor.source_distance[source_id]
-            if neighbor_source_distance < current_source_distance:
-                vertex = neighbor
-                break
+            current_length_distance = abs(vertex.coordinates[1] - source.coordinates[1])
+            vertex = random.choices([width_improver, length_improver],
+                                    weights=[current_width_distance, 2*current_length_distance])[0]
 
         path.append(vertex.coordinates)
 

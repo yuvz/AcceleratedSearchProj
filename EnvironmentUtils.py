@@ -148,18 +148,6 @@ def generate_warehouse(warehouse_id, is_warehouse_searchable=True):
         return Warehouse(warehouse_id, length, width, number_of_sources, number_of_destinations, obstacle_length,
                          obstacle_width, obstacle_layout, is_warehouse_searchable)
 
-    if warehouse_id == 4:
-        length = 40
-        width = 40
-        number_of_sources = 40
-        number_of_destinations = 40
-        obstacle_length = round(0.1 * length)
-        obstacle_width = round(0.1 * width)
-        obstacle_layout = []
-
-        return Warehouse(warehouse_id, length, width, number_of_sources, number_of_destinations, obstacle_length,
-                         obstacle_width, obstacle_layout, is_warehouse_searchable)
-
     # small structured
     if warehouse_id == 3:
         length = 40
@@ -171,6 +159,18 @@ def generate_warehouse(warehouse_id, is_warehouse_searchable=True):
         obstacle_layout = [(30, 5), (30, 15), (30, 25), (30, 35), (25, 0), (25, 10), (25, 20), (25, 30),
                            (20, 5), (20, 15), (20, 25), (20, 35), (15, 0), (15, 10), (15, 20), (15, 30),
                            (10, 5), (10, 15), (10, 25), (10, 35), (5, 0), (5, 10), (5, 20), (5, 30)]
+
+        return Warehouse(warehouse_id, length, width, number_of_sources, number_of_destinations, obstacle_length,
+                         obstacle_width, obstacle_layout, is_warehouse_searchable)
+
+    if warehouse_id == 4:
+        length = 40
+        width = 40
+        number_of_sources = 40
+        number_of_destinations = 40
+        obstacle_length = round(0.1 * length)
+        obstacle_width = round(0.1 * width)
+        obstacle_layout = []
 
         return Warehouse(warehouse_id, length, width, number_of_sources, number_of_destinations, obstacle_length,
                          obstacle_width, obstacle_layout, is_warehouse_searchable)
