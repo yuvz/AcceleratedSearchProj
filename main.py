@@ -128,7 +128,6 @@ def main():
     generate_swapping_conflict_heatmap(warehouse_id)
     generate_plan_heatmap(warehouse_id)
     generate_metro_map(warehouse_id)
-    # for push bug
 
 
 if __name__ == "__main__":
