@@ -152,8 +152,8 @@ def main():
     Choose a warehouse_id from HUGE_WAREHOUSE_IDS, and run the following code to generate the visualization for it.
     """
 
-    number_of_agents_per_experiment = [50, 200, 400]
-    deviation_factors = [1.01, 1.05, 1]
+    number_of_agents_per_experiment = [10, 30, 50, 100, 200, 400]
+    deviation_factors = [1.05, 1.1, 1.2, 1.3, 1.4, 1.5]
 
     warehouse_id = HUGE_WAREHOUSE_IDS[6]
 
