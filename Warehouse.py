@@ -257,7 +257,7 @@ class Warehouse:
     #         print("self.sources_to_destinations_average_euclidian_distance_to_mid_point", self.sources_to_destinations_average_euclidian_distance_to_mid_point[i])
 
     def __init__(self, warehouse_id, length, width, number_of_sources, number_of_destinations, static_obstacle_length,
-                 static_obstacle_width, static_obstacle_layout):
+                 static_obstacle_width, static_obstacle_layout, is_warehouse_searchable):
         self.warehouse_id = warehouse_id
         self.length = length
         self.width = width
@@ -284,9 +284,10 @@ class Warehouse:
         self.set_destinations()
 
         self.adjust_sources_neighbors()
-        self.set_source_distances()
         self.adjust_destinations_neighbors()
-        self.set_destination_distances()
+        if is_warehouse_searchable:
+            self.set_source_distances()
+            self.set_destination_distances()
         # self.set_mid_points()
         # self.set_averages()
         # self.print()

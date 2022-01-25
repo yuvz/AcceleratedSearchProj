@@ -118,7 +118,7 @@ def get_random_points_throughout_warehouse(warehouse):
     return midpoints
 
 
-def generate_warehouse(warehouse_id):
+def generate_warehouse(warehouse_id, is_warehouse_searchable=True):
     # First warehouse in original paper
     if warehouse_id == 1:
         length = 100
@@ -131,20 +131,22 @@ def generate_warehouse(warehouse_id):
                            (73, 70), (60, 115)]
 
         return Warehouse(warehouse_id, length, width, number_of_sources, number_of_destinations, obstacle_length,
-                         obstacle_width, obstacle_layout)
+                         obstacle_width, obstacle_layout, is_warehouse_searchable)
 
     # Toy warehouse
     if warehouse_id == 2:
-        length = 10
-        width = 10
-        number_of_sources = 3
-        number_of_destinations = 2
+        length = 40
+        width = 40
+        number_of_sources = 4
+        number_of_destinations = 4
         obstacle_length = round(0.1 * length)
         obstacle_width = round(0.1 * width)
-        obstacle_layout = [(3, 2), (3, 5), (4, 7), (6, 5)]
+        obstacle_layout = [(30, 5), (30, 15), (30, 25), (30, 35), (25, 0), (25, 10), (25, 20), (25, 30),
+                           (20, 5), (20, 15), (20, 25), (20, 35), (15, 0), (15, 10), (15, 20), (15, 30),
+                           (10, 5), (10, 15), (10, 25), (10, 35), (5, 0), (5, 10), (5, 20), (5, 30)]
 
         return Warehouse(warehouse_id, length, width, number_of_sources, number_of_destinations, obstacle_length,
-                         obstacle_width, obstacle_layout)
+                         obstacle_width, obstacle_layout, is_warehouse_searchable)
 
     if warehouse_id == 4:
         length = 40
@@ -156,7 +158,7 @@ def generate_warehouse(warehouse_id):
         obstacle_layout = []
 
         return Warehouse(warehouse_id, length, width, number_of_sources, number_of_destinations, obstacle_length,
-                         obstacle_width, obstacle_layout)
+                         obstacle_width, obstacle_layout, is_warehouse_searchable)
 
     # small structured
     if warehouse_id == 3:
@@ -171,7 +173,7 @@ def generate_warehouse(warehouse_id):
                            (10, 5), (10, 15), (10, 25), (10, 35), (5, 0), (5, 10), (5, 20), (5, 30)]
 
         return Warehouse(warehouse_id, length, width, number_of_sources, number_of_destinations, obstacle_length,
-                         obstacle_width, obstacle_layout)
+                         obstacle_width, obstacle_layout, is_warehouse_searchable)
 
     if warehouse_id == 201:
         length = 200
@@ -183,7 +185,7 @@ def generate_warehouse(warehouse_id):
         obstacle_layout = []
 
         return Warehouse(warehouse_id, length, width, number_of_sources, number_of_destinations, obstacle_length,
-                         obstacle_width, obstacle_layout)
+                         obstacle_width, obstacle_layout, is_warehouse_searchable)
 
     if warehouse_id == 202:
         length = 200
@@ -197,7 +199,7 @@ def generate_warehouse(warehouse_id):
                            (140, 0), (140, 20), (140, 40), (140, 80), (140, 100), (140, 140), (140, 160), (140, 180)]
 
         return Warehouse(warehouse_id, length, width, number_of_sources, number_of_destinations, obstacle_length,
-                         obstacle_width, obstacle_layout)
+                         obstacle_width, obstacle_layout, is_warehouse_searchable)
 
     if warehouse_id == 203:
         length = 200
@@ -213,7 +215,7 @@ def generate_warehouse(warehouse_id):
         obstacle_layout = [(x * 5, y * 5) for (x, y) in pre_obstacle_layout]
 
         return Warehouse(warehouse_id, length, width, number_of_sources, number_of_destinations, obstacle_length,
-                         obstacle_width, obstacle_layout)
+                         obstacle_width, obstacle_layout, is_warehouse_searchable)
 
     if warehouse_id == 204:
         length = 200
@@ -227,7 +229,7 @@ def generate_warehouse(warehouse_id):
                            (140, 0), (140, 20), (140, 40), (140, 60), (140, 120), (140, 140), (140, 160), (140, 180)]
 
         return Warehouse(warehouse_id, length, width, number_of_sources, number_of_destinations, obstacle_length,
-                         obstacle_width, obstacle_layout)
+                         obstacle_width, obstacle_layout, is_warehouse_searchable)
 
     if warehouse_id == 205:
         length = 200
@@ -241,7 +243,7 @@ def generate_warehouse(warehouse_id):
                            (140, 0), (140, 20), (150, 60), (150, 80), (150, 100), (150, 120), (140, 160), (140, 180)]
 
         return Warehouse(warehouse_id, length, width, number_of_sources, number_of_destinations, obstacle_length,
-                         obstacle_width, obstacle_layout)
+                         obstacle_width, obstacle_layout, is_warehouse_searchable)
 
     if warehouse_id == 206:
         length = 200
@@ -257,7 +259,7 @@ def generate_warehouse(warehouse_id):
                            (140, 17), (140, 37), (140, 60), (140, 81), (140, 101), (140, 121), (140, 142), (140, 162)]
 
         return Warehouse(warehouse_id, length, width, number_of_sources, number_of_destinations, obstacle_length,
-                         obstacle_width, obstacle_layout)
+                         obstacle_width, obstacle_layout, is_warehouse_searchable)
 
     if warehouse_id == 207:
         length = 200
@@ -271,7 +273,7 @@ def generate_warehouse(warehouse_id):
                            (40, 150), (60, 150), (120, 150), (140, 150)]
 
         return Warehouse(warehouse_id, length, width, number_of_sources, number_of_destinations, obstacle_length,
-                         obstacle_width, obstacle_layout)
+                         obstacle_width, obstacle_layout, is_warehouse_searchable)
 
 
 def is_energy_cost_valid(warehouse, energy_cost):

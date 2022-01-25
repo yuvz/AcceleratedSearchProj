@@ -14,7 +14,7 @@ MAX_APPROXIMATION = 0.04
 MAX_CONTINUED_MOTION = 5
 MAX_CONTINUED_MOTION_FACTOR = 4
 MIDPOINT_DISTANCE_FROM_EDGES_FACTOR = 0.2
-MAX_DEVIATION_FACTOR_IN_DATABASE = 1.1
+MAX_DEVIATION_FACTOR_IN_DATABASE = 1.7
 
 
 def generate_midpoint_restricted_path_lengths_csv(warehouse, source_id, destination_id, data):
