@@ -6,7 +6,7 @@ from Visualization import visualize_plan
 from time import time
 
 from ConflictsByDeviationFactorExperiment import run_experiment, \
-        run_experiments_to_generate_main_data_file, \
+        run_experiments_to_generate_main_data_file_deviation_graph, \
         generate_number_of_conflicts_by_deviation_factor_data, \
         generate_number_of_conflicts_by_deviation_factor_visualization, \
         generate_vertex_conflict_heatmap_data, \
@@ -68,20 +68,20 @@ def generate_database(warehouse_id, max_number_of_agents, number_of_agents_incre
         for number_of_agents in number_of_agents_per_experiment:
             if deviation_factors is not None:
                 for deviation_factor in deviation_factors:
-                    run_experiments_to_generate_main_data_file(warehouse, number_of_agents, number_of_samples,
-                                                               deviation_factor)
+                    run_experiments_to_generate_main_data_file_deviation_graph(warehouse, number_of_agents, number_of_samples,
+                                                                               deviation_factor)
             else:
-                run_experiments_to_generate_main_data_file(warehouse, number_of_agents, number_of_samples)
+                run_experiments_to_generate_main_data_file_deviation_graph(warehouse, number_of_agents, number_of_samples)
             print(f"experiments with {number_of_agents} agents complete")
 
     else:
         for i in range(1, max_number_of_agents + 1, number_of_agents_incrementation_step):
             if deviation_factors is not None:
                 for deviation_factor in deviation_factors:
-                    run_experiments_to_generate_main_data_file(warehouse, i, number_of_samples,
-                                                               deviation_factor)
+                    run_experiments_to_generate_main_data_file_deviation_graph(warehouse, i, number_of_samples,
+                                                                               deviation_factor)
             else:
-                run_experiments_to_generate_main_data_file(warehouse, i, number_of_samples)
+                run_experiments_to_generate_main_data_file_deviation_graph(warehouse, i, number_of_samples)
             print(f"experiments with {i} agents complete")
     print("***")
     print("Done")

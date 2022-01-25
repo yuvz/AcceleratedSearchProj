@@ -120,7 +120,7 @@ def export_results_to_csv(warehouse_id, number_of_agents, deviation_factor, rout
         writer.writerow(results_info)
 
 
-def run_experiments_to_generate_main_data_file(warehouse, number_of_agents, number_of_samples, deviation_factor):
+def run_experiments_to_generate_main_data_file_deviation_graph(warehouse, number_of_agents, number_of_samples, deviation_factor):
     warehouse_id = warehouse.warehouse_id
     create_experiment_file_hierarchy_if_does_not_exist(warehouse_id, number_of_agents, deviation_factor)
 
