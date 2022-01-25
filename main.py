@@ -1,3 +1,5 @@
+import numpy as np
+
 from DatabaseInterface import initialize_database_preliminary_files
 
 from ExampleGeneration import generate_example
@@ -14,7 +16,7 @@ from ConflictsByDeviationFactorExperiment import run_experiment, \
     generate_swapping_conflict_heatmap_visualization, generate_plan_heatmap_data, \
     generate_plan_heatmap_visualization
 
-IS_SINGLE_SOURCE_DESTINATION = False
+IS_SINGLE_SOURCE_DESTINATION = True
 
 if IS_SINGLE_SOURCE_DESTINATION:
     from SingleSourceDestinationConflictsByNumberOfAgentsExperiment import run_experiment, \
@@ -31,7 +33,8 @@ else:
         generate_vertex_conflict_heatmap_data, \
         generate_vertex_conflict_heatmap_visualization, generate_swapping_conflict_heatmap_data, \
         generate_swapping_conflict_heatmap_visualization, generate_plan_heatmap_data, \
-        generate_plan_heatmap_visualization
+        generate_plan_heatmap_visualization, generate_metro_map_visualization
+
 
 WAREHOUSE_TYPES = {"first paper": 1, "toy": 2, "small structured": 3, "small empty single origin": 4}
 HUGE_WAREHOUSE_IDS = [201, 202, 203, 204, 205, 206, 207]
@@ -60,7 +63,7 @@ def generate_example_template(warehouse_id):
 def generate_database_for_deviation_experiment(warehouse_id, number_of_samples, number_of_agents_per_experiment,
                                                deviation_factors):
     warehouse = generate_warehouse(warehouse_id)
-    initialize_database_preliminary_files(warehouse)
+    #initialize_database_preliminary_files(warehouse)
 
     print("***")
     print("running experiments")
@@ -147,28 +150,38 @@ def generate_metro_map(warehouse_id):
     print("Done")
 
 
-def main():
-    """
-    Choose a warehouse_id from HUGE_WAREHOUSE_IDS, and run the following code to generate the visualization for it.
-    """
-
+def run_deviation_experiments():
     number_of_agents_per_experiment = [10, 30, 50, 100, 200, 400]
-    deviation_factors = [1.05, 1.1, 1.2, 1.3, 1.4, 1.5]
+    deviation_factors = [round(i, 2) for i in np.linspace(1.05, 1.5, 10)]
+    number_of_agents_per_experiment = [30, 50, 100, 200, 400]
 
-    warehouse_id = HUGE_WAREHOUSE_IDS[6]
+    for i in range(7):
+        warehouse_id = HUGE_WAREHOUSE_IDS[i]
 
-    generate_database_for_deviation_experiment(warehouse_id,
-                                               number_of_samples=100,
-                                               number_of_agents_per_experiment=number_of_agents_per_experiment,
-                                               deviation_factors=deviation_factors)
+        generate_database_for_deviation_experiment(warehouse_id,
+                                                   number_of_samples=100,
+                                                   number_of_agents_per_experiment=number_of_agents_per_experiment,
+                                                   deviation_factors=deviation_factors)
 
-    generate_number_of_conflicts_by_deviation_factor_scatter_plot(warehouse_id, number_of_agents_per_experiment)
-    """
+        generate_number_of_conflicts_by_deviation_factor_scatter_plot(warehouse_id, number_of_agents_per_experiment)
+
+
+def run_conflict_experiments():
+    warehouse_id = 4
+    generate_database(warehouse_id, 10)
+
     generate_vertex_conflict_heatmap(warehouse_id)
     generate_swapping_conflict_heatmap(warehouse_id)
     generate_plan_heatmap(warehouse_id)
     generate_metro_map(warehouse_id)
+
+
+def main():
     """
+    Choose a warehouse_id from HUGE_WAREHOUSE_IDS, and run the following code to generate the visualization for it.
+    """
+    # run_deviation_experiments()
+    run_conflict_experiments()
 
 
 if __name__ == "__main__":

@@ -225,7 +225,7 @@ def generate_vertex_conflict_heatmap_visualization(warehouse_id, log_scale=False
     results_file_path = results_dir_path + 'vertex_conflict_heatmap_data.csv'
     kwargs = dict()
     if log_scale:
-        kwargs["norm"] = LogNorm()
+        kwargs["norm"] = LogNorm(clip=True)
     df = pd.read_csv(results_file_path, index_col='Unnamed: 0')
     sns.heatmap(data=df.loc[::-1], **kwargs)
     plt.suptitle('Vertex conflict, by location' + (' (logscale)' if log_scale else ''))
@@ -278,7 +278,7 @@ def generate_swapping_conflict_heatmap_visualization(warehouse_id, log_scale=Fal
     df = pd.read_csv(results_file_path, index_col='Unnamed: 0')
     kwargs = dict()
     if log_scale:
-        kwargs["norm"] = LogNorm()
+        kwargs["norm"] = LogNorm(clip=True)
     sns.heatmap(data=df.loc[::-1], **kwargs)
     plt.suptitle('Swapping conflict, by location' + (' (logscale)' if log_scale else ''))
     plt.title(f'warehouse_id = {warehouse_id}', loc='left')
@@ -332,7 +332,7 @@ def generate_plan_heatmap_visualization(warehouse_id, log_scale=False):
     kwargs = dict()
     kwargs["cmap"] = "Blues"
     if log_scale:
-        kwargs["norm"] = LogNorm()
+        kwargs["norm"] = LogNorm(clip=True)
     sns.heatmap(data=df.loc[::-1], **kwargs)
     plt.suptitle('Plan heatmap by location' + (' (logscale)' if log_scale else ''))
     plt.title(f'warehouse_id = {warehouse_id}', loc='left')
