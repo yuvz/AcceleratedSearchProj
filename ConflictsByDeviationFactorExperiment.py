@@ -151,8 +151,8 @@ def generate_number_of_conflicts_by_deviation_factor_data(warehouse_id, numbers_
             if int(file_name[:file_name.find('-')]) != number_of_agents:
                 continue
 
-            number_of_conflicts = np.mean(len(conflicts) for conflicts in raw_data.vertex_conflicts)
-            deviation_factor = float(re.findall(r"-.+.csv", file_name)[0][1:-4])
+            number_of_conflicts = np.mean([len(conflicts) for conflicts in raw_data.vertex_conflicts])
+            deviation_factor = float(re.findall(r"-[0-9]\.[0-9]*\.csv", file_name)[0][1:-4])
 
             results = results.append({'deviation_factor': deviation_factor, 'number_of_conflicts': number_of_conflicts,
                                       'number_of_agents': number_of_agents}, ignore_index=True)
