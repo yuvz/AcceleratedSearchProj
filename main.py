@@ -6,13 +6,13 @@ from Visualization import visualize_plan
 from time import time
 
 from ConflictsByDeviationFactorExperiment import run_experiment, \
-        run_experiments_to_generate_main_data_file_deviation_graph, \
-        generate_number_of_conflicts_by_deviation_factor_data, \
-        generate_number_of_conflicts_by_deviation_factor_visualization, \
-        generate_vertex_conflict_heatmap_data, \
-        generate_vertex_conflict_heatmap_visualization, generate_swapping_conflict_heatmap_data, \
-        generate_swapping_conflict_heatmap_visualization, generate_plan_heatmap_data, \
-        generate_plan_heatmap_visualization
+    run_experiments_to_generate_main_data_file_deviation_graph, \
+    generate_number_of_conflicts_by_deviation_factor_data, \
+    generate_number_of_conflicts_by_deviation_factor_visualization, \
+    generate_vertex_conflict_heatmap_data, \
+    generate_vertex_conflict_heatmap_visualization, generate_swapping_conflict_heatmap_data, \
+    generate_swapping_conflict_heatmap_visualization, generate_plan_heatmap_data, \
+    generate_plan_heatmap_visualization
 
 IS_SINGLE_SOURCE_DESTINATION = False
 
@@ -57,32 +57,17 @@ def generate_example_template(warehouse_id):
                        running_time)
 
 
-def generate_database_for_deviation_experiment(warehouse_id, max_number_of_agents, number_of_agents_incrementation_step=1,
-                      number_of_samples=1000, number_of_agents_per_experiment=None, deviation_factors=None):
+def generate_database_for_deviation_experiment(warehouse_id, number_of_samples, number_of_agents_per_experiment,
+                                               deviation_factors):
     warehouse = generate_warehouse(warehouse_id)
     initialize_database_preliminary_files(warehouse)
 
     print("***")
     print("running experiments")
-    if number_of_agents_per_experiment is not None:
-        for number_of_agents in number_of_agents_per_experiment:
-            if deviation_factors is not None:
-                for deviation_factor in deviation_factors:
-                    run_experiments_to_generate_main_data_file_deviation_graph(warehouse, number_of_agents, number_of_samples,
-                                                                               deviation_factor)
-            else:
-                run_experiments_to_generate_main_data_file_deviation_graph(warehouse, number_of_agents, number_of_samples)
-            print(f"experiments with {number_of_agents} agents complete")
-
-    else:
-        for i in range(1, max_number_of_agents + 1, number_of_agents_incrementation_step):
-            if deviation_factors is not None:
-                for deviation_factor in deviation_factors:
-                    run_experiments_to_generate_main_data_file_deviation_graph(warehouse, i, number_of_samples,
-                                                                               deviation_factor)
-            else:
-                run_experiments_to_generate_main_data_file_deviation_graph(warehouse, i, number_of_samples)
-            print(f"experiments with {i} agents complete")
+    for number_of_agents in number_of_agents_per_experiment:
+        for deviation_factor in deviation_factors:
+            run_experiments_to_generate_main_data_file_deviation_graph(warehouse, number_of_agents,
+                                                                       number_of_samples, deviation_factor)
     print("***")
     print("Done")
 
@@ -173,11 +158,9 @@ def main():
     warehouse_id = HUGE_WAREHOUSE_IDS[6]
 
     generate_database_for_deviation_experiment(warehouse_id,
-                      max_number_of_agents=400,
-                      number_of_agents_incrementation_step=20,
-                      number_of_samples=100,
-                      number_of_agents_per_experiment=number_of_agents_per_experiment,
-                      deviation_factors=deviation_factors)
+                                               number_of_samples=100,
+                                               number_of_agents_per_experiment=number_of_agents_per_experiment,
+                                               deviation_factors=deviation_factors)
 
     generate_number_of_conflicts_by_deviation_factor_scatter_plot(warehouse_id, number_of_agents_per_experiment)
     """
