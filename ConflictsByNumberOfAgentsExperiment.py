@@ -15,6 +15,9 @@ from DatabaseInterface import greedily_generate_path_from_source_to_midpoint, \
 from EnvironmentUtils import get_plan_conflicts
 
 
+MAX_DEVIATION_FACTOR = 1.1
+
+
 def get_midpoint_providing_shortest_path_smaller_than_arrival_time(warehouse, source_id, destination_id, arrival_time):
     warehouse_id = warehouse.warehouse_id
     file_path = f'./csv_files/warehouse_{warehouse_id}/midpoint_restricted_path_lengths/from_source_{source_id}' \
@@ -61,7 +64,7 @@ def generate_arrival_time(warehouse, source_id, destination_id, maximal_deviatio
     return arrival_time
 
 
-def run_experiment(warehouse, number_of_agents, maximal_deviation_factor=1.1):
+def run_experiment(warehouse, number_of_agents, maximal_deviation_factor=MAX_DEVIATION_FACTOR):
     source_ids = [random.choice(range(warehouse.number_of_sources)) for _ in range(number_of_agents)]
     destination_ids = [random.choice(range(warehouse.number_of_destinations)) for _ in range(number_of_agents)]
     arrival_times = [generate_arrival_time(warehouse, source_ids[i], destination_ids[i], maximal_deviation_factor)
