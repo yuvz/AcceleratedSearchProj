@@ -339,5 +339,6 @@ def generate_plan_heatmap_visualization(warehouse_id, log_scale=False):
     print("Plan heatmap image saved to:", image_file_path)
     plt.show()
 
+
 def generate_metro_map_visualization(warehouse_id):
     pass

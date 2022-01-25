@@ -420,3 +420,4 @@ def generate_metro_map_visualization(warehouse):
     warehouse_id = warehouse.warehouse_id
     plan = sample_path_database(warehouse_id)
     visualize_plan_metro_map(warehouse, plan)
+    #for push bug
