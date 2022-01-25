@@ -12,6 +12,7 @@ from matplotlib import axes
 from DatabaseInterface import greedily_generate_path_from_source_to_midpoint, \
     greedily_generate_path_from_midpoint_to_destination
 from EnvironmentUtils import get_plan_conflicts
+from matplotlib.colors import LogNorm
 
 
 MAX_DEVIATION_FACTOR = 1.7
@@ -83,14 +84,14 @@ def run_experiment(warehouse, number_of_agents, maximal_deviation_factor=MAX_DEV
 
 def create_experiment_directory_if_does_not_exist(warehouse_id):
     dir_path = f"./csv_files/warehouse_{warehouse_id}/experiments" \
-               f"/single_source_destination_conflicts_by_number_of_agents/data/ "
+               f"/single_source_destination_conflicts_by_number_of_agents/data/"
     if not os.path.isdir(dir_path):
         os.makedirs(os.path.dirname(dir_path), exist_ok=True)
 
 
 def create_experiment_file_if_does_not_exist(warehouse_id, number_of_agents):
     dir_path = f"./csv_files/warehouse_{warehouse_id}/experiments" \
-               f"/single_source_destination_conflicts_by_number_of_agents/data/ "
+               f"/single_source_destination_conflicts_by_number_of_agents/data/"
 
     file_path = dir_path + f"{number_of_agents}_agents.csv"
     field_names = ['warehouse_id', 'routing_requests', 'plan', 'vertex_conflicts', 'swapping_conflicts']
@@ -109,7 +110,7 @@ def create_experiment_file_hierarchy_if_does_not_exist(warehouse_id, number_of_a
 
 def export_results_to_csv(warehouse_id, number_of_agents, routing_requests, plan, vertex_conflicts, swapping_conflicts):
     dir_path = f"./csv_files/warehouse_{warehouse_id}/experiments" \
-               f"/single_source_destination_conflicts_by_number_of_agents/data/ "
+               f"/single_source_destination_conflicts_by_number_of_agents/data/"
 
     file_path = dir_path + f"{number_of_agents}_agents.csv"
     field_names = ['warehouse_id', 'routing_requests', 'plan', 'vertex_conflicts', 'swapping_conflicts']
@@ -134,7 +135,8 @@ def run_experiments_to_generate_main_data_file(warehouse, number_of_agents, numb
 
 
 def generate_conflict_probability_by_number_of_agents_data(warehouse_id):
-    data_dir_path = f"./csv_files/warehouse_{warehouse_id}/experiments/single_source_destination_conflicts_by_number_of_agents/data/"
+    data_dir_path = f"./csv_files/warehouse_{warehouse_id}/experiments" \
+                    f"/single_source_destination_conflicts_by_number_of_agents/data/"
     if not os.path.isdir(data_dir_path):
         print("No data available at", data_dir_path)
         print(f"Please generate data via run_experiments_to_generate_main_data_file for warehouse with "
@@ -160,7 +162,8 @@ def generate_conflict_probability_by_number_of_agents_data(warehouse_id):
                                  ignore_index=True)
 
     results = results.sort_values(by='number_of_agents').set_index('number_of_agents')
-    results_dir_path = f"./csv_files/warehouse_{warehouse_id}/experiments/single_source_destination_conflicts_by_number_of_agents/results/"
+    results_dir_path = f"./csv_files/warehouse_{warehouse_id}/experiments" \
+                       f"/single_source_destination_conflicts_by_number_of_agents/results/"
     if not os.path.isdir(results_dir_path):
         os.makedirs(os.path.dirname(results_dir_path), exist_ok=True)
 
@@ -170,7 +173,8 @@ def generate_conflict_probability_by_number_of_agents_data(warehouse_id):
 
 
 def generate_conflict_probability_by_number_of_agents_visualization(warehouse_id):
-    results_dir_path = f"./csv_files/warehouse_{warehouse_id}/experiments/single_source_destination_conflicts_by_number_of_agents/results/"
+    results_dir_path = f"./csv_files/warehouse_{warehouse_id}/experiments" \
+                       f"/single_source_destination_conflicts_by_number_of_agents/results/"
     results_file_path = results_dir_path + 'conflict_probability_by_number_of_agents.csv'
     df = pd.read_csv(results_file_path)
     sns.lineplot(data=df, x='number_of_agents', y='conflict_probability', linewidth=3)
@@ -191,7 +195,8 @@ def generate_conflict_probability_by_number_of_agents_visualization(warehouse_id
 
 def generate_vertex_conflict_heatmap_data(warehouse):
     warehouse_id = warehouse.warehouse_id
-    data_dir_path = f"./csv_files/warehouse_{warehouse_id}/experiments/single_source_destination_conflicts_by_number_of_agents/data/"
+    data_dir_path = f"./csv_files/warehouse_{warehouse_id}/experiments" \
+                    f"/single_source_destination_conflicts_by_number_of_agents/data/"
     if not os.path.isdir(data_dir_path):
         print("No data available at", data_dir_path)
         print(f"Please generate data via run_experiments_to_generate_main_data_file for warehouse with "
@@ -209,7 +214,8 @@ def generate_vertex_conflict_heatmap_data(warehouse):
                 conflict_location = conflict[3]
                 results[conflict_location[0], conflict_location[1]] += 1
 
-    results_dir_path = f"./csv_files/warehouse_{warehouse_id}/experiments/single_source_destination_conflicts_by_number_of_agents/results/"
+    results_dir_path = f"./csv_files/warehouse_{warehouse_id}/experiments" \
+                       f"/single_source_destination_conflicts_by_number_of_agents/results/"
     if not os.path.isdir(results_dir_path):
         os.makedirs(os.path.dirname(results_dir_path), exist_ok=True)
 
@@ -220,7 +226,8 @@ def generate_vertex_conflict_heatmap_data(warehouse):
 
 
 def generate_vertex_conflict_heatmap_visualization(warehouse_id):
-    results_dir_path = f"./csv_files/warehouse_{warehouse_id}/experiments/single_source_destination_conflicts_by_number_of_agents/results/"
+    results_dir_path = f"./csv_files/warehouse_{warehouse_id}/experiments" \
+                       f"/single_source_destination_conflicts_by_number_of_agents/results/"
     results_file_path = results_dir_path + 'vertex_conflict_heatmap_data.csv'
     df = pd.read_csv(results_file_path, index_col='Unnamed: 0')
     sns.heatmap(data=df.loc[::-1])
@@ -235,7 +242,8 @@ def generate_vertex_conflict_heatmap_visualization(warehouse_id):
 
 def generate_swapping_conflict_heatmap_data(warehouse):
     warehouse_id = warehouse.warehouse_id
-    data_dir_path = f"./csv_files/warehouse_{warehouse_id}/experiments/single_source_destination_conflicts_by_number_of_agents/data/"
+    data_dir_path = f"./csv_files/warehouse_{warehouse_id}/experiments" \
+                    f"/single_source_destination_conflicts_by_number_of_agents/data/"
     if not os.path.isdir(data_dir_path):
         print("No data available at", data_dir_path)
         print(f"Please generate data via run_experiments_to_generate_main_data_file for warehouse with "
@@ -255,7 +263,8 @@ def generate_swapping_conflict_heatmap_data(warehouse):
                 results[first_agent_conflict_location[0], first_agent_conflict_location[1]] += 1
                 results[second_agent_conflict_location[0], second_agent_conflict_location[1]] += 1
 
-    results_dir_path = f"./csv_files/warehouse_{warehouse_id}/experiments/single_source_destination_conflicts_by_number_of_agents/results/"
+    results_dir_path = f"./csv_files/warehouse_{warehouse_id}/experiments" \
+                       f"/single_source_destination_conflicts_by_number_of_agents/results/"
     if not os.path.isdir(results_dir_path):
         os.makedirs(os.path.dirname(results_dir_path), exist_ok=True)
 
@@ -301,7 +310,7 @@ def generate_plan_heatmap_data(warehouse):
                     results[vertex] += 1
 
     results_dir_path = f"./csv_files/warehouse_{warehouse_id}/experiments" \
-                       f"/single_source_destination_conflicts_by_number_of_agents/results/ "
+                       f"/single_source_destination_conflicts_by_number_of_agents/results/"
     if not os.path.isdir(results_dir_path):
         os.makedirs(os.path.dirname(results_dir_path), exist_ok=True)
 
@@ -313,7 +322,7 @@ def generate_plan_heatmap_data(warehouse):
 
 def generate_plan_heatmap_visualization(warehouse_id):
     results_dir_path = f"./csv_files/warehouse_{warehouse_id}/experiments" \
-                       f"/single_source_destination_conflicts_by_number_of_agents/results/ "
+                       f"/single_source_destination_conflicts_by_number_of_agents/results/"
     results_file_path = results_dir_path + 'plan_heatmap_data.csv'
     df = pd.read_csv(results_file_path, index_col='Unnamed: 0')
     sns.heatmap(data=df.loc[::-1], cmap="Blues")
