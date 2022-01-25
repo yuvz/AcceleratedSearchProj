@@ -211,15 +211,18 @@ def generate_vertex_conflict_heatmap_data(warehouse):
     print("Vertex conflict heatmap data saved to:", results_file_path)
 
 
-def generate_vertex_conflict_heatmap_visualization(warehouse_id):
+def generate_vertex_conflict_heatmap_visualization(warehouse_id, log_scale=False):
     results_dir_path = f"./csv_files/warehouse_{warehouse_id}/experiments/conflicts_by_number_of_agents/results/"
     results_file_path = results_dir_path + 'vertex_conflict_heatmap_data.csv'
+    kwargs = dict()
+    if log_scale:
+        kwargs["norm"] = LogNorm()
     df = pd.read_csv(results_file_path, index_col='Unnamed: 0')
-    sns.heatmap(data=df.loc[::-1])
-    plt.suptitle('Vertex conflict, by location')
+    sns.heatmap(data=df.loc[::-1], **kwargs)
+    plt.suptitle('Vertex conflict, by location' + (' (logscale)' if log_scale else ''))
     plt.title(f'warehouse_id = {warehouse_id}', loc='left')
 
-    image_file_path = results_dir_path + 'vertex_conflict_heatmap_data.png'
+    image_file_path = results_dir_path + 'vertex_conflict_heatmap_data' + ('_log' if log_scale else '') + '.png'
     plt.savefig(image_file_path)
     print("Vertex conflict heatmap image saved to:", image_file_path)
     plt.show()
@@ -257,15 +260,18 @@ def generate_swapping_conflict_heatmap_data(warehouse):
     print("Swapping conflict heatmap data saved to:", results_file_path)
 
 
-def generate_swapping_conflict_heatmap_visualization(warehouse_id):
+def generate_swapping_conflict_heatmap_visualization(warehouse_id, log_scale=False):
     results_dir_path = f"./csv_files/warehouse_{warehouse_id}/experiments/conflicts_by_number_of_agents/results/"
     results_file_path = results_dir_path + 'swapping_conflict_heatmap_data.csv'
     df = pd.read_csv(results_file_path, index_col='Unnamed: 0')
-    sns.heatmap(data=df.loc[::-1])
-    plt.suptitle('Swapping conflict, by location')
+    kwargs = dict()
+    if log_scale:
+        kwargs["norm"] = LogNorm()
+    sns.heatmap(data=df.loc[::-1], **kwargs)
+    plt.suptitle('Swapping conflict, by location' + (' (logscale)' if log_scale else ''))
     plt.title(f'warehouse_id = {warehouse_id}', loc='left')
 
-    image_file_path = results_dir_path + 'swapping_conflict_heatmap_data.png'
+    image_file_path = results_dir_path + 'swapping_conflict_heatmap_data' + ('_log' if log_scale else '') + '.png'
     plt.savefig(image_file_path)
     print("Swapping conflict heatmap image saved to:", image_file_path)
     plt.show()
@@ -304,31 +310,22 @@ def generate_plan_heatmap_data(warehouse):
     print("Plan heatmap data saved to:", results_file_path)
 
 
-def generate_plan_heatmap_visualization(warehouse_id):
+def generate_plan_heatmap_visualization(warehouse_id, log_scale=False):
     results_dir_path = f"./csv_files/warehouse_{warehouse_id}/experiments/conflicts_by_number_of_agents/results/"
     results_file_path = results_dir_path + 'plan_heatmap_data.csv'
     df = pd.read_csv(results_file_path, index_col='Unnamed: 0')
-    sns.heatmap(data=df.loc[::-1], cmap="Blues")
-    plt.suptitle('Plan heatmap by location')
+    kwargs = dict()
+    kwargs["cmap"] = "Blues"
+    if log_scale:
+        kwargs["norm"] = LogNorm()
+    sns.heatmap(data=df.loc[::-1], **kwargs)
+    plt.suptitle('Plan heatmap by location' + (' (logscale)' if log_scale else ''))
     plt.title(f'warehouse_id = {warehouse_id}', loc='left')
 
-    image_file_path = results_dir_path + 'plan_heatmap_data.png'
+    image_file_path = results_dir_path + 'plan_heatmap_data' + ('_log' if log_scale else '') + '.png'
     plt.savefig(image_file_path)
     print("Plan heatmap image saved to:", image_file_path)
     plt.show()
-
-
-def generate_plan_heatmap_visualization_log(warehouse_id):
-    results_dir_path = f"./csv_files/warehouse_{warehouse_id}/experiments/results/conflicts_by_number_of_agents/"
-    results_file_path = results_dir_path + 'plan_heatmap_data.csv'
-    df = pd.read_csv(results_file_path, index_col='Unnamed: 0')
-    sns.heatmap(data=df.loc[::-1], cmap="Blues", norm=LogNorm())
-    plt.suptitle('Plan heatmap by location')
-    plt.title(f'warehouse_id = {warehouse_id}', loc='left')
-
-    plt.savefig(results_dir_path + 'plan_heatmap_data_log.png')
-    plt.show()
-
 
 def generate_metro_map_visualization(warehouse_id):
     pass
