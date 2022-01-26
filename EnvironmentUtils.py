@@ -148,6 +148,19 @@ def generate_warehouse(warehouse_id, is_warehouse_searchable=True):
         return Warehouse(warehouse_id, length, width, number_of_sources, number_of_destinations, obstacle_length,
                          obstacle_width, obstacle_layout, is_warehouse_searchable)
 
+    # # Toy warehouse
+    # if warehouse_id == 2:
+    #     length = 10
+    #     width = 10
+    #     number_of_sources = 3
+    #     number_of_destinations = 2
+    #     obstacle_length = round(0.1 * length)
+    #     obstacle_width = round(0.1 * width)
+    #     obstacle_layout = [(3, 2), (3, 5), (4, 7), (6, 5)]
+    #
+    #     return Warehouse(warehouse_id, length, width, number_of_sources, number_of_destinations, obstacle_length,
+    #                      obstacle_width, obstacle_layout, is_warehouse_searchable)
+
     # small structured
     if warehouse_id == 3:
         length = 40

@@ -3,29 +3,23 @@ from CBS.CBS import CBS
 
 class RHCR:
     """
-    window - the plan is free of conflicts until window
-    time_to_plan - time to run CBS again
-    window has to be greater than time_to_plan at least by one in this implementation.
-    In this implementation of RHCR:
+    window - the plan is free of conflicts until window, in other words the CBS will take into account all conflicts
+             in window.
+    time_to_plan - time to run CBS again, this is the actual window size that added to the solution each iteration.
     RHCR run CBS in iterations. Each iteration CBS considers only the conflicts inside window.
     Then, RHCR takes only part of the solution for each route - until time_to_plan.
-    Then, in the next iteration RHCR calls CBS with new sources - the vertex *after* time_to_plan.
-    That is the reason the window has to be greater than time_to_plan, so there will not be conflicts.
-    In conclusion, you may consider the actual part of the routs that RHCR calculates each iteration - time_to_plan + 1.
-    (without the overlapping between two sequential routs' parts, each part is in size of time_to_plan.
-     with the overlapping, each part is in size of time_to_plan + 1.)
     """
     def __init__(self, window, time_to_plan):
         self.window = window
         self.time_to_plan = time_to_plan
 
     def generate_rhcr_plan(self, warehouse, routing_requests):
-        if self.window < 2 or self.time_to_plan < 1 or self.window-self.time_to_plan < 1:
+        if self.time_to_plan < 1 or self.window < self.time_to_plan:
             print("non valid window/time_to_plan values.")
             print("time to plan has to be at least 1.")
-            print("window has to be greater than time to plan.")
-            return
-        plan = [[] for _ in range(len(routing_requests))]
+            print("window has to be greater than or equal to time to plan.")
+            exit(1)
+        plan = [[routing_requests[i].source.coordinates] for i in range(len(routing_requests))]
         routes_indexes_to_plan = [i for i in range(len(routing_requests))]
         counter = 1
         while routes_indexes_to_plan:
@@ -34,24 +28,23 @@ class RHCR:
             new_plan = cbs.solve(warehouse, remaining_routes, self.window)
             indexes_to_remove = []
             for i, route_index in enumerate(routes_indexes_to_plan):
-                for j in range(min(self.time_to_plan, len(new_plan[i]))):
+                for j in range(1, min(self.time_to_plan, len(new_plan[i]))):
                     plan[route_index].append(new_plan[i][j])
                 if plan[route_index][-1] == routing_requests[route_index].destination.coordinates:
                     indexes_to_remove.append(route_index)
                 else:
-                    new_source_coordinates = new_plan[i][self.time_to_plan]
+                    new_source_coordinates = plan[route_index][-1]
                     routing_requests[route_index].source = warehouse.vertices[new_source_coordinates[0]][new_source_coordinates[1]]
-                    if routing_requests[route_index].source == routing_requests[route_index].destination:
-                        plan[route_index].append(new_source_coordinates)
-                        indexes_to_remove.append(route_index)
             for index in indexes_to_remove:
                 routes_indexes_to_plan.remove(index)
             for route in plan:
                 print(route)
             is_deadlock = deadlock_detector(plan, warehouse, routing_requests, counter)
             if is_deadlock:
-                self.time_to_plan = self.time_to_plan*2
-                self.window = self.time_to_plan + 1
+                self.time_to_plan = self.time_to_plan+1
+                self.window = self.window+1
+                print(f"The time_to_plan increased by 1 and now is: {self.time_to_plan}")
+                print(f"The window increased by 1 and now is: {self.window}")
             counter += 1
         return plan
 
