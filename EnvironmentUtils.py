@@ -137,8 +137,8 @@ def generate_warehouse(warehouse_id, is_warehouse_searchable=True):
     if warehouse_id == 2:
         length = 40
         width = 40
-        number_of_sources = 4
-        number_of_destinations = 4
+        number_of_sources = 7
+        number_of_destinations = 5
         obstacle_length = round(0.1 * length)
         obstacle_width = round(0.1 * width)
         obstacle_layout = [(30, 5), (30, 15), (30, 25), (30, 35), (25, 0), (25, 10), (25, 20), (25, 30),

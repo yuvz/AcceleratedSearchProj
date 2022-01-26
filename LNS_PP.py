@@ -65,6 +65,8 @@ class LnsRnd:
                     if plan[i][time + 1] == neighbor.coordinates or (
                             plan[i][time] == neighbor.coordinates and plan[i][time + 1] == curr_coordinates):
                         neighborhood.add(i)
+                        if len(neighborhood) >= self.neighborhood_size:
+                            break
             curr_coordinates = neighbor.coordinates
             time += 1
 
@@ -94,7 +96,7 @@ class LnsRnd:
         neighborhood = set()
         neighborhood.add(chosen_routing_request_index)
         for i in range(AGENT_BASED_NEIGHBORHOOD_ITERATIONS):
-            if len(neighborhood) == self.neighborhood_size:
+            if len(neighborhood) >= self.neighborhood_size:
                 break
             self.random_walk(warehouse, plan, neighborhood, chosen_routing_request_index, routing_requests)
             chosen_routing_request_index = random.choice(list(neighborhood))
@@ -119,6 +121,8 @@ class LnsRnd:
                 sliced_route = route[start_index:end_index]
                 if chosen_vertex.coordinates in sliced_route:
                     neighborhood.add(route_id)
+                    if len(neighborhood) >= self.neighborhood_size:
+                        break
             delta += 1
 
     def map_based_neighborhood(self, routing_requests, warehouse, plan):
@@ -151,6 +155,8 @@ class LnsRnd:
         destination = random.choice(warehouse.destinations)
         source_and_destination_routing_requests = set.union(source.routing_requests, destination.routing_requests)
         neighborhood = [routing_request.routing_request_id for routing_request in source_and_destination_routing_requests]
+        if len(neighborhood) > self.neighborhood_size:
+            neighborhood = random.sample(neighborhood, self.neighborhood_size)
         return neighborhood
 
     def pick_best_source(self, warehouse, plan):
@@ -188,6 +194,8 @@ class LnsRnd:
         destination = self.pick_worst_destination(warehouse, plan)
         source_and_destination_routing_requests = set.union(source.routing_requests, destination.routing_requests)
         neighborhood = [routing_request.routing_request_id for routing_request in source_and_destination_routing_requests]
+        if len(neighborhood) > self.neighborhood_size:
+            neighborhood = random.sample(neighborhood, self.neighborhood_size)
         return neighborhood
 
     def pick_best_and_worst_sources(self, routing_requests, warehouse, plan):
@@ -195,6 +203,8 @@ class LnsRnd:
         worst_source = self.pick_worst_source(warehouse, plan)
         best_and_worst_sources_routing_requests = set.union(best_source.routing_requests, worst_source.routing_requests)
         neighborhood = [routing_request.routing_request_id for routing_request in best_and_worst_sources_routing_requests]
+        if len(neighborhood) > self.neighborhood_size:
+            neighborhood = random.sample(neighborhood, self.neighborhood_size)
         return neighborhood
 
     def adaptive_neighborhood(self, routing_requests, warehouse, plan):
