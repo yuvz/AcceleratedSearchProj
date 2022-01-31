@@ -355,47 +355,35 @@ def count_plan_conflicts(plan):
     return vertex_conflicts, swapping_conflicts
 
 
-def get_swapping_conflicts(plan):
-    conflicts = []
-    for i in range(len(plan)):
-        for j in range(len(plan)):
-            if i <= j:
-                continue
-
-            for time in range(min(len(plan[i]), len(plan[j])) - 1):
-                is_agent_at_source = plan[i][time] == plan[i][0]
-                is_agent_at_destination = plan[i][time] == plan[i][-1]
-
-                if is_agent_at_source or is_agent_at_destination:
-                    continue
-
-                if plan[i][time + 1] == plan[j][time] and plan[i][time] == plan[j][time + 1]:
-                    conflicts.append((time, i, j, plan[i][time], plan[i][time + 1]))
-    return conflicts
-
-
-def get_vertex_conflicts(plan):
-    conflicts = []
-    for i in range(len(plan)):
-        for j in range(len(plan)):
-            if i <= j:
-                continue
-
-            for time in range(min(len(plan[i]), len(plan[j]))):
-                is_agent_at_source = plan[i][time] == plan[i][0]
-                is_agent_at_destination = plan[i][time] == plan[i][-1]
-
-                if is_agent_at_source or is_agent_at_destination:
-                    continue
-
-                if plan[i][time] == plan[j][time]:
-                    conflicts.append((time, i, j, plan[i][time]))
-    return conflicts
-
-
 def get_plan_conflicts(plan):
-    vertex_conflicts = get_vertex_conflicts(plan)
-    swapping_conflicts = get_swapping_conflicts(plan)
+    vertex_conflicts = []
+    swapping_conflicts = []
+    warehouse_dictionaries = {}  # Dictionary of dictionaries of lists
+
+    for agent in range(len(plan)):
+        path = plan[agent]
+        prev_location = path[0]
+
+        for time in range(len(path)):
+            location = path[time]
+            if location == path[0] or location == path[-1]:  # agent is at source or at destination
+                continue
+            if location not in warehouse_dictionaries.keys():
+                warehouse_dictionaries[location] = {}
+            if time not in warehouse_dictionaries[location].keys():
+                warehouse_dictionaries[location][time] = []
+            # find vertex conflicts:
+            for other_agent in warehouse_dictionaries[location][time]:
+                vertex_conflicts.append((time, agent, other_agent, location))
+            # find swapping conflicts:
+            if prev_location != path[0]:  # not at start point
+                if time in warehouse_dictionaries[prev_location].keys() and \
+                        time - 1 in warehouse_dictionaries[location].keys():
+                    for other_agent in warehouse_dictionaries[prev_location][time]:
+                        if other_agent in warehouse_dictionaries[location][time - 1] and other_agent != agent:
+                            swapping_conflicts.append((time - 1, agent, other_agent, prev_location, location))
+            warehouse_dictionaries[location][time].append(agent)
+            prev_location = location
 
     return vertex_conflicts, swapping_conflicts
 
