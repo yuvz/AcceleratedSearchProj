@@ -5,6 +5,15 @@ from Visualization import visualize_plan
 
 
 def test_baseline_algorithm_sanity(warehouse, plan):
+    """
+    Tests that each route:  1. Is not empty
+                            2. Starts at source
+                            3. Ends at destination.
+                            4. Each vertex in the route is a legal neighbor of the previous one.
+                               (If waiting outside the source is forbidden, so a vertex does not include at his own
+                                neighbors group and as a result this test will verify that there is no waiting
+                                outside the source).
+    """
     vertexes_plan = []
     for route in plan:
         vertexes_route = [warehouse.vertices[coordinates[0]][coordinates[1]] for coordinates in route]
@@ -61,6 +70,9 @@ def test_vertex_conflict(warehouse, plan):
 
 
 def test_plan_conflicts(plan):
+    """
+    Tests both vertex and swapping conflicts.
+    """
     vertex_conflicts, swapping_conflicts = count_plan_conflicts(plan)
     if vertex_conflicts > 0 and swapping_conflicts > 0:
         print(f"ERROR: There is {vertex_conflicts} vertex conflicts and {swapping_conflicts} swapping conflicts!")
