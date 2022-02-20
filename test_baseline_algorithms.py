@@ -107,7 +107,7 @@ if __name__ == "__main__":
     if VISUALIZE_RESULT:
         visualization_type = "animation"
         title = ""
-        is_export_visualization = False
+        is_export_visualization = True
         visualize_plan(warehouse, plan, visualization_type, is_export_visualization, title, algorithm_name, running_time)
 
     warehouse = generate_warehouse(WAREHOUSE_TYPES["small structured"])
@@ -128,7 +128,7 @@ if __name__ == "__main__":
     if VISUALIZE_RESULT:
         visualization_type = "animation"
         title = ""
-        is_export_visualization = False
+        is_export_visualization = True
         visualize_plan(warehouse, plan, visualization_type, is_export_visualization, title, algorithm_name, running_time)
 
     warehouse = generate_warehouse(WAREHOUSE_TYPES["toy"])
@@ -148,7 +148,7 @@ if __name__ == "__main__":
     if VISUALIZE_RESULT:
         visualization_type = "animation"
         title = ""
-        is_export_visualization = False
+        is_export_visualization = True
         visualize_plan(warehouse, plan, visualization_type, is_export_visualization, title, algorithm_name, running_time)
 
     warehouse = generate_warehouse(WAREHOUSE_TYPES["toy"])
@@ -168,5 +168,5 @@ if __name__ == "__main__":
     if VISUALIZE_RESULT:
         visualization_type = "animation"
         title = ""
-        is_export_visualization = False
+        is_export_visualization = True
         visualize_plan(warehouse, plan, visualization_type, is_export_visualization, title, algorithm_name, running_time)
